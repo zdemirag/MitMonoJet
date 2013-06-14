@@ -1,4 +1,4 @@
-// $Id: runMonoJet.C,v 1.1 2013/05/31 18:20:57 dimatteo Exp $
+// $Id: runMonoJet.C,v 1.1 2013/06/13 03:28:58 dimatteo Exp $
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TSystem.h>
 #include <TProfile.h>
@@ -441,8 +441,8 @@ void runMonoJet(const char *fileset    = "0000",
     d = c->FindDataset(bookstr,dataset,fileset);
   else 
     d = c->FindDataset(bookstr,skimdataset.Data(),fileset);
-  //ana->AddDataset(d);
-  ana->AddFile("/mnt/hadoop/cmsprod/filefi/029/s12-h125gg-gf-v7a/D0515547-68FA-E111-B849-002618FDA262.root");
+  ana->AddDataset(d);
+  //ana->AddFile("/mnt/hadoop/cmsprod/filefi/029/s12-h125gg-gf-v7a/D0515547-68FA-E111-B849-002618FDA262.root");
 
   //------------------------------------------------------------------------------------------------
   // organize output
