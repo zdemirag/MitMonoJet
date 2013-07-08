@@ -1,4 +1,4 @@
-// $Id: runMonoJet.C,v 1.1 2013/06/13 03:28:58 dimatteo Exp $
+// $Id: runMonoJet.C,v 1.3 2013/06/19 00:48:01 dimatteo Exp $
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TSystem.h>
 #include <TProfile.h>
@@ -109,11 +109,34 @@ void runMonoJet(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   HLTMod *hltModP = new HLTMod("HLTModP");
   
-  //dummy example
-  hltModP->AddTrigger("HLT_Photon26_CaloIdL_IsoVL_Photon18_CaloIdL_IsoVL_v*",160000,161176);
+  //------------------------------------------------------------------------------------------------
+  // Run2012
+  //------------------------------------------------------------------------------------------------
+  hltModP->AddTrigger("HLT_MET120_HBHENoiseCleaned_v*",0,999999); 
+  hltModP->AddTrigger("MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v*",0,999999); 
+  hltModP->AddTrigger("MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v*",0,999999);   
     
   hltModP->SetTrigObjsName("MyHltPhotObjs");
   hltModP->SetAbortIfNotAccepted(isData);
+  hltModP->SetPrintTable(kFALSE); // set to true to print HLT table
+  if(isData == kFALSE){ // ugly, but it works
+    hltModP->AddTrigger("HLT_Mu15_v9");
+    hltModP->AddTrigger("!HLT_Mu15_v9");
+    hltModP->AddTrigger("HLT_Mu15_v2");
+    hltModP->AddTrigger("!HLT_Mu15_v2");
+    hltModP->AddTrigger("HLT_Mu9");
+    hltModP->AddTrigger("!HLT_Mu9");
+    hltModP->AddTrigger("HLT_Mu12_v13");
+    hltModP->AddTrigger("!HLT_Mu12_v13");
+    hltModP->AddTrigger("HLT_Mu12_v14");
+    hltModP->AddTrigger("!HLT_Mu12_v14");
+    hltModP->AddTrigger("HLT_Mu12_v16");
+    hltModP->AddTrigger("!HLT_Mu12_v16");
+    // // MC signal triggers
+    // hltModP->AddTrigger("HLT_MET120_HBHENoiseCleaned_v*");
+    // hltModP->AddTrigger("MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v*");
+  }
+
   //------------------------------------------------------------------------------------------------
   // split pfcandidates to PFPU and PFnoPU
   //------------------------------------------------------------------------------------------------
@@ -243,10 +266,11 @@ void runMonoJet(const char *fileset    = "0000",
   TString bookstr = book;
   //if (TString(dataset).Contains("s11-h")) bookstr.ReplaceAll("local","t2mit");
   if (TString(skim).CompareTo("noskim") == 0)
-    d = c->FindDataset(bookstr,dataset,fileset);
+    d = c->FindDataset(bookstr,dataset,fileset,true);
   else 
-    d = c->FindDataset(bookstr,skimdataset.Data(),fileset);
+    d = c->FindDataset(bookstr,skimdataset.Data(),fileset,true);
   ana->AddDataset(d);
+  // // only for testing
   //ana->AddFile("/mnt/hadoop/cmsprod/filefi/029/s12-h125gg-gf-v7a/D0515547-68FA-E111-B849-002618FDA262.root");
 
   //------------------------------------------------------------------------------------------------
