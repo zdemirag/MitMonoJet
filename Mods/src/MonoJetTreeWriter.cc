@@ -1,8 +1,7 @@
 #include "MitMonoJet/Mods/interface/MonoJetTreeWriter.h"
 #include "MitAna/DataTree/interface/PhotonCol.h"
 #include "MitAna/DataTree/interface/PFCandidateCol.h"
-#include "MitAna/DataTree/interface/StableData.h"
-#include "MitAna/DataTree/interface/StableParticle.h"
+#include "MitAna/DataTree/interface/GenericParticle.h"
 #include "MitAna/DataTree/interface/PFMet.h"
 #include "MitPhysics/Init/interface/ModNames.h"
 #include "MitPhysics/Utils/interface/IsolationTools.h"
@@ -25,95 +24,47 @@ ClassImp(mithep::MonoJetTreeWriter)
 MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) : 
   // Base Module...
   BaseMod                 (name,title),
-  // define all the Branches to load
-  fPhotonBranchName       (Names::gkPhotonBrn),
-  fPFPhotonName           ("PFPhotons"),
-  fElectronName           (Names::gkElectronBrn),
-  fGoodElectronName       (Names::gkElectronBrn),  
-  fConversionName         (Names::gkMvfConversionBrn),  
-  fPFConversionName              ("PFPhotonConversions"),  
-  fTrackBranchName        (Names::gkTrackBrn),
-  fPileUpDenName          (Names::gkPileupEnergyDensityBrn),
+
+  fMetName                ("PFMet"),
+  fPhotonsName            (Names::gkPhotonBrn),
+  fElectronsName          (Names::gkElectronBrn),
+  fMuonsName              (Names::gkMuonBrn),
+  fJetsName               (Names::gkPFJetBrn),
+  fLeptonsName            (ModNames::gkMergedLeptonsName),
+
+  fSuperClustersName      ("PFSuperClusters"),
+  fTracksName             (Names::gkTrackBrn),
   fPVName                 (Names::gkPVBeamSpotBrn),
-  fBeamspotName           (Names::gkBeamSpotBrn),
-  fPFCandName             (Names::gkPFCandidatesBrn),
-  fPFNoPileUpName         ("PFNoPileUp"),
-  fPFPileUpName           ("PFPileUp"),
-  fMCParticleName         (Names::gkMCPartBrn),
-  fMCEventInfoName        (Names::gkMCEvtInfoBrn),
+  fPileUpDenName          (Names::gkPileupEnergyDensityBrn),
   fPileUpName             (Names::gkPileupInfoBrn),  
-  fSuperClusterName       ("PFSuperClusters"),
-  fPFMetName              ("PFMet"),
-  fPFJetName              (Names::gkPFJetBrn),
-  funcorrPFJetName        ("AKt5PFJets"),
-  fGenJetName             ("AKT5GenJets"),
-  fLeptonTagElectronsName ("HggLeptonTagElectrons"),
-  fLeptonTagMuonsName     ("HggLeptonTagMuons"),
+  fBeamspotName           (Names::gkBeamSpotBrn),
+  fMCEvInfoName           (Names::gkMCEvtInfoBrn),
 
   fIsData                 (false),
   fPhotonsFromBranch      (kTRUE),  
+  fElectronsFromBranch    (kTRUE),  
+  fMuonsFromBranch        (kTRUE),  
+  fJetsFromBranch         (kTRUE),
   fPVFromBranch           (kTRUE),
-  fGoodElectronsFromBranch(kTRUE),
-  fPFJetsFromBranch       (kTRUE),
-  // ----------------------------------------
-  // flag for synchronization, adds vertex variables
-  // should be on for synching trees
-  fDoSynching             (kFALSE),
 
   // ----------------------------------------
-  // collections....
   fPhotons                (0),
-  fPFPhotons              (0),
   fElectrons              (0),
-  fConversions            (0),
-  fPFConversions          (0),
+  fMuons                  (0),
+  fJets                   (0),
   fTracks                 (0),
-  fPileUpDen              (0),
   fPV                     (0),
   fBeamspot               (0),
-  fPFCands                (0),
-  fMCParticles            (0),
   fMCEventInfo            (0),
   fPileUp                 (0),
+  fPileUpDen              (0),
   fSuperClusters          (0),
-  fPFJets                 (0),
-  fGenJets                (0),
-  funcorrPFJets           (0),
 
-  fLeptonTagElectrons     (0),
-  fLeptonTagMuons         (0),
-  fPFNoPileUpCands        (0),
-  fPFPileUpCands          (0),
+  fDecay(0),
+  fOutputFile(0),
+  fTupleName("hMonoPhotonTree"),
 
-  fLoopOnGoodElectrons    (kFALSE),
-  fApplyElectronVeto      (kTRUE),  
-  fWriteSingleTree        (kTRUE),
-  fEnablePFPhotons        (kTRUE),
-  fExcludeSinglePrompt    (kFALSE),
-  fExcludeDoublePrompt    (kFALSE),
-  fEnableJets             (kFALSE),
-  fApplyJetId             (kFALSE),
-  fApplyLeptonTag         (kFALSE),
-  fApplyVBFTag            (kFALSE),
-  fApplyBTag              (kFALSE),
-  fApplyPFMetCorrections  (kFALSE),
-  fFillClusterArrays      (kFALSE),
-  fFillVertexTree         (kFALSE),
-  fDo2012LepTag           (kFALSE),
-  fPhFixDataFile          (gSystem->Getenv("CMSSW_BASE") +
-		           TString("/src/MitPhysics/data/PhotonFixSTART42V13.dat")),
-  fBeamspotWidth          (5.8),
-
-  fElectronIDMVA(0),
-  fElectronMVAWeights_Subdet0Pt10To20(""),
-  fElectronMVAWeights_Subdet1Pt10To20(""),
-  fElectronMVAWeights_Subdet2Pt10To20(""),
-  fElectronMVAWeights_Subdet0Pt20ToInf(""),
-  fElectronMVAWeights_Subdet1Pt20ToInf(""),
-  fElectronMVAWeights_Subdet2Pt20ToInf(""),
-  fTheRhoType(RhoUtilities::DEFAULT),
-
-  fTupleName              ("hMonoJetTree")
+  fNEventsSelected(0)
 
 {
   // Constructor
@@ -128,142 +79,219 @@ MonoJetTreeWriter::~MonoJetTreeWriter()
 void MonoJetTreeWriter::Process()
 {
 
-  //if(GetEventHeader()->EvtNum()==9008 || GetEventHeader()->EvtNum()==9008 || GetEventHeader()->EvtNum()==9010){
-  //  printf("check MonoJetTreeWriter 0\n");
-  // }
   // ------------------------------------------------------------  
   // Process entries of the tree. 
-  LoadEventObject(fPhotonBranchName,   fPhotons);
-  LoadEventObject(fGoodElectronName,   fGoodElectrons);
+  LoadEventObject(fMetName,           fMet,           true);
+  LoadEventObject(fPhotonsName,       fPhotons,       fPhotonsFromBranch); 
+  LoadEventObject(fElectronsName,     fElectrons,     fElectronsFromBranch);
+  LoadEventObject(fMuonsName,         fMuons,         fMuonsFromBranch);
+  LoadEventObject(fJetsName,          fJets,          fJetsFromBranch);
 
-  // lepton tag collections
-  if( fApplyLeptonTag ) {
-    LoadEventObject(fLeptonTagElectronsName, fLeptonTagElectrons);
-    LoadEventObject(fLeptonTagMuonsName,     fLeptonTagMuons);
-  }
+  LoadEventObject(fPVName,            fPV,            fPVFromBranch);    
+  LoadEventObject(fBeamspotName,      fBeamspot);
   
-  if (fEnablePFPhotons) LoadEventObject(fPFPhotonName,   fPFPhotons);
-  LoadEventObject(fElectronName,       fElectrons);
-  LoadEventObject(fConversionName,     fConversions);
-  if ( fDoSynching ) LoadEventObject(fPFConversionName,     fPFConversions);
-  LoadEventObject(fTrackBranchName,    fTracks);
-  LoadEventObject(fPileUpDenName,      fPileUpDen);
-  LoadEventObject(fPVName,             fPV);    
-  LoadEventObject(fBeamspotName,       fBeamspot);
-  LoadEventObject(fPFCandName,         fPFCands);
-  LoadEventObject(fSuperClusterName,   fSuperClusters);
-  LoadEventObject(fPFMetName,          fPFMet);  
-//   LoadEventObject(fPFNoPileUpName,     fPFNoPileUpCands);
-//   LoadEventObject(fPFPileUpName,     fPFPileUpCands);
+  LoadEventObject(fSuperClustersName, fSuperClusters);
+  LoadEventObject(fTracksName,        fTracks,        true);
 
-  if (fEnableJets){
-    LoadEventObject(fPFJetName,        fPFJets);  
-    //LoadEventObject(funcorrPFJetName,  funcorrPFJets);
-    LoadBranch(funcorrPFJetName);
-    //   if(!fIsData) LoadEventObject(fGenJetName,        fGenJets);
+  LoadEventObject(fPileUpDenName,     fPileUpDen,     true);
+  if (!fIsData) {
+    ReqBranch(fPileUpName,            fPileUp);
   }
+  ParticleOArr *leptons = GetObjThisEvt<ParticleOArr>(ModNames::gkMergedLeptonsName);
+
+  fNEventsSelected++;
 
   // ------------------------------------------------------------  
   // load event based information
-  Int_t _numPU      = -1.;        // some sensible default values....
-  Int_t _numPUminus = -1.;        // some sensible default values....
-  Int_t _numPUplus  = -1.;        // some sensible default values....
       
   if( !fIsData ) {
-    LoadBranch(fMCParticleName);
-    LoadBranch(fMCEventInfoName);
-    LoadBranch(fPileUpName);
-    if (fEnableJets) LoadEventObject(fGenJetName,        fGenJets);
-  }  else fGenJets = NULL;
-  
+  LoadBranch(fPileUpName);
+  } 
   if( !fIsData ) {
     for (UInt_t i=0; i<fPileUp->GetEntries(); ++i) {
       const PileupInfo *puinfo = fPileUp->At(i);
-      if (puinfo->GetBunchCrossing()==0) _numPU = puinfo->GetPU_NumInteractions();
-      else if (puinfo->GetBunchCrossing() == -1) _numPUminus = puinfo->GetPU_NumInteractions();
-      else if (puinfo->GetBunchCrossing() ==  1) _numPUplus  = puinfo->GetPU_NumInteractions();
+      if (puinfo->GetBunchCrossing() ==  0) fMitGPTree.npu_	    = puinfo->GetPU_NumMean();
+      if (puinfo->GetBunchCrossing() ==  1) fMitGPTree.npuPlusOne_  = puinfo->GetPU_NumInteractions();
+      if (puinfo->GetBunchCrossing() == -1) fMitGPTree.npuMinusOne_ = puinfo->GetPU_NumInteractions();
     }
   }
+  fMitGPTree.InitVariables();
 
-  fMonoJetEvent->nVtx = fPV->GetEntries();
-  fMonoJetEvent->bsX = fBeamspot->At(0)->X();
-  fMonoJetEvent->bsY = fBeamspot->At(0)->Y();
-  fMonoJetEvent->bsZ = fBeamspot->At(0)->Z();
-  fMonoJetEvent->bsSigmaZ = fBeamspot->At(0)->SigmaZ();
-  fMonoJetEvent->vtxX = (fMonoJetEvent->nVtx>0) ? fPV->At(0)->X() : -99.;
-  fMonoJetEvent->vtxY = (fMonoJetEvent->nVtx>0) ? fPV->At(0)->Y() : -99.;  
-  fMonoJetEvent->vtxZ = (fMonoJetEvent->nVtx>0) ? fPV->At(0)->Z() : -99.;
-  fMonoJetEvent->numPU = _numPU;
-  fMonoJetEvent->numPUminus = _numPUminus;
-  fMonoJetEvent->numPUplus = _numPUplus;
-  fMonoJetEvent->evt = GetEventHeader()->EvtNum();
-  fMonoJetEvent->run = GetEventHeader()->RunNum();
-  fMonoJetEvent->lumi = GetEventHeader()->LumiSec();
-  fMonoJetEvent->nobj = fPhotons->GetEntries();
-  fMonoJetEvent->pfmet = fPFMet->At(0)->Pt();
-  fMonoJetEvent->pfmetphi = fPFMet->At(0)->Phi();
-  fMonoJetEvent->pfmetx = fPFMet->At(0)->Px();
-  fMonoJetEvent->pfmety = fPFMet->At(0)->Py();
+  fMitGPTree.run_   = GetEventHeader()->RunNum();
+  fMitGPTree.lumi_  = GetEventHeader()->LumiSec();
+  fMitGPTree.event_ = GetEventHeader()->EvtNum();
+  fMitGPTree.nvtx_  = fPV->GetEntries();
+  fMitGPTree.scale1fb_ = 1000.0;
   
+  if(fDecay == 0) fMitGPTree.dstype_ = MitGPTree::data;
+  else            fMitGPTree.dstype_ = MitGPTree::other;
 
-  //JETS  
-  fMonoJetEvent->nJets = fPFJets->GetEntries();
-  for ( int arrayIndex=0; arrayIndex<fMonoJetEvent->kMaxJet; arrayIndex++ ) {
-	  if ( fPFJets->GetEntries() > 0 && arrayIndex < (int) fPFJets->GetEntries() ) {
-		  const Jet *jet = fPFJets->At(arrayIndex);
-		  //kin
-		  fMonoJetEvent->a_jetE[arrayIndex] = jet->E();
-		  fMonoJetEvent->a_jetPt[arrayIndex] = jet->Pt();
-		  fMonoJetEvent->a_jetEta[arrayIndex] = jet->Eta();
-		  fMonoJetEvent->a_jetPhi[arrayIndex] = jet->Phi();
-		  fMonoJetEvent->a_jetMass[arrayIndex] = jet->Mass();
-	  }
-	  else {
-		  //kin
-		  fMonoJetEvent->a_jetE[arrayIndex] = -1;
-		  fMonoJetEvent->a_jetPt[arrayIndex] = -1;
-		  fMonoJetEvent->a_jetEta[arrayIndex] = -100;
-		  fMonoJetEvent->a_jetPhi[arrayIndex] = -100;
-		  fMonoJetEvent->a_jetMass[arrayIndex] = -1;
-	  }
+  fMitGPTree.met_    = fMet->At(0)->Pt();
+  fMitGPTree.metPhi_ = fMet->At(0)->Phi();
+  fMitGPTree.sumEt_  = fMet->At(0)->SumEt();
+  fMitGPTree.metSig_ = fMet->At(0)->PFMetSig();
+
+  // LEPTONS
+  fMitGPTree.nlep_ = leptons->GetEntries();
+  if (leptons->GetEntries() >= 1) {
+    const Particle *lep = leptons->At(0);
+    fMitGPTree.lep1_ = lep->Mom();
+    if     (lep->ObjType() == kMuon    ) fMitGPTree.lid1_ = 13;
+    else if(lep->ObjType() == kElectron) fMitGPTree.lid1_ = 11;
+    else                                 assert(0);
+    if(lep->Charge() < 0) fMitGPTree.lid1_ = -1 * fMitGPTree.lid1_;
+  }
+  if (leptons->GetEntries() >= 2) {
+    Particle *lep = leptons->At(1);
+    fMitGPTree.lep2_ = lep->Mom();
+    if     (lep->ObjType() == kMuon    ) fMitGPTree.lid2_ = 13;
+    else if(lep->ObjType() == kElectron) fMitGPTree.lid2_ = 11;
+    else                                 assert(0);
+    if(lep->Charge() < 0) fMitGPTree.lid2_ = -1 * fMitGPTree.lid2_;
+  }
+  if (leptons->GetEntries() >= 3) {
+    Particle *lep = leptons->At(2);
+    fMitGPTree.lep3_ = lep->Mom();
+    if     (lep->ObjType() == kMuon    ) fMitGPTree.lid3_ = 13;
+    else if(lep->ObjType() == kElectron) fMitGPTree.lid3_ = 11;
+    else                                 assert(0);
+    if(lep->Charge() < 0) fMitGPTree.lid3_ = -1 * fMitGPTree.lid3_;
   }
 
-        
   //PHOTONS  
-  fMonoJetEvent->nPhotons = fPhotons->GetEntries();
-  for ( int arrayIndex=0; arrayIndex<fMonoJetEvent->kMaxPh; arrayIndex++ ) {
-	  if ( fPhotons->GetEntries() > 0 && arrayIndex < (int) fPhotons->GetEntries() ) {
-		  const Photon *photon = fPhotons->At(arrayIndex);
-		  //kin
-		  fMonoJetEvent->a_photonE[arrayIndex] = photon->E();
-		  fMonoJetEvent->a_photonEt[arrayIndex] = photon->Et();
-		  fMonoJetEvent->a_photonEta[arrayIndex] = photon->Eta();
-		  fMonoJetEvent->a_photonPhi[arrayIndex] = photon->Phi();
-		  //iso
-		  fMonoJetEvent->a_photonHCALisoDR03[arrayIndex] = photon->HcalTowerSumEtDr03();
-		  fMonoJetEvent->a_photonECALisoDR03[arrayIndex] = photon->EcalRecHitIsoDr03();
-		  fMonoJetEvent->a_photonHollowConeTKisoDR03[arrayIndex] = photon->HollowConeTrkIsoDr03();
-		  fMonoJetEvent->a_photonHCALisoDR04[arrayIndex] = photon->HcalTowerSumEtDr04();
-		  fMonoJetEvent->a_photonECALisoDR04[arrayIndex] = photon->EcalRecHitIsoDr04();
-		  fMonoJetEvent->a_photonHollowConeTKisoDR04[arrayIndex] = photon->HollowConeTrkIsoDr04();
-	  }
-	  else {
-		  //kin
-		  fMonoJetEvent->a_photonE[arrayIndex] = -1;
-		  fMonoJetEvent->a_photonEt[arrayIndex] = -1;
-		  fMonoJetEvent->a_photonEta[arrayIndex] = -100;
-		  fMonoJetEvent->a_photonPhi[arrayIndex] = -100;
-		  //iso
-		  fMonoJetEvent->a_photonHCALisoDR03[arrayIndex] = -1;
-		  fMonoJetEvent->a_photonECALisoDR03[arrayIndex] = -1;
-		  fMonoJetEvent->a_photonHollowConeTKisoDR03[arrayIndex] = -1;
-		  fMonoJetEvent->a_photonHCALisoDR04[arrayIndex] = -1;
-		  fMonoJetEvent->a_photonECALisoDR04[arrayIndex] = -1;
-		  fMonoJetEvent->a_photonHollowConeTKisoDR04[arrayIndex] = -1;
-	  }
+  fMitGPTree.nphotons_ = fPhotons->GetEntries();
+  if(fPhotons->GetEntries() >= 1) {
+    const Photon *photon = fPhotons->At(0);
+    fMitGPTree.pho1_			  = photon->Mom();
+    fMitGPTree.phoHCALisoDR03_a1_	  = photon->HcalTowerSumEtDr03();
+    fMitGPTree.phoECALisoDR03_a1_	  = photon->EcalRecHitIsoDr03();
+    fMitGPTree.phoHollowConeTKisoDR03_a1_ = photon->HollowConeTrkIsoDr03();
+    fMitGPTree.phoHCALisoDR04_a1_	  = photon->HcalTowerSumEtDr04();
+    fMitGPTree.phoECALisoDR04_a1_	  = photon->EcalRecHitIsoDr04();
+    fMitGPTree.phoHollowConeTKisoDR04_a1_ = photon->HollowConeTrkIsoDr04();
+    fMitGPTree.phoCoviEtaiEta_a1_	  = photon->CoviEtaiEta();
+    fMitGPTree.phoR9_a1_		  = photon->SCluster()->R9();
+    fMitGPTree.phoSeedTime_a1_  	  = photon->SCluster()->SeedTime();
+    fMitGPTree.phoHadOverEm_a1_ 	  = photon->HadOverEm();
   }
-  
-  hMonoJetTuple -> Fill();
+  if(fPhotons->GetEntries() >= 2) {
+    const Photon *photon = fPhotons->At(1);
+    fMitGPTree.pho2_			  = photon->Mom();
+    fMitGPTree.phoHCALisoDR03_a2_	  = photon->HcalTowerSumEtDr03();
+    fMitGPTree.phoECALisoDR03_a2_	  = photon->EcalRecHitIsoDr03();
+    fMitGPTree.phoHollowConeTKisoDR03_a2_ = photon->HollowConeTrkIsoDr03();
+    fMitGPTree.phoHCALisoDR04_a2_	  = photon->HcalTowerSumEtDr04();
+    fMitGPTree.phoECALisoDR04_a2_	  = photon->EcalRecHitIsoDr04();
+    fMitGPTree.phoHollowConeTKisoDR04_a2_ = photon->HollowConeTrkIsoDr04();
+    fMitGPTree.phoCoviEtaiEta_a2_	  = photon->CoviEtaiEta();
+    fMitGPTree.phoR9_a2_		  = photon->SCluster()->R9();
+    fMitGPTree.phoSeedTime_a2_  	  = photon->SCluster()->SeedTime();
+    fMitGPTree.phoHadOverEm_a2_ 	  = photon->HadOverEm();
+  }
+  if(fPhotons->GetEntries() >= 3) {
+    const Photon *photon = fPhotons->At(2);
+    fMitGPTree.pho3_			  = photon->Mom();
+    fMitGPTree.phoHCALisoDR03_a3_	  = photon->HcalTowerSumEtDr03();
+    fMitGPTree.phoECALisoDR03_a3_	  = photon->EcalRecHitIsoDr03();
+    fMitGPTree.phoHollowConeTKisoDR03_a3_ = photon->HollowConeTrkIsoDr03();
+    fMitGPTree.phoHCALisoDR04_a3_	  = photon->HcalTowerSumEtDr04();
+    fMitGPTree.phoECALisoDR04_a3_	  = photon->EcalRecHitIsoDr04();
+    fMitGPTree.phoHollowConeTKisoDR04_a3_ = photon->HollowConeTrkIsoDr04();
+    fMitGPTree.phoCoviEtaiEta_a3_	  = photon->CoviEtaiEta();
+    fMitGPTree.phoR9_a3_		  = photon->SCluster()->R9();
+    fMitGPTree.phoSeedTime_a3_  	  = photon->SCluster()->SeedTime();
+    fMitGPTree.phoHadOverEm_a3_ 	  = photon->HadOverEm();
+  }
+  if(fPhotons->GetEntries() >= 4) {
+    const Photon *photon = fPhotons->At(3);
+    fMitGPTree.pho4_			  = photon->Mom();
+    fMitGPTree.phoHCALisoDR03_a4_	  = photon->HcalTowerSumEtDr03();
+    fMitGPTree.phoECALisoDR03_a4_	  = photon->EcalRecHitIsoDr03();
+    fMitGPTree.phoHollowConeTKisoDR03_a4_ = photon->HollowConeTrkIsoDr03();
+    fMitGPTree.phoHCALisoDR04_a4_	  = photon->HcalTowerSumEtDr04();
+    fMitGPTree.phoECALisoDR04_a4_	  = photon->EcalRecHitIsoDr04();
+    fMitGPTree.phoHollowConeTKisoDR04_a4_ = photon->HollowConeTrkIsoDr04();
+    fMitGPTree.phoCoviEtaiEta_a4_	  = photon->CoviEtaiEta();
+    fMitGPTree.phoR9_a4_		  = photon->SCluster()->R9();
+    fMitGPTree.phoSeedTime_a4_  	  = photon->SCluster()->SeedTime();
+    fMitGPTree.phoHadOverEm_a4_ 	  = photon->HadOverEm();
+  }
+
+  //JETS
+  fMitGPTree.njets_ = fJets->GetEntries();
+  if (fJets->GetEntries() >= 1) {
+    const Jet *jet = fJets->At(0);
+    fMitGPTree.jet1_     = jet->Mom();
+    fMitGPTree.jet1Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
+  }
+  if (fJets->GetEntries() >= 2) {
+    const Jet *jet = fJets->At(1);
+    fMitGPTree.jet2_     = jet->Mom();
+    fMitGPTree.jet2Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
+  }
+  if (fJets->GetEntries() >= 3) {
+    const Jet *jet = fJets->At(2);
+    fMitGPTree.jet3_     = jet->Mom();
+    fMitGPTree.jet3Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
+  }
+  if (fJets->GetEntries() >= 4) {
+    const Jet *jet = fJets->At(3);
+    fMitGPTree.jet4_     = jet->Mom();
+    fMitGPTree.jet4Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
+  }
+        
+  //TRACKS
+  fMitGPTree.ntracks_ = 0;
+  for(unsigned int i = 0; i < fTracks->GetEntries(); i++) {
+    const mithep::Track* pTrack = fTracks->At(i);
+    if(pTrack->Pt() <= 15) continue;
+    Bool_t isLepton = kFALSE;
+    for (unsigned int arrayIndex=0; arrayIndex<leptons->GetEntries(); arrayIndex++ ) {
+       const Particle *lep = leptons->At(arrayIndex);
+      if(MathUtils::DeltaR(pTrack->Mom(), lep->Mom()) < 0.05) {
+        isLepton = kTRUE;
+        break;
+      }
+    }
+    if(isLepton == kTRUE) continue;
+    GenericParticle *p = new GenericParticle(pTrack->Px(), pTrack->Py(), pTrack->Pz(), 
+                                             pTrack->P(), pTrack->Charge());
+    if(fMitGPTree.ntracks_ == 0) fMitGPTree.track1_ = p->Mom();
+    if(fMitGPTree.ntracks_ == 1) fMitGPTree.track2_ = p->Mom();
+    if(fMitGPTree.ntracks_ == 2) fMitGPTree.track3_ = p->Mom();
+    delete p;
+    fMitGPTree.ntracks_++;
+  }
+
+  Double_t Q	     = 0.0;
+  Int_t    id1       = 0;
+  Double_t x1	     = 0.0;
+  Double_t pdf1      = 0.0;
+  Int_t    id2       = 0;
+  Double_t x2	     = 0.0;
+  Double_t pdf2      = 0.0;
+  Int_t    processId = 0;
+  if(fIsData == kFALSE){
+     LoadBranch(fMCEvInfoName);
+     Q         = fMCEventInfo->Scale();
+     id1       = fMCEventInfo->Id1();
+     x1        = fMCEventInfo->X1();
+     pdf1      = fMCEventInfo->Pdf1();
+     id2       = fMCEventInfo->Id2();
+     x2        = fMCEventInfo->X2();
+     pdf2      = fMCEventInfo->Pdf2();
+     processId = fMCEventInfo->ProcessId();
+  }
+  fMitGPTree.Q_         = Q;
+  fMitGPTree.id1_       = id1;
+  fMitGPTree.x1_        = x1;
+  fMitGPTree.pdf1_      = pdf1;
+  fMitGPTree.id2_       = id2;
+  fMitGPTree.x2_        = x2;
+  fMitGPTree.pdf2_      = pdf2;
+  fMitGPTree.processId_ = processId;
+
+  fMitGPTree.tree_->Fill();
   
   return;
 }
@@ -273,132 +301,36 @@ void MonoJetTreeWriter::SlaveBegin()
 {
   // Run startup code on the computer (slave) doing the actual analysis. Here,
   // we just request the photon collection branch.
+  ReqEventObject(fMetName,           fMet,            true);
+  ReqEventObject(fPhotonsName,       fPhotons,        fPhotonsFromBranch); 
+  ReqEventObject(fElectronsName,     fElectrons,      fElectronsFromBranch);
+  ReqEventObject(fMuonsName,         fMuons,          fMuonsFromBranch);
+  ReqEventObject(fJetsName,          fJets,           fJetsFromBranch);
 
-  if( fApplyLeptonTag ) {
-    ReqEventObject(fLeptonTagElectronsName,    fLeptonTagElectrons,    false);  
-    ReqEventObject(fLeptonTagMuonsName,        fLeptonTagMuons,        false);  
-  }
+  ReqEventObject(fSuperClustersName,  fSuperClusters, true);
+  ReqEventObject(fTracksName,         fTracks,        true);
 
-//   ReqEventObject(fPFNoPileUpName,     fPFNoPileUpCands,    false);
-//   ReqEventObject(fPFPileUpName,     fPFPileUpCands,    false);
+  ReqEventObject(fPVName,             fPV,            fPVFromBranch);    
+  ReqEventObject(fBeamspotName,       fBeamspot,      true);
 
-  ReqEventObject(fPhotonBranchName,fPhotons,      fPhotonsFromBranch);
-  if (fEnablePFPhotons) ReqEventObject(fPFPhotonName,fPFPhotons,      true);
-  ReqEventObject(fTrackBranchName, fTracks,       true);
-  ReqEventObject(fElectronName,    fElectrons,    true);  
-  ReqEventObject(fGoodElectronName,fGoodElectrons,fGoodElectronsFromBranch);  
   ReqEventObject(fPileUpDenName,   fPileUpDen,    true);
-  ReqEventObject(fPVName,          fPV,           fPVFromBranch);
-  ReqEventObject(fConversionName,  fConversions,  true);
-  if ( fDoSynching ) ReqEventObject(fPFConversionName,     fPFConversions,  true);
-  ReqEventObject(fBeamspotName,    fBeamspot,     true);
-  ReqEventObject(fPFCandName,      fPFCands,      true);
-  ReqEventObject(fSuperClusterName,fSuperClusters,true);
-  ReqEventObject(fPFMetName,       fPFMet,        true);
-  if (fEnableJets){
-    ReqEventObject(fPFJetName,       fPFJets,       fPFJetsFromBranch);
-    ReqBranch(funcorrPFJetName, funcorrPFJets);
-    //   if (!fIsData) ReqEventObject(fGenJetName, fGenJets, true);
-  }
   if (!fIsData) {
     ReqBranch(fPileUpName,         fPileUp);
-    ReqBranch(fMCParticleName,     fMCParticles);
-    ReqBranch(fMCEventInfoName,    fMCEventInfo);
-    if (fEnableJets) ReqEventObject(fGenJetName, fGenJets, true);
-  }
-  if (fIsData) {
-    fPhFixDataFile = gSystem->Getenv("CMSSW_BASE") +
-      TString("/src/MitPhysics/data/PhotonFixGRPV22.dat");
-  }
-  else {
-    fPhFixDataFile = gSystem->Getenv("CMSSW_BASE") +
-      TString("/src/MitPhysics/data/PhotonFixSTART42V13.dat");
+    ReqBranch(fMCEvInfoName,       fMCEventInfo);
   }
 
-  fPhfixph.initialise("4_2",std::string(fPhFixDataFile));
-  fPhfixele.initialise("4_2e",std::string(fPhFixDataFile));
+  //***********************************************************************************************
+  //Create Smurf Ntuple Tree  
+  //***********************************************************************************************
+  fOutputFile = new TFile(fTupleName.Data(), "RECREATE");
+  fMitGPTree.CreateTree(-1);
   
-//   fMVAMet.Initialize(TString((getenv("CMSSW_BASE")+string("/src/MitPhysics/data/mva_JetID_lowpt.weights.xml"))),
-//                       TString((getenv("CMSSW_BASE")+string("/src/MitPhysics/data/mva_JetID_highpt.weights.xml"))),
-//                       TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/Utils/python/JetIdParams_cfi.py")),
-//                       TString((getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmet_42.root"))),
-//                       TString((getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmetphi_42.root"))),
-//                       TString((getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmetu1_42.root"))),
-//                       TString((getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmetu2_42.root")))
-//                       );  
-  
-  fMVAMet.Initialize(TString((getenv("CMSSW_BASE")+string("/src/MitPhysics/data/mva_JetID_lowpt.weights.xml"))),
-                      TString((getenv("CMSSW_BASE")+string("/src/MitPhysics/data/mva_JetID_highpt.weights.xml"))),
-                      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/Utils/python/JetIdParams_cfi.py")),
-                      TString((getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmet_52.root"))),
-                      TString((getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmetphi_52.root"))),
-                      TString((getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmetu1cov_52.root"))),
-                      TString((getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmetu2cov_52.root")))
-                      );                      
-                 
-  fJetId.Initialize(JetIDMVA::kMedium,
-                          TString((getenv("CMSSW_BASE")+string("/src/MitPhysics/data/mva_JetID_lowpt.weights.xml"))),
-                          TString((getenv("CMSSW_BASE")+string("/src/MitPhysics/data/mva_JetID_highpt.weights.xml"))),
-                          JetIDMVA::kCut,
-                          TString((getenv("CMSSW_BASE")+string("/src/MitPhysics/Utils/python/JetIdParams_cfi.py")))
-
-                          );
-
-  fMVAVBF.InitializeMVA();
-                      
-
-  if( fDoSynching ) {
-    fVtxTools.InitP(2);
-    fElectronIDMVA = new ElectronIDMVA();
-    fElectronIDMVA->Initialize("BDTG method",
-                               fElectronMVAWeights_Subdet0Pt10To20,
-                               fElectronMVAWeights_Subdet1Pt10To20,
-                               fElectronMVAWeights_Subdet2Pt10To20,
-                               fElectronMVAWeights_Subdet0Pt20ToInf,
-                               fElectronMVAWeights_Subdet1Pt20ToInf,
-                               fElectronMVAWeights_Subdet2Pt20ToInf,
-                               ElectronIDMVA::kIDEGamma2012NonTrigV1,
-			       fTheRhoType);
-  }
-
-
-  fMonoJetEvent = new MonoJetEvent;
-  
-  TFile *ftmp = TFile::Open(TString::Format("%s_tmp.root",GetName()),"RECREATE");
-  
-  hMonoJetTuple = new TTree(fTupleName.Data(),fTupleName.Data());
-    
-  //make flattish tree from classes so we don't have to rely on dictionaries for reading later
-  TClass *eclass = TClass::GetClass("mithep::MonoJetEvent");
-  TList  *elist  = eclass->GetListOfDataMembers();
-
-  for (int i=0; i<elist->GetEntries(); ++i) {
-    const TDataMember *tdm = static_cast<const TDataMember*>(elist->At(i));//ming
-    if (!(tdm->IsBasic() && tdm->IsPersistent())) continue;
-    if (TString(tdm->GetName()).BeginsWith("kMax")) continue;
-    TString typestring;
-    if (TString(tdm->GetTypeName()).BeginsWith("Char_t")) typestring = "B";
-    else if (TString(tdm->GetTypeName()).BeginsWith("UChar_t")) typestring = "b";
-    else if (TString(tdm->GetTypeName()).BeginsWith("Short_t")) typestring = "S";
-    else if (TString(tdm->GetTypeName()).BeginsWith("UShort_t")) typestring = "s";
-    else if (TString(tdm->GetTypeName()).BeginsWith("Int_t")) typestring = "I";
-    else if (TString(tdm->GetTypeName()).BeginsWith("UInt_t")) typestring = "i";
-    else if (TString(tdm->GetTypeName()).BeginsWith("Float_t")) typestring = "F";
-    else if (TString(tdm->GetTypeName()).BeginsWith("Double_t")) typestring = "D";
-    else if (TString(tdm->GetTypeName()).BeginsWith("Long64_t")) typestring = "L";
-    else if (TString(tdm->GetTypeName()).BeginsWith("ULong64_t")) typestring = "l";
-    else if (TString(tdm->GetTypeName()).BeginsWith("Bool_t")) typestring = "O";
-    else continue;
-    //determine if the data member is an array
-    bool dataMemberIsArray = false;
-    if (TString(tdm->GetName()).BeginsWith("a_")) dataMemberIsArray = true;
-    //printf("%s %s: %i\n",tdm->GetTypeName(),tdm->GetName(),int(tdm->GetOffset()));
-    Char_t *addr = (Char_t*)fMonoJetEvent;//ming:?
-    assert(sizeof(Char_t)==1);
-    if ( dataMemberIsArray ) hMonoJetTuple->Branch(tdm->GetName(),addr + tdm->GetOffset(),TString::Format("%s[10]/%s",tdm->GetName(),typestring.Data()));
-    else hMonoJetTuple->Branch(tdm->GetName(),addr + tdm->GetOffset(),TString::Format("%s/%s",tdm->GetName(),typestring.Data()));
-  }
-  
-  AddOutput(hMonoJetTuple);
-  
+}
+//--------------------------------------------------------------------------------------------------
+void MonoJetTreeWriter::SlaveTerminate()
+{
+  fOutputFile->cd();
+  fOutputFile->Write();
+  fOutputFile->Close();
+  cout << "Processed events on MonoPhotonTreeWriter: " << fNEventsSelected << endl;
 }

@@ -44,27 +44,47 @@ namespace mithep
       // setting all the input Names
       void                SetInputMetName    (const char *n){ fMetBranchName= n; }
       void 		          SetJetsName        (const char *n){ fJetsName = n; } //added by TJ
+      void                SetElectronsName (const char *n){ fElectronsName = n; }
+      void                SetMuonsName (const char *n){ fMuonsName = n; }
+      void                SetLeptonsName(const char *n){ fLeptonsName = n; }
+
       void                SetMetFromBranch(Bool_t b)    { fMetFromBranch = b; }
       void                SetJetsFromBranch(Bool_t b)    { fJetsFromBranch = b; }
+      void                SetElectronsFromBranch(Bool_t b)  { fElectronsFromBranch = b; }
+      void                SetMuonsFromBranch(Bool_t b) { fMuonsFromBranch = b; }
+
     protected:
       TString                  fMetBranchName;           //name of input met branch
       TString		           fJetsName;              	 //name of input jet branch (added by TJ)
+      TString                   fElectronsName;
+      TString                   fMuonsName;
+      TString                   fLeptonsName;
+
       Bool_t                   fMetFromBranch;           //met is loaded from a branch
       Bool_t                   fJetsFromBranch;          //jet are loaded from a branch
+      Bool_t                    fElectronsFromBranch;
+      Bool_t                    fMuonsFromBranch;
 
       TH1D                    *fMonoJetSelection;        //histogram for cut flow monitoring
       TH1D                    *fPhotonEt;                //histogram of photon transverse energy spectrum
       TH1D                    *fMetEt;                   //histogram of met spectrum
-      TH1D		              *fJetEt;		          	 //histogram of jet spectrum (added by TJ)
-      TH1D		              *fJetEta;			         //histogram of jet eta (added by TJ; for testing purposes)
+      TH1D		      *fJetEt;       	         //histogram of jet spectrum (added by TJ)
+      TH1D		      *fJetEta;			 //histogram of jet eta (added by TJ; for testing purposes)
 
       const PFMetCol          *fMet;
-      const JetCol		      *fJets; //added by TJ
+      const JetCol	      *fJets; 
+      const ElectronCol       *fElectrons;
+      const MuonCol           *fMuons;
 
+      void         SetMinNumLeptons(Int_t n)  { fMinNumLeptons = n; }
       void 	   SetMinNumJets(Int_t n)  { fMinNumJets = n; }
       void 	   SetMinJetEt(Double_t x) { fMinJetEt = x; }
       void	   SetMaxJetEta(Double_t x){ fMaxJetEta = x; }
       void 	   SetMinMetEt(Double_t x) { fMinMetEt = x; }
+       //Inclusion of energy fractions for event selection
+      void         SetMinChargedHadronFrac(Double_t x) { fMinChargedHadronFrac = x; }
+      void         SetMaxNeutralHadronFrac(Double_t x) { fMaxNeutralHadronFrac = x; }
+      void         SetMaxNeutralEmFrac(Double_t x) { fMaxNeutralEmFrac = x; }
 
       void         Begin();
       void         Process();
@@ -72,10 +92,14 @@ namespace mithep
       void         SlaveTerminate();
       void         Terminate();      
 
+      unsigned int fMinNumLeptons;
       unsigned int fMinNumJets;
       Double_t fMinJetEt;
       Double_t fMaxJetEta;
       Double_t fMinMetEt;
+      Double_t fMinChargedHadronFrac;
+      Double_t fMaxNeutralHadronFrac;
+      Double_t fMaxNeutralEmFrac;
 
       Int_t                    fNEventsSelected;         //selected events
 

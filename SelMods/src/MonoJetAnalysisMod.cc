@@ -26,17 +26,28 @@ MonoJetAnalysisMod::MonoJetAnalysisMod(const char *name, const char *title) :
   BaseMod(name,title),
   // define all the Branches to load
   fMetBranchName                 ("PFMet"),
-  fJetsName			             (Names::gkPFJetBrn), //added by TJ
+  fElectronsName                 (Names::gkElectronBrn),
+  fMuonsName                     (Names::gkMuonBrn),
+  fLeptonsName                   (ModNames::gkMergedLeptonsName),
+  fJetsName			 (Names::gkPFJetBrn),
   fMetFromBranch                 (kTRUE),
   fJetsFromBranch                (kTRUE),
+  fElectronsFromBranch           (kTRUE),
+  fMuonsFromBranch               (kTRUE),
   // ----------------------------------------
   // collections....
   fMet                           (0),
-  fJets				             (0), //added by TJ
-  fMinNumJets		 	         (1),
-  fMinJetEt			             (30),
-  fMaxJetEta			         (2.4),
-  fMinMetEt 			         (30),  
+  fJets				 (0), 
+  fElectrons			 (0),
+  fMuons			 (0),
+  fMinNumLeptons		 (0),
+  fMinNumJets		 	 (1),
+  fMinJetEt			 (30),
+  fMaxJetEta			 (2.4),
+  fMinMetEt 			 (30),  
+  fMinChargedHadronFrac          (0.0),
+  fMaxNeutralHadronFrac          (1.0),
+  fMaxNeutralEmFrac              (1.0),
   // counters....
   fNEventsSelected               (0)
 {
@@ -60,6 +71,8 @@ void MonoJetAnalysisMod::SlaveBegin()
   // Load Branches
   ReqEventObject(fMetBranchName,   fMet,      fMetFromBranch);
   ReqEventObject(fJetsName,        fJets,	  fJetsFromBranch); 
+  ReqEventObject(fElectronsName,   fElectrons,  fElectronsFromBranch);
+  ReqEventObject(fMuonsName,      fMuons,       fMuonsFromBranch);
 
   //Create your histograms here
   //*************************************************************************************************
@@ -88,6 +101,26 @@ void MonoJetAnalysisMod::SlaveBegin()
   os4<<"Met >= "<<fMinMetEt;
   s4 = os4.str();
   const char* labelCut4 = s4.c_str();
+  std::ostringstream os5;
+  std::string s5;
+  os5<<"Charged Hadron Fraction >= "<<fMinChargedHadronFrac;
+  s5 = os5.str();
+  const char* labelCut5 = s5.c_str();
+  std::ostringstream os6;
+  std::string s6;
+  os6<<"Neutral Hadron Fraction <= "<<fMaxNeutralHadronFrac;
+  s6 = os6.str();
+  const char* labelCut6 = s6.c_str();
+  std::ostringstream os7;
+  std::string s7;
+  os7<<"Neutral Em Fraction <= "<<fMaxNeutralEmFrac;
+  s7 = os7.str();
+  const char* labelCut7 = s7.c_str();
+  std::ostringstream os8;
+  std::string s8;
+  os8<<"N Leptons >= "<<fMinNumLeptons;
+  s8 = os8.str();
+  const char* labelCut8 = s8.c_str();
 
   // Set selection histogram bin labels
   fMonoJetSelection->GetXaxis()->TAxis::SetBinLabel(1, "All Events");
@@ -95,34 +128,45 @@ void MonoJetAnalysisMod::SlaveBegin()
   fMonoJetSelection->GetXaxis()->TAxis::SetBinLabel(3, labelCut2);
   fMonoJetSelection->GetXaxis()->TAxis::SetBinLabel(4, labelCut3);
   fMonoJetSelection->GetXaxis()->TAxis::SetBinLabel(5, labelCut4);
+  fMonoJetSelection->GetXaxis()->TAxis::SetBinLabel(6, labelCut5);
+  fMonoJetSelection->GetXaxis()->TAxis::SetBinLabel(7, labelCut6);
+  fMonoJetSelection->GetXaxis()->TAxis::SetBinLabel(8, labelCut7);
+  fMonoJetSelection->GetXaxis()->TAxis::SetBinLabel(9, labelCut8);
 
   //***********************************************************************************************
   // Histograms after preselection
   //***********************************************************************************************
   AddTH1(fMetEt              ,"hMetEt", ";MetEt;Number of Events" ,400,0.,400.);
   AddTH1(fJetEt		         ,"hJetEt", ";JetEt;Number of Events" ,400,0.,400.); //added by TJ
-  AddTH1(fJetEta	         ,"hJetEta",";JetEta;Number of Events",50,-5,5); //added by TJ for testing
+//  AddTH1(fJetEta	         ,"hJetEta",";JetEta;Number of Events",50,-5,5); 
 
 }
 
 //--------------------------------------------------------------------------------------------------
 void MonoJetAnalysisMod::Process()
 {
+  fJets = GetObjThisEvt<JetOArr>(fJetsName);
+
   // Process entries of the tree.
   LoadEventObject(fMetBranchName,   fMet);
   assert(fMet);
-  LoadEventObject(fJetsName,   fJets); //added by TJ
+ // LoadEventObject(fJetsName,   fJets); 
   assert(fJets);  
-  //cout << "I am able to load event object!" << "\n";
-
+  LoadEventObject(fElectronsName,  fElectrons,  fElectronsFromBranch);
+  LoadEventObject(fMuonsName,   fMuons,    fMuonsFromBranch);
+  ParticleOArr *leptons = GetObjThisEvt<ParticleOArr>(fLeptonsName);
 
   //*********************************************************************************************
-  //Define Cuts (I changed this from 3 to 4 to include eta - TJ)
+  //Define Cuts 
   //*********************************************************************************************
-  const int nCuts = 4;
+  const int nCuts = 8;
   bool passCut[nCuts] = {
 	  false, 
 	  false, 
+	  false,
+	  false,
+	  false,
+	  false,
 	  false,
 	  false,
 	  };
@@ -132,6 +176,7 @@ void MonoJetAnalysisMod::Process()
   //***********************************************************************************************
   // if (fPhotons->GetEntries() > 0)  passCut[0] = true;
   if (fJets->GetEntries() > fMinNumJets) passCut[0] = true;
+  if (leptons->GetEntries() >= fMinNumLeptons) passCut[1] = true;
 
   //***********************************************************************************************
   //Discard events with soft jets - (changed by TJ)
@@ -143,19 +188,21 @@ void MonoJetAnalysisMod::Process()
 	  if (jet->Et() <= fMinJetEt ) continue;
 	  nHardJet++;
   }
-  if (nHardJet > 0) passCut[1] = true;
+  if (nHardJet > 0) passCut[2] = true;
 
   //**********************************************************************************************
   //Discard events that are outside of eta range (added by TJ)
   //*********************************************************************************************
   int nHardEtaJet = 0;
+  vector<int> theGoodJets;
   for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
 	const Jet *jet = fJets->At(i);
 	if (jet->Et() <= fMinJetEt ) continue;
 	if (TMath::Abs(jet->Eta()) >= fMaxJetEta) continue;
 	nHardEtaJet++;
+	theGoodJets.push_back((int) i);
   }
-  if (nHardEtaJet > 0) passCut[2] = true;
+  if (nHardEtaJet > 0) passCut[3] = true;
   
   
 
@@ -163,8 +210,43 @@ void MonoJetAnalysisMod::Process()
   //Discard events with soft met
   //***********************************************************************************************
   const Met *stdMet = fMet->At(0);
-  if ( stdMet->Pt() > fMinMetEt )  passCut[3] = true;
+  if ( stdMet->Pt() > fMinMetEt )  passCut[4] = true;
 	  
+//***********************************************************************************************
+  //Discard events outside of fraction ranges
+  
+//***********************************************************************************************
+  int nHighChargedHadFrac = 0;
+  for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
+        const Jet *jet = fJets->At(i);
+        const PFJet *pfjet = dynamic_cast<const PFJet*>(jet);
+        Double_t ChargedHadFrac = pfjet->ChargedHadronEnergy()/pfjet->RawMom().E();
+        //cout << ChargedHadFrac << chargedHadFrac <= fMinChargedHadronFrac << endl;
+        if (ChargedHadFrac <= fMinChargedHadronFrac) continue;
+        nHighChargedHadFrac++;
+        }
+  if ( nHighChargedHadFrac > 0 )  passCut[5] = true;
+
+  int nLowNeutralHadFrac = 0;
+  for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
+        const Jet *jet = fJets->At(i);
+        const PFJet *pfjet = dynamic_cast<const PFJet*>(jet);
+        Double_t NeutralHadFrac = pfjet->NeutralHadronEnergy()/pfjet->RawMom().E();
+        if (NeutralHadFrac >= fMaxNeutralHadronFrac) continue;
+        nLowNeutralHadFrac++;
+        }
+  if ( nLowNeutralHadFrac > 0 )  passCut[6] = true;
+	
+  int nLowNeutralEmFrac = 0;
+  for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
+        const Jet *jet = fJets->At(i);
+        const PFJet *pfjet = dynamic_cast<const PFJet*>(jet);
+        Double_t NeutralEmFrac = pfjet->NeutralEmEnergy()/pfjet->RawMom().E();
+        if (NeutralEmFrac >= fMaxNeutralEmFrac) continue;
+        nLowNeutralEmFrac++;
+        }
+  if ( nLowNeutralEmFrac > 0 )  passCut[7] = true;
+
   //*********************************************************************************************
   //Make Selection Histograms. Number of events passing each level of cut
   //*********************************************************************************************  
@@ -191,9 +273,11 @@ void MonoJetAnalysisMod::Process()
       //*****************************************************************************************
 	  //Make Preselection Histograms  
 	  //*****************************************************************************************
+	for (int iGoodJet=0; iGoodJet<(int)theGoodJets.size(); iGoodJet++) {
+          fJetEt->Fill(fJets->At(0)->Et());
+        }
 	  fMetEt->Fill(fMet->At(0)->Et());
-	  fJetEt->Fill(fJets->At(0)->Et());
-	  fJetEta->Fill(fJets->At(0)->Eta());
+//	  fJetEta->Fill(fJets->At(0)->Eta());
   }
   else 
 	  this->SkipEvent(); //skip the event if does not passes the cuts
