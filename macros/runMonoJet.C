@@ -1,4 +1,4 @@
-// $Id: runMonoJet.C,v 1.3 2013/06/19 00:48:01 dimatteo Exp $
+// $Id: runMonoJet.C,v 1.4 2013/07/08 03:45:34 dimatteo Exp $
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TSystem.h>
 #include <TProfile.h>
@@ -113,8 +113,8 @@ void runMonoJet(const char *fileset    = "0000",
   // Run2012
   //------------------------------------------------------------------------------------------------
   hltModP->AddTrigger("HLT_MET120_HBHENoiseCleaned_v*",0,999999); 
-  hltModP->AddTrigger("MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v*",0,999999); 
-  hltModP->AddTrigger("MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v*",0,999999);   
+  hltModP->AddTrigger("HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v*",0,999999); 
+  hltModP->AddTrigger("HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v*",0,999999);   
     
   hltModP->SetTrigObjsName("MyHltPhotObjs");
   hltModP->SetAbortIfNotAccepted(isData);
@@ -134,7 +134,7 @@ void runMonoJet(const char *fileset    = "0000",
     hltModP->AddTrigger("!HLT_Mu12_v16");
     // // MC signal triggers
     // hltModP->AddTrigger("HLT_MET120_HBHENoiseCleaned_v*");
-    // hltModP->AddTrigger("MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v*");
+    // hltModP->AddTrigger("HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v*");
   }
 
   //------------------------------------------------------------------------------------------------
