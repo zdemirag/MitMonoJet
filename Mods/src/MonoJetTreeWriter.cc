@@ -122,6 +122,7 @@ void MonoJetTreeWriter::Process()
   fMitGPTree.event_ = GetEventHeader()->EvtNum();
   fMitGPTree.nvtx_  = fPV->GetEntries();
   fMitGPTree.scale1fb_ = 1000.0;
+  fMitGPTree.cuts_ = MitGPTree::DiLepton;
   
   if(fDecay == 0) fMitGPTree.dstype_ = MitGPTree::data;
   else            fMitGPTree.dstype_ = MitGPTree::other;
