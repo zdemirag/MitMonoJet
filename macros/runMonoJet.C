@@ -1,4 +1,4 @@
-// $Id: runMonoJet.C,v 1.6 2013/07/11 14:28:16 dimatteo Exp $
+// $Id: runMonoJet.C,v 1.7 2013/07/12 18:36:22 twilkaso Exp $
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TSystem.h>
 #include <TProfile.h>
@@ -141,11 +141,7 @@ void runMonoJet(const char *fileset    = "0000",
   hltModP->SetAbortIfNotAccepted(isData);
 //  hltModP->SetAbortIfNotAccepted(kFALSE);
   hltModP->SetPrintTable(kFALSE); // set to true to print HLT table
-<<<<<<< runMonoJet.C
 
-=======
-/*
->>>>>>> 1.6
   if(isData == kFALSE){ // ugly, but it works
     hltModP->AddTrigger("HLT_Mu15_v9");
     hltModP->AddTrigger("!HLT_Mu15_v9");
@@ -163,7 +159,7 @@ void runMonoJet(const char *fileset    = "0000",
     // hltModP->AddTrigger("HLT_MET120_HBHENoiseCleaned_v*");
     // hltModP->AddTrigger("MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v*");
   }
-*/
+
   //------------------------------------------------------------------------------------------------
   // split pfcandidates to PFPU and PFnoPU
   //------------------------------------------------------------------------------------------------
@@ -351,7 +347,6 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmet->SetMuonsFromBranch(kFALSE);
   jetplusmet->SetLeptonsName(merger->GetOutputName());
   jetplusmet->SetMinNumJets(1);
-<<<<<<< runMonoJet.C
   jetplusmet->SetMinNumLeptons(0);
   jetplusmet->SetMinJetEt(30);
   jetplusmet->SetMaxJetEta(2.7);
@@ -377,7 +372,6 @@ void runMonoJet(const char *fileset    = "0000",
   dilepton->SetMaxNeutralEmFrac(1.0);
   dilepton->SetMinMetEt(0);
 
-
   TString tupleName = TString(outputName);
   TString tupleName2 = TString(outputName);
   tupleName += TString("_") + TString(dataset) + TString("_") + TString(skim);
@@ -388,37 +382,6 @@ void runMonoJet(const char *fileset    = "0000",
   }
   tupleName += TString("_tree.root");
   tupleName2 += TString("_tree_dilepton.root");
-=======
-  jetplusmet->SetMinNumLeptons(0);
-  jetplusmet->SetMinJetEt(30);
-  jetplusmet->SetMaxJetEta(2.7);
-  jetplusmet->SetMinChargedHadronFrac(0.3);
-  jetplusmet->SetMaxNeutralHadronFrac(0.7);
-  jetplusmet->SetMaxNeutralEmFrac(0.7);
-  jetplusmet->SetMinMetEt(30);
-
-  MonoJetAnalysisMod *dilepton = new MonoJetAnalysisMod("MonoJetSelector");
-  dilepton->SetJetsName(theJetCleaning->GetOutputName()); //identified jets
-  dilepton->SetJetsFromBranch(kFALSE);
-  dilepton->SetElectronsName(electronCleaning->GetOutputName());
-  dilepton->SetElectronsFromBranch(kFALSE);
-  dilepton->SetMuonsName(muonIdMod->GetOutputName());
-  dilepton->SetMuonsFromBranch(kFALSE);
-  dilepton->SetLeptonsName(merger->GetOutputName());
-  dilepton->SetMinNumJets(1);
-  dilepton->SetMinNumLeptons(2);
-
-  TString tupleName = TString(outputName);
-  TString tupleName2 = TString(outputName);
-  tupleName += TString("_") + TString(dataset) + TString("_") + TString(skim);
-  tupleName2 += TString("_") + TString(dataset) + TString("_") + TString(skim);
-  if (TString(fileset) != TString("")) {
-	tupleName += TString("_") + TString(fileset);
-	tupleName2 += TString("_") + TString(fileset);
-  }
-  tupleName += TString("_tree.root");
-  tupleName2 += TString("_tree_dilepton.root");
->>>>>>> 1.6
 
   MonoJetTreeWriter *jetplusmettree = new MonoJetTreeWriter("MonoJetTreeWriter");
   jetplusmettree->SetPhotonsFromBranch(kFALSE);
