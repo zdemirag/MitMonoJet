@@ -1,4 +1,4 @@
-// $Id: runMonoJet.C,v 1.7 2013/07/12 18:36:22 twilkaso Exp $
+// $Id: runMonoJet.C,v 1.4 2013/07/08 03:45:34 dimatteo Exp $
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TSystem.h>
 #include <TProfile.h>
@@ -141,7 +141,7 @@ void runMonoJet(const char *fileset    = "0000",
   hltModP->SetAbortIfNotAccepted(isData);
 //  hltModP->SetAbortIfNotAccepted(kFALSE);
   hltModP->SetPrintTable(kFALSE); // set to true to print HLT table
-
+/*
   if(isData == kFALSE){ // ugly, but it works
     hltModP->AddTrigger("HLT_Mu15_v9");
     hltModP->AddTrigger("!HLT_Mu15_v9");
@@ -159,7 +159,7 @@ void runMonoJet(const char *fileset    = "0000",
     // hltModP->AddTrigger("HLT_MET120_HBHENoiseCleaned_v*");
     // hltModP->AddTrigger("MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v*");
   }
-
+*/
   //------------------------------------------------------------------------------------------------
   // split pfcandidates to PFPU and PFnoPU
   //------------------------------------------------------------------------------------------------
@@ -350,7 +350,7 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmet->SetMinNumLeptons(0);
   jetplusmet->SetMinJetEt(30);
   jetplusmet->SetMaxJetEta(2.7);
-  jetplusmet->SetMinChargedHadronFrac(0.2);
+  jetplusmet->SetMinChargedHadronFrac(0.3);
   jetplusmet->SetMaxNeutralHadronFrac(0.7);
   jetplusmet->SetMaxNeutralEmFrac(0.7);
   jetplusmet->SetMinMetEt(30);
@@ -365,12 +365,6 @@ void runMonoJet(const char *fileset    = "0000",
   dilepton->SetLeptonsName(merger->GetOutputName());
   dilepton->SetMinNumJets(1);
   dilepton->SetMinNumLeptons(2);
-  dilepton->SetMinJetEt(0);
-  dilepton->SetMaxJetEta(4.5);
-  dilepton->SetMinChargedHadronFrac(0.0);
-  dilepton->SetMaxNeutralHadronFrac(1.0);
-  dilepton->SetMaxNeutralEmFrac(1.0);
-  dilepton->SetMinMetEt(0);
 
   TString tupleName = TString(outputName);
   TString tupleName2 = TString(outputName);

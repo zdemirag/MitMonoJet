@@ -175,7 +175,7 @@ void MonoJetAnalysisMod::Process()
   //Discard events with no identified photons (jets? - TJ)
   //***********************************************************************************************
   // if (fPhotons->GetEntries() > 0)  passCut[0] = true;
-  if (fJets->GetEntries() >= fMinNumJets) passCut[0] = true;
+  if (fJets->GetEntries() > fMinNumJets) passCut[0] = true;
   if (leptons->GetEntries() >= fMinNumLeptons) passCut[1] = true;
 
   //***********************************************************************************************
