@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------------------------------
-// $Id: MonoJetTreeWriter.h,v 1.2 2013/07/08 11:46:18 twilkaso Exp $
+// $Id: MonoJetTreeWriter.h,v 1.3 2013/07/08 11:54:25 twilkaso Exp $
 //
 // MonoJetTreeWriter
 //
@@ -98,6 +98,7 @@ namespace mithep
     TString             fBeamspotName;
     TString             fMCEvInfoName;
 
+
     // is it Data or MC?
     Bool_t              fIsData;
     
@@ -120,7 +121,7 @@ namespace mithep
     const MCEventInfo             *fMCEventInfo;
     const PileupInfoCol           *fPileUp;    
     const PileupEnergyDensityCol  *fPileUpDen;
-    const SuperClusterCol         *fSuperClusters;   
+    const SuperClusterCol         *fSuperClusters; 
     
     // --------------------------------
     Int_t                          fDecay;

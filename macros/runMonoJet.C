@@ -37,11 +37,11 @@
 //--------------------------------------------------------------------------------------------------
 void runMonoJet(const char *fileset    = "0000",
 		   const char *skim       = "noskim",
-		   const char *dataset    = "s12-wglg-v7a", 
-		   const char *book       = "t2mit/filefi/029",
+		   const char *dataset    = "s12-wjets-ptw100-v7a", 
+		   const char *book       = "t2mit/filefi/031",
 		   const char *catalogDir = "/home/cmsprod/catalog",
-		   const char *outputName = "gmet",
-		   int         nEvents    = 1000)
+		   const char *outputName = "MonoJet_August13",
+		   int         nEvents    = 10000)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -156,8 +156,8 @@ void runMonoJet(const char *fileset    = "0000",
     hltModP->AddTrigger("HLT_Mu12_v16");
     hltModP->AddTrigger("!HLT_Mu12_v16");
     // // MC signal triggers
-    // hltModP->AddTrigger("HLT_MET120_HBHENoiseCleaned_v*");
-    // hltModP->AddTrigger("MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v*");
+    hltModP->AddTrigger("HLT_MET120_HBHENoiseCleaned_v*");
+    hltModP->AddTrigger("MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v*");
   }
 
   //------------------------------------------------------------------------------------------------
@@ -187,28 +187,29 @@ void runMonoJet(const char *fileset    = "0000",
   //-----------------------------------
   // Lepton Selection 
   //-----------------------------------
-
-  ElectronIDMod *eleIdMod = new ElectronIDMod;
-  eleIdMod -> SetPtMin(10);
+  ElectronIDMod* eleIdMod = new ElectronIDMod;
+  eleIdMod -> SetPtMin(10.);  
   eleIdMod -> SetEtaMax(2.5);
-  eleIdMod->SetIDType("VBTFWorkingPointLowPtId");
-  eleIdMod->SetIsoType("PFIso");
-  eleIdMod->SetApplyConversionFilterType1(kTRUE);
-  eleIdMod->SetApplyConversionFilterType2(kFALSE);
-  eleIdMod->SetChargeFilter(kFALSE);
-  eleIdMod->SetApplyD0Cut(kTRUE);
-  eleIdMod->SetApplyDZCut(kTRUE);
-  eleIdMod->SetWhichVertex(-1);
-  eleIdMod->SetNExpectedHitsInnerCut(0);
-  eleIdMod->SetGoodElectronsName("GoodElectronsBS");
-  eleIdMod->SetRhoType(RhoUtilities::CMS_RHO_RHOKT6PFJETS);
+  eleIdMod -> SetApplyEcalFiducial(true);
+  eleIdMod -> SetIDType("VBTFWorkingPoint95Id");  
+  eleIdMod -> SetIsoType("PFIso");
+  eleIdMod -> SetApplyConversionFilterType1(kTRUE);
+  eleIdMod -> SetApplyConversionFilterType2(kFALSE);
+  eleIdMod -> SetChargeFilter(kFALSE);
+  eleIdMod -> SetApplyD0Cut(kTRUE);
+  eleIdMod -> SetApplyDZCut(kTRUE);
+  eleIdMod -> SetWhichVertex(-1);
+  eleIdMod -> SetNExpectedHitsInnerCut(0);  
+  eleIdMod -> SetGoodElectronsName("GoodElectronsBS");
+  eleIdMod -> SetRhoType(RhoUtilities::CMS_RHO_RHOKT6PFJETS); 
 
   MuonIDMod* muonIdMod = new MuonIDMod;
   // base kinematics
   muonIdMod -> SetPtMin(10.);
   muonIdMod -> SetEtaCut(2.4);
   // base ID
-  muonIdMod -> SetIDType("Tight");
+  muonIdMod -> SetIDType("NoId");
+  muonIdMod -> SetClassType("GlobalorTracker");
   muonIdMod -> SetWhichVertex(-1); // this is a 'hack'.. but hopefully good enough...
   muonIdMod -> SetD0Cut(0.02);
   muonIdMod -> SetDZCut(0.5);
@@ -341,40 +342,19 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmet->SetLeptonsName(merger->GetOutputName());
   jetplusmet->SetMinNumJets(1);
   jetplusmet->SetMinNumLeptons(0);
-  jetplusmet->SetMinJetEt(30);
-  jetplusmet->SetMaxJetEta(2.7);
+  jetplusmet->SetMinJetPt(80);
+  jetplusmet->SetMaxJetEta(4.5);
   jetplusmet->SetMinChargedHadronFrac(0.2);
   jetplusmet->SetMaxNeutralHadronFrac(0.7);
   jetplusmet->SetMaxNeutralEmFrac(0.7);
-  jetplusmet->SetMinMetEt(30);
-
-  MonoJetAnalysisMod *dilepton = new MonoJetAnalysisMod("MonoJetSelector");
-  dilepton->SetJetsName(theJetCleaning->GetOutputName()); //identified jets
-  dilepton->SetJetsFromBranch(kFALSE);
-  dilepton->SetElectronsName(electronCleaning->GetOutputName());
-  dilepton->SetElectronsFromBranch(kFALSE);
-  dilepton->SetMuonsName(muonIdMod->GetOutputName());
-  dilepton->SetMuonsFromBranch(kFALSE);
-  dilepton->SetLeptonsName(merger->GetOutputName());
-  dilepton->SetMinNumJets(1);
-  dilepton->SetMinNumLeptons(2);
-  dilepton->SetMinJetEt(0);
-  dilepton->SetMaxJetEta(4.5);
-  dilepton->SetMinChargedHadronFrac(0.0);
-  dilepton->SetMaxNeutralHadronFrac(1.0);
-  dilepton->SetMaxNeutralEmFrac(1.0);
-  dilepton->SetMinMetEt(0);
+  jetplusmet->SetMinMetEt(200);
 
   TString tupleName = TString(outputName);
-  TString tupleName2 = TString(outputName);
   tupleName += TString("_") + TString(dataset) + TString("_") + TString(skim);
-  tupleName2 += TString("_") + TString(dataset) + TString("_") + TString(skim);
   if (TString(fileset) != TString("")) {
 	tupleName += TString("_") + TString(fileset);
-	tupleName2 += TString("_") + TString(fileset);
   }
-  tupleName += TString("_ytree.root");
-  tupleName2 += TString("_dtree.root");
+  tupleName += TString("_tree.root");
 
   MonoJetTreeWriter *jetplusmettree = new MonoJetTreeWriter("MonoJetTreeWriter");
   jetplusmettree->SetPhotonsFromBranch(kFALSE);
@@ -391,22 +371,6 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmettree->SetIsData(isData);
   jetplusmettree->SetProcessID(0);
   jetplusmettree->SetTupleName(tupleName);
-
-  MonoJetTreeWriter *dileptontree = new MonoJetTreeWriter("MonoJetTreeWriter");
-  dileptontree->SetPhotonsFromBranch(kFALSE);
-  dileptontree->SetPhotonsName(photonCleaningMod->GetOutputName());
-  dileptontree->SetElectronsFromBranch(kFALSE);
-  dileptontree->SetElectronsName(electronCleaning->GetOutputName());
-  dileptontree->SetMuonsFromBranch(kFALSE);
-  dileptontree->SetMuonsName(muonIdMod->GetOutputName());
-  dileptontree->SetJetsFromBranch(kFALSE);
-  dileptontree->SetJetsName(theJetCleaning->GetOutputName());
-  dileptontree->SetPVFromBranch(kFALSE);
-  dileptontree->SetPVName(goodPVFilterMod->GetOutputName());
-  dileptontree->SetLeptonsName(merger->GetOutputName());
-  dileptontree->SetIsData(isData);
-  dileptontree->SetProcessID(0);
-  dileptontree->SetTupleName(tupleName2);
 
   //------------------------------------------------------------------------------------------------
   // making analysis chain
@@ -434,11 +398,7 @@ void runMonoJet(const char *fileset    = "0000",
    
   // Jet+met selection
   theJetCleaning   ->Add(jetplusmet);
-  jetplusmet        ->Add(jetplusmettree);
-
-  //dilepton selection
-  theJetCleaning   ->Add(dilepton);
-  dilepton         ->Add(dileptontree);
+  jetplusmet       ->Add(jetplusmettree);
 
   //------------------------------------------------------------------------------------------------
   // setup analysis
@@ -471,7 +431,7 @@ void runMonoJet(const char *fileset    = "0000",
   rootFile += TString("_") + TString(dataset) + TString("_") + TString(skim);
   if (TString(fileset) != TString(""))
     rootFile += TString("_") + TString(fileset);
-  rootFile += TString("_ntree.root");
+  rootFile += TString(".root");
   ana->SetOutputName(rootFile.Data());
   //ana->SetCacheSize(64*1024*1024);
   ana->SetCacheSize(0);

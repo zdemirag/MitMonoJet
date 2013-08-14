@@ -5,11 +5,19 @@
 #include "MitAna/DataTree/interface/PFMet.h"
 #include "MitPhysics/Init/interface/ModNames.h"
 #include "MitPhysics/Utils/interface/IsolationTools.h"
+#include "MitPhysics/Utils/interface/MuonTools.h"
+#include "MitPhysics/Utils/interface/MuonIDMVA.h"
 #include "MitPhysics/Utils/interface/PhotonTools.h"
 #include "MitPhysics/Utils/interface/VertexTools.h"
 #include "MitPhysics/Utils/interface/PFMetCorrectionTools.h"
 #include "MitAna/DataTree/interface/PFJetCol.h"
 #include "MitAna/DataTree/interface/GenJetCol.h"
+#include "MitPhysics/Mods/interface/MuonIDMod.h"
+#include "MitCommon/MathTools/interface/MathUtils.h"
+#include "MitAna/DataTree/interface/MuonFwd.h"
+#include "MitAna/DataTree/interface/ElectronFwd.h"
+#include "MitAna/DataTree/interface/VertexCol.h"
+#include "MitAna/TreeMod/interface/BaseMod.h" 
 #include "TDataMember.h"
 #include "TFile.h"
 #include <TNtuple.h>
@@ -98,7 +106,7 @@ void MonoJetTreeWriter::Process()
     ReqBranch(fPileUpName,            fPileUp);
   }
   ParticleOArr *leptons = GetObjThisEvt<ParticleOArr>(ModNames::gkMergedLeptonsName);
-
+  const MuonCol *muons = GetObjThisEvt<MuonCol>("HggLeptonTagMuons"); //This should be identical to MuonIDMod->GetOutputName() in run macro
   fNEventsSelected++;
 
   // ------------------------------------------------------------  
@@ -131,29 +139,60 @@ void MonoJetTreeWriter::Process()
   fMitGPTree.metPhi_ = fMet->At(0)->Phi();
   fMitGPTree.sumEt_  = fMet->At(0)->SumEt();
   fMitGPTree.metSig_ = fMet->At(0)->PFMetSig();
+  
 
   // LEPTONS
+  unsigned int muoncount = 0;
+  const Muon *mu;
   fMitGPTree.nlep_ = leptons->GetEntries();
   if (leptons->GetEntries() >= 1) {
     const Particle *lep = leptons->At(0);
+    if(muons->GetEntries() > muoncount){ mu = muons->At(muoncount);}
+    
     fMitGPTree.lep1_ = lep->Mom();
-    if     (lep->ObjType() == kMuon    ) fMitGPTree.lid1_ = 13;
+    if     (lep->ObjType() == kMuon    ){
+    muoncount++;
+    fMitGPTree.lid1_ = 13;
+    if(((mu->HasGlobalTrk() && mu->GlobalTrk()->Chi2()/mu->GlobalTrk()->Ndof() < 10 &&
+	       (mu->NSegments() > 1 || mu->NMatches() > 1) && mu->NValidHits() > 0) ||
+	       mu->IsTrackerMuon()) && (mu->BestTrk() != 0 && mu->BestTrk()->NHits() > 10 &&
+		(mu->NSegments() > 1 || mu->NMatches() > 1) && mu->BestTrk()->NPixelHits() > 0)){ fMitGPTree.lep1IsTightMuon_ = 1;}
+    }
     else if(lep->ObjType() == kElectron) fMitGPTree.lid1_ = 11;
     else                                 assert(0);
     if(lep->Charge() < 0) fMitGPTree.lid1_ = -1 * fMitGPTree.lid1_;
   }
   if (leptons->GetEntries() >= 2) {
-    Particle *lep = leptons->At(1);
+    const Particle *lep = leptons->At(1);
+    if(muons->GetEntries() > muoncount){ mu = muons->At(muoncount);}
+    
     fMitGPTree.lep2_ = lep->Mom();
-    if     (lep->ObjType() == kMuon    ) fMitGPTree.lid2_ = 13;
+    if     (lep->ObjType() == kMuon    ){
+    muoncount++;
+    fMitGPTree.lid2_ = 13;
+    if(((mu->HasGlobalTrk() && mu->GlobalTrk()->Chi2()/mu->GlobalTrk()->Ndof() < 10 &&
+	       (mu->NSegments() > 1 || mu->NMatches() > 1) && mu->NValidHits() > 0) ||
+	       mu->IsTrackerMuon()) && (mu->BestTrk() != 0 && mu->BestTrk()->NHits() > 10 &&
+		(mu->NSegments() > 1 || mu->NMatches() > 1) && mu->BestTrk()->NPixelHits() > 0)){ fMitGPTree.lep2IsTightMuon_ = 1;}
+    }
     else if(lep->ObjType() == kElectron) fMitGPTree.lid2_ = 11;
     else                                 assert(0);
     if(lep->Charge() < 0) fMitGPTree.lid2_ = -1 * fMitGPTree.lid2_;
+
   }
   if (leptons->GetEntries() >= 3) {
-    Particle *lep = leptons->At(2);
+    const Particle *lep = leptons->At(2);
+    if(muons->GetEntries() > muoncount){ mu = muons->At(muoncount);}
+    
     fMitGPTree.lep3_ = lep->Mom();
-    if     (lep->ObjType() == kMuon    ) fMitGPTree.lid3_ = 13;
+    if     (lep->ObjType() == kMuon    ){
+    muoncount++;
+    fMitGPTree.lid3_ = 13;
+    if(((mu->HasGlobalTrk() && mu->GlobalTrk()->Chi2()/mu->GlobalTrk()->Ndof() < 10 &&
+	       (mu->NSegments() > 1 || mu->NMatches() > 1) && mu->NValidHits() > 0) ||
+	       mu->IsTrackerMuon()) && (mu->BestTrk() != 0 && mu->BestTrk()->NHits() > 10 &&
+		(mu->NSegments() > 1 || mu->NMatches() > 1) && mu->BestTrk()->NPixelHits() > 0)){ fMitGPTree.lep3IsTightMuon_ = 1;}
+    }
     else if(lep->ObjType() == kElectron) fMitGPTree.lid3_ = 11;
     else                                 assert(0);
     if(lep->Charge() < 0) fMitGPTree.lid3_ = -1 * fMitGPTree.lid3_;
@@ -301,7 +340,7 @@ void MonoJetTreeWriter::Process()
 void MonoJetTreeWriter::SlaveBegin()
 {
   // Run startup code on the computer (slave) doing the actual analysis. Here,
-  // we just request the photon collection branch.
+  // we just request the photon collection branch.  
   ReqEventObject(fMetName,           fMet,            true);
   ReqEventObject(fPhotonsName,       fPhotons,        fPhotonsFromBranch); 
   ReqEventObject(fElectronsName,     fElectrons,      fElectronsFromBranch);
@@ -315,7 +354,7 @@ void MonoJetTreeWriter::SlaveBegin()
   ReqEventObject(fBeamspotName,       fBeamspot,      true);
 
   ReqEventObject(fPileUpDenName,   fPileUpDen,    true);
-  if (!fIsData) {
+  if (!fIsData) { 
     ReqBranch(fPileUpName,         fPileUp);
     ReqBranch(fMCEvInfoName,       fMCEventInfo);
   }
