@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------------------------------
-// $Id: MonoJetTreeWriter.h,v 1.3 2013/07/08 11:54:25 twilkaso Exp $
+// $Id: MonoJetTreeWriter.h,v 1.4 2013/08/14 20:22:24 mdecross Exp $
 //
 // MonoJetTreeWriter
 //
@@ -37,7 +37,7 @@
 #include "MitPhysics/Utils/interface/VertexTools.h"
 #include "MitPhysics/Utils/interface/ElectronIDMVA.h"
 
-#include "MitMonoPhoton/Core/MitGPTree.h"
+#include "MitMonoJet/Core/MitGPTree.h"
 
 class TNtuple;
 class TRandom3;
