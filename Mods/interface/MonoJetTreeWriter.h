@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------------------------------
-// $Id: MonoJetTreeWriter.h,v 1.4 2013/08/14 20:22:24 mdecross Exp $
+// $Id: MonoJetTreeWriter.h,v 1.5 2013/08/20 21:06:37 dimatteo Exp $
 //
 // MonoJetTreeWriter
 //
@@ -48,7 +48,7 @@ namespace mithep
   class MonoJetTreeWriter : public BaseMod
   {
   public:
-    MonoJetTreeWriter(const char *name ="MonoPhotonTreeWriter", 
+    MonoJetTreeWriter(const char *name ="MonoJetTreeWriter", 
 		         const char *title="Selecting PhotonPairs");
     
     ~MonoJetTreeWriter();
@@ -76,6 +76,7 @@ namespace mithep
 
     void                SetProcessID(Int_t n)             { fDecay = n;                  }
     void                SetTupleName(const char* c)       { fTupleName = c;              }
+    void                SetFillNtupleType(Int_t d)        { fFillNtupleType= d;          }
 
   protected:
     void                Process();
@@ -127,6 +128,7 @@ namespace mithep
     Int_t                          fDecay;
     TFile	                  *fOutputFile;
     TString	                   fTupleName;
+    Int_t                          fFillNtupleType;
     MitGPTree                      fMitGPTree;
 
     Int_t                          fNEventsSelected;

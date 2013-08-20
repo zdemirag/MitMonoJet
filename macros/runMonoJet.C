@@ -1,4 +1,4 @@
-// $Id: runMonoJet.C,v 1.8 2013/07/12 18:59:59 twilkaso Exp $
+// $Id: runMonoJet.C,v 1.10 2013/08/14 20:22:23 mdecross Exp $
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TSystem.h>
 #include <TProfile.h>
@@ -342,19 +342,40 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmet->SetLeptonsName(merger->GetOutputName());
   jetplusmet->SetMinNumJets(1);
   jetplusmet->SetMinNumLeptons(0);
-  jetplusmet->SetMinJetPt(80);
+  jetplusmet->SetMinJetEt(80);
   jetplusmet->SetMaxJetEta(4.5);
   jetplusmet->SetMinChargedHadronFrac(0.2);
   jetplusmet->SetMaxNeutralHadronFrac(0.7);
   jetplusmet->SetMaxNeutralEmFrac(0.7);
   jetplusmet->SetMinMetEt(200);
 
-  TString tupleName = TString(outputName);
-  tupleName += TString("_") + TString(dataset) + TString("_") + TString(skim);
-  if (TString(fileset) != TString("")) {
-	tupleName += TString("_") + TString(fileset);
-  }
-  tupleName += TString("_tree.root");
+  MonoJetAnalysisMod         *dilepton = new MonoJetAnalysisMod("MonoJetSelector_dilepton");
+  dilepton->SetJetsName(theJetCleaning->GetOutputName()); //identified jets
+  dilepton->SetJetsFromBranch(kFALSE);
+  dilepton->SetElectronsName(electronCleaning->GetOutputName());
+  dilepton->SetElectronsFromBranch(kFALSE);
+  dilepton->SetMuonsName(muonIdMod->GetOutputName());
+  dilepton->SetMuonsFromBranch(kFALSE);
+  dilepton->SetLeptonsName(merger->GetOutputName());
+  dilepton->SetMinNumJets(1);
+  dilepton->SetMinNumLeptons(2);
+  dilepton->SetMinJetEt(80);
+  dilepton->SetMaxJetEta(4.5);
+  dilepton->SetMinMetEt(0);
+  
+  MonoJetAnalysisMod         *wlnu = new MonoJetAnalysisMod("MonoJetSelector_wlnu");
+  wlnu->SetJetsName(theJetCleaning->GetOutputName()); //identified jets
+  wlnu->SetJetsFromBranch(kFALSE);
+  wlnu->SetElectronsName(electronCleaning->GetOutputName());
+  wlnu->SetElectronsFromBranch(kFALSE);
+  wlnu->SetMuonsName(muonIdMod->GetOutputName());
+  wlnu->SetMuonsFromBranch(kFALSE);
+  wlnu->SetLeptonsName(merger->GetOutputName());
+  wlnu->SetMinNumJets(1);
+  wlnu->SetMinNumLeptons(1);
+  wlnu->SetMinJetEt(80);
+  wlnu->SetMaxJetEta(4.5);
+  wlnu->SetMinMetEt(0);
 
   MonoJetTreeWriter *jetplusmettree = new MonoJetTreeWriter("MonoJetTreeWriter");
   jetplusmettree->SetPhotonsFromBranch(kFALSE);
@@ -370,7 +391,39 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmettree->SetLeptonsName(merger->GetOutputName());
   jetplusmettree->SetIsData(isData);
   jetplusmettree->SetProcessID(0);
-  jetplusmettree->SetTupleName(tupleName);
+  jetplusmettree->SetFillNtupleType(0);
+
+  MonoJetTreeWriter *dileptontree = new MonoJetTreeWriter("MonoJetTreeWriter_dilepton");
+  dileptontree->SetPhotonsFromBranch(kFALSE);
+  dileptontree->SetPhotonsName(photonCleaningMod->GetOutputName());
+  dileptontree->SetElectronsFromBranch(kFALSE);
+  dileptontree->SetElectronsName(electronCleaning->GetOutputName());
+  dileptontree->SetMuonsFromBranch(kFALSE);
+  dileptontree->SetMuonsName(muonIdMod->GetOutputName());
+  dileptontree->SetJetsFromBranch(kFALSE);
+  dileptontree->SetJetsName(theJetCleaning->GetOutputName());
+  dileptontree->SetPVFromBranch(kFALSE);
+  dileptontree->SetPVName(goodPVFilterMod->GetOutputName());
+  dileptontree->SetLeptonsName(merger->GetOutputName());
+  dileptontree->SetIsData(isData);
+  dileptontree->SetProcessID(0);
+  dileptontree->SetFillNtupleType(1);
+
+  MonoJetTreeWriter *wlnutree = new MonoJetTreeWriter("MonoJetTreeWriter_wlnu");
+  wlnutree->SetPhotonsFromBranch(kFALSE);
+  wlnutree->SetPhotonsName(photonCleaningMod->GetOutputName());
+  wlnutree->SetElectronsFromBranch(kFALSE);
+  wlnutree->SetElectronsName(electronCleaning->GetOutputName());
+  wlnutree->SetMuonsFromBranch(kFALSE);
+  wlnutree->SetMuonsName(muonIdMod->GetOutputName());
+  wlnutree->SetJetsFromBranch(kFALSE);
+  wlnutree->SetJetsName(theJetCleaning->GetOutputName());
+  wlnutree->SetPVFromBranch(kFALSE);
+  wlnutree->SetPVName(goodPVFilterMod->GetOutputName());
+  wlnutree->SetLeptonsName(merger->GetOutputName());
+  wlnutree->SetIsData(isData);
+  wlnutree->SetProcessID(0);
+  wlnutree->SetFillNtupleType(2);
 
   //------------------------------------------------------------------------------------------------
   // making analysis chain
@@ -400,6 +453,14 @@ void runMonoJet(const char *fileset    = "0000",
   theJetCleaning   ->Add(jetplusmet);
   jetplusmet       ->Add(jetplusmettree);
 
+  // Dilepton selection
+  theJetCleaning   ->Add(dilepton);
+  dilepton         ->Add(dileptontree);
+
+  // Wlnu selection
+  theJetCleaning   ->Add(wlnu);
+  wlnu	          ->Add(wlnutree);
+
   //------------------------------------------------------------------------------------------------
   // setup analysis
   //------------------------------------------------------------------------------------------------
@@ -423,8 +484,7 @@ void runMonoJet(const char *fileset    = "0000",
   else 
     d = c->FindDataset(bookstr,skimdataset.Data(),fileset, true);
   ana->AddDataset(d);
-
-  //------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------
   // organize output
   //------------------------------------------------------------------------------------------------
   TString rootFile = TString(outputName);

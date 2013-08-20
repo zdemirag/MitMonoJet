@@ -71,6 +71,7 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fDecay(0),
   fOutputFile(0),
   fTupleName("hMonoPhotonTree"),
+  fFillNtupleType(0),
 
   fNEventsSelected(0)
 
@@ -360,17 +361,18 @@ void MonoJetTreeWriter::SlaveBegin()
   }
 
   //***********************************************************************************************
-  //Create Smurf Ntuple Tree  
+  //Create Smurf Ntuple Tree
   //***********************************************************************************************
-  fOutputFile = new TFile(fTupleName.Data(), "RECREATE");
-  fMitGPTree.CreateTree(-1);
+  fMitGPTree.CreateTree(fFillNtupleType);
+  AddOutput(fMitGPTree.tree_);
+
   
 }
 //--------------------------------------------------------------------------------------------------
 void MonoJetTreeWriter::SlaveTerminate()
 {
-  fOutputFile->cd();
-  fOutputFile->Write();
-  fOutputFile->Close();
-  cout << "Processed events on MonoPhotonTreeWriter: " << fNEventsSelected << endl;
+  //fOutputFile->cd();
+  //fOutputFile->Write();
+  //fOutputFile->Close();
+  cout << "Processed events on MonoJetTreeWriter: " << fNEventsSelected << endl;
 }
