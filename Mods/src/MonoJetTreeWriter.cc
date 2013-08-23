@@ -136,10 +136,14 @@ void MonoJetTreeWriter::Process()
   if(fDecay == 0) fMitGPTree.dstype_ = MitGPTree::data;
   else            fMitGPTree.dstype_ = MitGPTree::other;
 
-  fMitGPTree.met_    = fMet->At(0)->Pt();
-  fMitGPTree.metPhi_ = fMet->At(0)->Phi();
-  fMitGPTree.sumEt_  = fMet->At(0)->SumEt();
-  fMitGPTree.metSig_ = fMet->At(0)->PFMetSig();
+  fMitGPTree.met_       = fMet->At(0)->Pt();
+  fMitGPTree.metPhi_    = fMet->At(0)->Phi();
+  fMitGPTree.metCorZ_   = fMet->At(0)->Pt();  //MetCor default value as Met
+  fMitGPTree.metCorZPhi_= fMet->At(0)->Phi(); //MetCor default value as Met
+  fMitGPTree.metCorW_   = fMet->At(0)->Pt();  //MetCor default value as Met
+  fMitGPTree.metCorWPhi_= fMet->At(0)->Phi(); //MetCor default value as Met
+  fMitGPTree.sumEt_     = fMet->At(0)->SumEt();
+  fMitGPTree.metSig_    = fMet->At(0)->PFMetSig();
   
 
   // LEPTONS
@@ -162,6 +166,12 @@ void MonoJetTreeWriter::Process()
     else if(lep->ObjType() == kElectron) fMitGPTree.lid1_ = 11;
     else                                 assert(0);
     if(lep->Charge() < 0) fMitGPTree.lid1_ = -1 * fMitGPTree.lid1_;
+    // If the event contains more than 1 leptons correct the MET using the highest pt one
+    float met_new_x = fMitGPTree.met_*TMath::Cos(fMitGPTree.metPhi_) + fMitGPTree.lep1_.Px();
+    float met_new_y = fMitGPTree.met_*TMath::Sin(fMitGPTree.metPhi_) + fMitGPTree.lep1_.Py();
+
+    fMitGPTree.metCorW_    = TMath::Sqrt(TMath::Power(met_new_x,2) + TMath::Power(met_new_y,2));
+    fMitGPTree.metCorWPhi_ = TMath::ATan2(met_new_y,met_new_x);
   }
   if (leptons->GetEntries() >= 2) {
     const Particle *lep = leptons->At(1);
@@ -179,7 +189,12 @@ void MonoJetTreeWriter::Process()
     else if(lep->ObjType() == kElectron) fMitGPTree.lid2_ = 11;
     else                                 assert(0);
     if(lep->Charge() < 0) fMitGPTree.lid2_ = -1 * fMitGPTree.lid2_;
+    // If the event contains more than 2 leptons correct the MET using the 2 highest pt ones
+    float met_new_x = fMitGPTree.met_*TMath::Cos(fMitGPTree.metPhi_) + fMitGPTree.lep1_.Px() + fMitGPTree.lep2_.Px();
+    float met_new_y = fMitGPTree.met_*TMath::Sin(fMitGPTree.metPhi_) + fMitGPTree.lep1_.Py() + fMitGPTree.lep2_.Py();
 
+    fMitGPTree.metCorZ_    = TMath::Sqrt(TMath::Power(met_new_x,2) + TMath::Power(met_new_y,2));
+    fMitGPTree.metCorZPhi_ = TMath::ATan2(met_new_y,met_new_x);
   }
   if (leptons->GetEntries() >= 3) {
     const Particle *lep = leptons->At(2);

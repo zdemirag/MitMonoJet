@@ -49,6 +49,10 @@ class MitGPTree {
   float          scale1fb_;
   float          met_;
   float          metPhi_;
+  float          metCorZ_;
+  float          metCorZPhi_;
+  float          metCorW_;
+  float          metCorWPhi_;
   float          sumEt_;
   float          metSig_;
   DataType       dstype_;
@@ -193,6 +197,10 @@ class MitGPTree {
     tree_->Branch("scale1fb"     , &scale1fb_     ,   "scale1fb/F");
     tree_->Branch("met"          , &met_          ,   "met/F");
     tree_->Branch("metPhi"       , &metPhi_       ,   "metPhi/F");
+    tree_->Branch("metCorZ"      , &metCorZ_      ,   "metCorZ/F");
+    tree_->Branch("metCorZPhi"   , &metCorZPhi_   ,   "metCorZPhi/F");
+    tree_->Branch("metCorW"      , &metCorW_      ,   "metCorW/F");
+    tree_->Branch("metCorWPhi"   , &metCorWPhi_   ,   "metCorWPhi/F");
     tree_->Branch("sumEt"        , &sumEt_        ,   "sumEt/F");
     tree_->Branch("metSig"       , &metSig_       ,   "metSig/F");
     tree_->Branch("dstype"       , &dstype_       ,   "dstype/I");
@@ -301,6 +309,10 @@ class MitGPTree {
     tree_->SetBranchAddress("scale1fb",      &scale1fb_);
     tree_->SetBranchAddress("met",           &met_);
     tree_->SetBranchAddress("metPhi",        &metPhi_);
+    tree_->SetBranchAddress("metCorZ",       &metCorZ_);
+    tree_->SetBranchAddress("metCorZPhi",    &metCorZPhi_);
+    tree_->SetBranchAddress("metCorW",       &metCorW_);
+    tree_->SetBranchAddress("metCorWPhi",    &metCorWPhi_);
     tree_->SetBranchAddress("sumEt",         &sumEt_);
     tree_->SetBranchAddress("metSig",        &metSig_);
     tree_->SetBranchAddress("dstype",        &dstype_);
@@ -420,6 +432,10 @@ MitGPTree::InitVariables(){
   scale1fb_      = 0;
   met_           = -999.;
   metPhi_        = -999.;
+  metCorZ_       = -999.;
+  metCorZPhi_    = -999.;
+  metCorW_       = -999.;
+  metCorWPhi_    = -999.;
   sumEt_         = -999.;
   metSig_        = -999.;
   dstype_        = data;
