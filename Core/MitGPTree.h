@@ -68,6 +68,8 @@ class MitGPTree {
   int            lid3_;
   int		 lep3IsTightMuon_;
 
+  LorentzVector  tau1_;
+
   unsigned int   nphotons_;
   LorentzVector  pho1_;
   float phoHCALisoDR03_a1_;
@@ -152,6 +154,7 @@ class MitGPTree {
   /// default constructor  
   MitGPTree():
     lepPtr1_(&lep1_),lepPtr2_(&lep2_),lepPtr3_(&lep3_),
+    tauPtr1_(&tau1_),
     phoPtr1_(&pho1_),phoPtr2_(&pho2_),phoPtr3_(&pho3_),phoPtr4_(&pho4_),
     jetPtr1_(&jet1_),jetPtr2_(&jet2_),jetPtr3_(&jet3_),jetPtr4_(&jet4_),
     trackPtr1_(&track1_),trackPtr2_(&track2_),trackPtr3_(&track3_){}
@@ -215,6 +218,8 @@ class MitGPTree {
     tree_->Branch("lep3"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &lepPtr3_);
     tree_->Branch("lid3"         , &lid3_         ,   "lid3/I");
     tree_->Branch("lep3IsTightMuon"         , &lep3IsTightMuon_         ,   "lep3IsTightMuon/I");
+
+    tree_->Branch("tau1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &tauPtr1_);
 
     tree_->Branch("nphotons"     , &nphotons_     ,   "nphotons/i");
     tree_->Branch("pho1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr1_);
@@ -328,6 +333,8 @@ class MitGPTree {
     tree_->SetBranchAddress("lid3",          &lid3_);
     tree_->SetBranchAddress("lep3IsTightMuon",&lep3IsTightMuon_);
 
+    tree_->SetBranchAddress("tau1",          &tauPtr1_);
+
     tree_->SetBranchAddress("nphotons"                  , &nphotons_);
     tree_->SetBranchAddress("pho1"                      , &phoPtr1_);
     tree_->SetBranchAddress("phoHCALisoDR03_a1"         , &phoHCALisoDR03_a1_);
@@ -409,6 +416,7 @@ class MitGPTree {
   LorentzVector* lepPtr1_;
   LorentzVector* lepPtr2_;
   LorentzVector* lepPtr3_;
+  LorentzVector* tauPtr1_;
   LorentzVector* phoPtr1_;
   LorentzVector* phoPtr2_;
   LorentzVector* phoPtr3_;
@@ -450,6 +458,8 @@ MitGPTree::InitVariables(){
   lep3_       	 = LorentzVector();
   lid3_          = 0;
   lep3IsTightMuon_ = 0;
+
+  tau1_       	 = LorentzVector();
 
   nphotons_      = 0;
   pho1_       	 = LorentzVector();

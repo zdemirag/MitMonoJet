@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------------------------------
-// $Id: MonoJetTreeWriter.h,v 1.5 2013/08/20 21:06:37 dimatteo Exp $
+// $Id: MonoJetTreeWriter.h,v 1.6 2013/08/20 22:45:14 twilkaso Exp $
 //
 // MonoJetTreeWriter
 //
@@ -19,6 +19,7 @@
 #include "MitAna/DataTree/interface/DecayParticleCol.h"
 #include "MitAna/DataTree/interface/ElectronCol.h"
 #include "MitAna/DataTree/interface/MuonCol.h"
+#include "MitAna/DataTree/interface/PFTauCol.h"
 #include "MitAna/DataTree/interface/DecayParticleCol.h"
 #include "MitAna/DataTree/interface/PileupInfoCol.h"
 #include "MitAna/DataTree/interface/MCParticleCol.h"
@@ -61,6 +62,9 @@ namespace mithep
     void                SetElectronsFromBranch(bool b)    { fElectronsFromBranch = b;    }
     void                SetMuonsName(const char *n)       { fMuonsName = n;              }
     void                SetMuonsFromBranch(bool b)        { fMuonsFromBranch = b;        }
+    void                SetTausName(const char *n)        { fTausName = n;              }
+    void                SetTausFromBranch(bool b)         { fTausFromBranch = b;        }
+
     void                SetJetsName(const char *n)        { fJetsName = n;               }
     void                SetJetsFromBranch(bool b)         { fJetsFromBranch = b;         }
     void                SetLeptonsName(const char *n)     { fLeptonsName = n;            }
@@ -88,6 +92,7 @@ namespace mithep
     TString             fPhotonsName;
     TString             fElectronsName;
     TString             fMuonsName;
+    TString             fTausName;
     TString             fJetsName;
     TString             fLeptonsName;
 
@@ -107,6 +112,7 @@ namespace mithep
     Bool_t              fPhotonsFromBranch;
     Bool_t              fElectronsFromBranch;
     Bool_t              fMuonsFromBranch;
+    Bool_t              fTausFromBranch;
     Bool_t              fJetsFromBranch;
     Bool_t              fPVFromBranch;
 
@@ -114,6 +120,7 @@ namespace mithep
     const PhotonCol               *fPhotons;
     const ElectronCol             *fElectrons;
     const MuonCol                 *fMuons;
+    const PFTauCol                *fPFTaus;
     const JetCol                  *fJets;
 
     const TrackCol                *fTracks;

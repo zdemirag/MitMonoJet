@@ -11,6 +11,7 @@
 #include "MitPhysics/Utils/interface/VertexTools.h"
 #include "MitPhysics/Utils/interface/PFMetCorrectionTools.h"
 #include "MitAna/DataTree/interface/PFJetCol.h"
+#include "MitAna/DataTree/interface/PFTauCol.h"
 #include "MitAna/DataTree/interface/GenJetCol.h"
 #include "MitPhysics/Mods/interface/MuonIDMod.h"
 #include "MitCommon/MathTools/interface/MathUtils.h"
@@ -37,6 +38,7 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fPhotonsName            (Names::gkPhotonBrn),
   fElectronsName          (Names::gkElectronBrn),
   fMuonsName              (Names::gkMuonBrn),
+  fTausName               (Names::gkPFTauBrn),
   fJetsName               (Names::gkPFJetBrn),
   fLeptonsName            (ModNames::gkMergedLeptonsName),
 
@@ -52,6 +54,7 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fPhotonsFromBranch      (kTRUE),  
   fElectronsFromBranch    (kTRUE),  
   fMuonsFromBranch        (kTRUE),  
+  fTausFromBranch         (kTRUE),  
   fJetsFromBranch         (kTRUE),
   fPVFromBranch           (kTRUE),
 
@@ -59,6 +62,7 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fPhotons                (0),
   fElectrons              (0),
   fMuons                  (0),
+  fPFTaus                 (0),
   fJets                   (0),
   fTracks                 (0),
   fPV                     (0),
@@ -94,6 +98,7 @@ void MonoJetTreeWriter::Process()
   LoadEventObject(fPhotonsName,       fPhotons,       fPhotonsFromBranch); 
   LoadEventObject(fElectronsName,     fElectrons,     fElectronsFromBranch);
   LoadEventObject(fMuonsName,         fMuons,         fMuonsFromBranch);
+  LoadEventObject(fTausName,          fPFTaus,        fTausFromBranch);
   LoadEventObject(fJetsName,          fJets,          fJetsFromBranch);
 
   LoadEventObject(fPVName,            fPV,            fPVFromBranch);    
@@ -145,6 +150,13 @@ void MonoJetTreeWriter::Process()
   fMitGPTree.sumEt_     = fMet->At(0)->SumEt();
   fMitGPTree.metSig_    = fMet->At(0)->PFMetSig();
   
+
+  // TAU
+
+  if (fPFTaus->GetEntries() >= 1) {
+    const PFTau *tau = fPFTaus->At(0);
+    fMitGPTree.tau1_ = tau->Mom();
+  }
 
   // LEPTONS
   unsigned int muoncount = 0;
@@ -361,6 +373,7 @@ void MonoJetTreeWriter::SlaveBegin()
   ReqEventObject(fPhotonsName,       fPhotons,        fPhotonsFromBranch); 
   ReqEventObject(fElectronsName,     fElectrons,      fElectronsFromBranch);
   ReqEventObject(fMuonsName,         fMuons,          fMuonsFromBranch);
+  ReqEventObject(fTausName,          fPFTaus,         fTausFromBranch);
   ReqEventObject(fJetsName,          fJets,           fJetsFromBranch);
 
   ReqEventObject(fSuperClustersName,  fSuperClusters, true);

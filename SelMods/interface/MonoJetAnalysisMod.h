@@ -18,6 +18,7 @@
 #include "MitAna/DataTree/interface/MetCol.h"
 #include "MitAna/DataTree/interface/ElectronCol.h"
 #include "MitAna/DataTree/interface/MuonCol.h"
+#include "MitAna/DataTree/interface/PFTauCol.h"
 #include "MitAna/DataTree/interface/JetCol.h"
 #include "MitAna/DataTree/interface/CaloJetCol.h"
 #include "MitAna/DataTree/interface/PFJetCol.h"
@@ -46,24 +47,28 @@ namespace mithep
       void 		          SetJetsName        (const char *n){ fJetsName = n; } //added by TJ
       void                SetElectronsName (const char *n){ fElectronsName = n; }
       void                SetMuonsName (const char *n){ fMuonsName = n; }
+      void                SetTausName (const char *n){ fTausName = n; }
       void                SetLeptonsName(const char *n){ fLeptonsName = n; }
 
       void                SetMetFromBranch(Bool_t b)    { fMetFromBranch = b; }
       void                SetJetsFromBranch(Bool_t b)    { fJetsFromBranch = b; }
       void                SetElectronsFromBranch(Bool_t b)  { fElectronsFromBranch = b; }
       void                SetMuonsFromBranch(Bool_t b) { fMuonsFromBranch = b; }
+      void                SetTausFromBranch(Bool_t b) { fTausFromBranch = b; }
 
     protected:
       TString                  fMetBranchName;           //name of input met branch
       TString		           fJetsName;              	 //name of input jet branch (added by TJ)
       TString                   fElectronsName;
       TString                   fMuonsName;
+      TString                   fTausName;
       TString                   fLeptonsName;
 
       Bool_t                   fMetFromBranch;           //met is loaded from a branch
       Bool_t                   fJetsFromBranch;          //jet are loaded from a branch
       Bool_t                    fElectronsFromBranch;
       Bool_t                    fMuonsFromBranch;
+      Bool_t                    fTausFromBranch;
 
       TH1D                    *fMonoJetSelection;        //histogram for cut flow monitoring
       TH1D                    *fPhotonEt;                //histogram of photon transverse energy spectrum
@@ -75,8 +80,10 @@ namespace mithep
       const JetCol	      *fJets; 
       const ElectronCol       *fElectrons;
       const MuonCol           *fMuons;
+      const PFTauCol          *fPFTaus;
 
       void         SetMinNumLeptons(Int_t n)  { fMinNumLeptons = n; }
+      void         SetMinNumTaus(Int_t n)  { fMinNumTaus = n; }
       void 	   SetMinNumJets(Int_t n)  { fMinNumJets = n; }
       void 	   SetMinJetEt(Double_t x) { fMinJetEt = x; }
       void	   SetMaxJetEta(Double_t x){ fMaxJetEta = x; }
@@ -93,6 +100,7 @@ namespace mithep
       void         Terminate();      
 
       unsigned int fMinNumLeptons;
+      unsigned int fMinNumTaus;
       unsigned int fMinNumJets;
       Double_t fMinJetEt;
       Double_t fMaxJetEta;

@@ -28,19 +28,23 @@ MonoJetAnalysisMod::MonoJetAnalysisMod(const char *name, const char *title) :
   fMetBranchName                 ("PFMet"),
   fElectronsName                 (Names::gkElectronBrn),
   fMuonsName                     (Names::gkMuonBrn),
+  fTausName                     (Names::gkPFTauBrn),
   fLeptonsName                   (ModNames::gkMergedLeptonsName),
   fJetsName			 (Names::gkPFJetBrn),
   fMetFromBranch                 (kTRUE),
   fJetsFromBranch                (kTRUE),
   fElectronsFromBranch           (kTRUE),
   fMuonsFromBranch               (kTRUE),
+  fTausFromBranch               (kTRUE),
   // ----------------------------------------
   // collections....
   fMet                           (0),
   fJets				 (0), 
   fElectrons			 (0),
   fMuons			 (0),
+  fPFTaus			 (0),
   fMinNumLeptons		 (0),
+  fMinNumTaus    		 (0),
   fMinNumJets		 	 (1),
   fMinJetEt			 (30),
   fMaxJetEta			 (2.4),
@@ -73,6 +77,7 @@ void MonoJetAnalysisMod::SlaveBegin()
   ReqEventObject(fJetsName,        fJets,	  fJetsFromBranch); 
   ReqEventObject(fElectronsName,   fElectrons,  fElectronsFromBranch);
   ReqEventObject(fMuonsName,      fMuons,       fMuonsFromBranch);
+  ReqEventObject(fTausName,       fPFTaus,       fTausFromBranch);
 
   //Create your histograms here
   //*************************************************************************************************
@@ -154,15 +159,17 @@ void MonoJetAnalysisMod::Process()
   assert(fJets);  
   LoadEventObject(fElectronsName,  fElectrons,  fElectronsFromBranch);
   LoadEventObject(fMuonsName,   fMuons,    fMuonsFromBranch);
+  LoadEventObject(fTausName,   fPFTaus,    fTausFromBranch);
   ParticleOArr *leptons = GetObjThisEvt<ParticleOArr>(fLeptonsName);
 
   //*********************************************************************************************
   //Define Cuts 
   //*********************************************************************************************
-  const int nCuts = 8;
+  const int nCuts = 9;
   bool passCut[nCuts] = {
 	  false, 
 	  false, 
+	  false,
 	  false,
 	  false,
 	  false,
@@ -177,6 +184,7 @@ void MonoJetAnalysisMod::Process()
   // if (fPhotons->GetEntries() > 0)  passCut[0] = true;
   if (fJets->GetEntries() >= fMinNumJets) passCut[0] = true;
   if (leptons->GetEntries() >= fMinNumLeptons) passCut[1] = true;
+  if (fPFTaus->GetEntries() >= fMinNumTaus ) passCut[2] = true;
 
   //***********************************************************************************************
   //Discard events with soft jets - (changed by TJ)
@@ -188,7 +196,7 @@ void MonoJetAnalysisMod::Process()
 	  if (jet->Et() <= fMinJetEt ) continue;
 	  nHardJet++;
   }
-  if (nHardJet > 0) passCut[2] = true;
+  if (nHardJet > 0) passCut[3] = true;
 
   //**********************************************************************************************
   //Discard events that are outside of eta range (added by TJ)
@@ -202,7 +210,7 @@ void MonoJetAnalysisMod::Process()
 	nHardEtaJet++;
 	theGoodJets.push_back((int) i);
   }
-  if (nHardEtaJet > 0) passCut[3] = true;
+  if (nHardEtaJet > 0) passCut[4] = true;
   
   
 
@@ -210,7 +218,7 @@ void MonoJetAnalysisMod::Process()
   //Discard events with soft met
   //***********************************************************************************************
   const Met *stdMet = fMet->At(0);
-  if ( stdMet->Pt() > fMinMetEt )  passCut[4] = true;
+  if ( stdMet->Pt() > fMinMetEt )  passCut[5] = true;
 	  
 //***********************************************************************************************
   //Discard events outside of fraction ranges
@@ -225,7 +233,7 @@ void MonoJetAnalysisMod::Process()
         if (ChargedHadFrac <= fMinChargedHadronFrac) continue;
         nHighChargedHadFrac++;
         }
-  if ( nHighChargedHadFrac > 0 )  passCut[5] = true;
+  if ( nHighChargedHadFrac > 0 )  passCut[6] = true;
 
   int nLowNeutralHadFrac = 0;
   for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
@@ -235,7 +243,7 @@ void MonoJetAnalysisMod::Process()
         if (NeutralHadFrac >= fMaxNeutralHadronFrac) continue;
         nLowNeutralHadFrac++;
         }
-  if ( nLowNeutralHadFrac > 0 )  passCut[6] = true;
+  if ( nLowNeutralHadFrac > 0 )  passCut[7] = true;
 	
   int nLowNeutralEmFrac = 0;
   for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
@@ -245,7 +253,7 @@ void MonoJetAnalysisMod::Process()
         if (NeutralEmFrac >= fMaxNeutralEmFrac) continue;
         nLowNeutralEmFrac++;
         }
-  if ( nLowNeutralEmFrac > 0 )  passCut[7] = true;
+  if ( nLowNeutralEmFrac > 0 )  passCut[8] = true;
 
   //*********************************************************************************************
   //Make Selection Histograms. Number of events passing each level of cut
