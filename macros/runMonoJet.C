@@ -1,4 +1,4 @@
-// $Id: runMonoJet.C,v 1.10 2013/08/14 20:22:23 mdecross Exp $
+// $Id: runMonoJet.C,v 1.11 2013/08/20 22:41:45 twilkaso Exp $
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TSystem.h>
 #include <TProfile.h>
@@ -18,6 +18,8 @@
 #include "MitPhysics/Mods/interface/MuonIDMod.h"
 #include "MitPhysics/Mods/interface/ElectronIDMod.h"
 #include "MitPhysics/Mods/interface/ElectronCleaningMod.h"
+#include "MitPhysics/Mods/interface/PFTauIDMod.h"
+#include "MitPhysics/Mods/interface/PFTauCleaningMod.h"
 #include "MitPhysics/Mods/interface/PhotonIDMod.h"
 #include "MitPhysics/Mods/interface/PhotonTreeWriter.h"
 #include "MitPhysics/Mods/interface/PhotonCleaningMod.h"
@@ -41,7 +43,7 @@ void runMonoJet(const char *fileset    = "0000",
 		   const char *book       = "t2mit/filefi/031",
 		   const char *catalogDir = "/home/cmsprod/catalog",
 		   const char *outputName = "MonoJet_August13",
-		   int         nEvents    = 10000)
+		   int         nEvents    = 100)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -288,11 +290,19 @@ void runMonoJet(const char *fileset    = "0000",
   photonIDMod->SetShowerShapeType("2012ShowerShape");
   photonIDMod->Set2012HCP(kTRUE);
 
+  PFTauIDMod *pftauIDMod = new PFTauIDMod;
+  pftauIDMod->SetPFTausName("HPSTaus");
+  pftauIDMod->SetIsLooseId(kFALSE);
+
+
   PhotonCleaningMod *photonCleaningMod = new PhotonCleaningMod;
   photonCleaningMod->SetCleanElectronsName(electronCleaning->GetOutputName());
   photonCleaningMod->SetGoodPhotonsName(photonIDMod->GetOutputName());
   photonCleaningMod->SetCleanPhotonsName("CleanPhotons");
 
+  PFTauCleaningMod *pftauCleaningMod = new PFTauCleaningMod;
+  pftauCleaningMod->SetGoodPFTausName(pftauIDMod->GetGoodPFTausName());
+  pftauCleaningMod->SetCleanMuonsName(muonIdMod->GetOutputName());
   PublisherMod<PFJet,Jet> *pubJet = new PublisherMod<PFJet,Jet>("JetPub");
   pubJet->SetInputName("AKt5PFJets");
   pubJet->SetOutputName("PubAKt5PFJets");
@@ -339,6 +349,8 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmet->SetElectronsFromBranch(kFALSE);
   jetplusmet->SetMuonsName(muonIdMod->GetOutputName());
   jetplusmet->SetMuonsFromBranch(kFALSE);
+  jetplusmet->SetTausName(pftauCleaningMod->GetOutputName());
+  jetplusmet->SetTausFromBranch(kFALSE);
   jetplusmet->SetLeptonsName(merger->GetOutputName());
   jetplusmet->SetMinNumJets(1);
   jetplusmet->SetMinNumLeptons(0);
@@ -356,6 +368,8 @@ void runMonoJet(const char *fileset    = "0000",
   dilepton->SetElectronsFromBranch(kFALSE);
   dilepton->SetMuonsName(muonIdMod->GetOutputName());
   dilepton->SetMuonsFromBranch(kFALSE);
+  dilepton->SetTausName(pftauCleaningMod->GetOutputName());
+  dilepton->SetTausFromBranch(kFALSE);
   dilepton->SetLeptonsName(merger->GetOutputName());
   dilepton->SetMinNumJets(1);
   dilepton->SetMinNumLeptons(2);
@@ -370,6 +384,8 @@ void runMonoJet(const char *fileset    = "0000",
   wlnu->SetElectronsFromBranch(kFALSE);
   wlnu->SetMuonsName(muonIdMod->GetOutputName());
   wlnu->SetMuonsFromBranch(kFALSE);
+  wlnu->SetTausName(pftauCleaningMod->GetOutputName());
+  wlnu->SetTausFromBranch(kFALSE);
   wlnu->SetLeptonsName(merger->GetOutputName());
   wlnu->SetMinNumJets(1);
   wlnu->SetMinNumLeptons(1);
@@ -384,6 +400,8 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmettree->SetElectronsName(electronCleaning->GetOutputName());
   jetplusmettree->SetMuonsFromBranch(kFALSE);
   jetplusmettree->SetMuonsName(muonIdMod->GetOutputName());
+  jetplusmettree->SetTausFromBranch(kFALSE);
+  jetplusmettree->SetTausName(pftauCleaningMod->GetOutputName());
   jetplusmettree->SetJetsFromBranch(kFALSE);
   jetplusmettree->SetJetsName(theJetCleaning->GetOutputName());
   jetplusmettree->SetPVFromBranch(kFALSE);
@@ -400,6 +418,8 @@ void runMonoJet(const char *fileset    = "0000",
   dileptontree->SetElectronsName(electronCleaning->GetOutputName());
   dileptontree->SetMuonsFromBranch(kFALSE);
   dileptontree->SetMuonsName(muonIdMod->GetOutputName());
+  dileptontree->SetTausFromBranch(kFALSE);
+  dileptontree->SetTausName(pftauCleaningMod->GetOutputName());
   dileptontree->SetJetsFromBranch(kFALSE);
   dileptontree->SetJetsName(theJetCleaning->GetOutputName());
   dileptontree->SetPVFromBranch(kFALSE);
@@ -416,6 +436,8 @@ void runMonoJet(const char *fileset    = "0000",
   wlnutree->SetElectronsName(electronCleaning->GetOutputName());
   wlnutree->SetMuonsFromBranch(kFALSE);
   wlnutree->SetMuonsName(muonIdMod->GetOutputName());
+  wlnutree->SetTausFromBranch(kFALSE);
+  wlnutree->SetTausName(pftauCleaningMod->GetOutputName());
   wlnutree->SetJetsFromBranch(kFALSE);
   wlnutree->SetJetsName(theJetCleaning->GetOutputName());
   wlnutree->SetPVFromBranch(kFALSE);
@@ -444,7 +466,9 @@ void runMonoJet(const char *fileset    = "0000",
   electronCleaning ->Add(merger);
   merger           ->Add(photonIDMod);
   photonIDMod	   ->Add(photonCleaningMod);
-  photonCleaningMod->Add(pubJet);
+  photonCleaningMod->Add(pftauIDMod);
+  pftauIDMod       ->Add(pftauCleaningMod);
+  pftauCleaningMod ->Add(pubJet);
   pubJet           ->Add(jetCorr);
   jetCorr          ->Add(theJetID);
   theJetID	   ->Add(theJetCleaning);
@@ -479,10 +503,14 @@ void runMonoJet(const char *fileset    = "0000",
   TString skimdataset = TString(dataset)+TString("/") +TString(skim);
   Dataset *d = NULL;
   TString bookstr = book;
-  if (TString(skim).CompareTo("noskim") == 0)
-    d = c->FindDataset(bookstr,dataset,fileset, true);
-  else 
-    d = c->FindDataset(bookstr,skimdataset.Data(),fileset, true);
+  if (TString(skim).CompareTo("noskim") == 0) {
+    //d = c->FindDataset(bookstr,dataset,fileset, true);
+    d = c->FindDataset(bookstr,dataset,fileset, false);
+  }
+  else {
+    //d = c->FindDataset(bookstr,skimdataset.Data(),fileset, true);
+    d = c->FindDataset(bookstr,skimdataset.Data(),fileset, false);
+  }
   ana->AddDataset(d);
 //------------------------------------------------------------------------------------------------
   // organize output
