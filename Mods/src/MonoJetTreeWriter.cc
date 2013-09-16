@@ -115,6 +115,7 @@ void MonoJetTreeWriter::Process()
   const MuonCol *muons = GetObjThisEvt<MuonCol>("HggLeptonTagMuons"); //This should be identical to MuonIDMod->GetOutputName() in run macro
   fNEventsSelected++;
 
+  fMitGPTree.InitVariables();
   // ------------------------------------------------------------  
   // load event based information
       
@@ -129,7 +130,6 @@ void MonoJetTreeWriter::Process()
       if (puinfo->GetBunchCrossing() == -1) fMitGPTree.npuMinusOne_ = puinfo->GetPU_NumInteractions();
     }
   }
-  fMitGPTree.InitVariables();
 
   fMitGPTree.run_   = GetEventHeader()->RunNum();
   fMitGPTree.lumi_  = GetEventHeader()->LumiSec();
