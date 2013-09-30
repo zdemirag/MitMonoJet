@@ -10,6 +10,7 @@
 #include "MitPhysics/Utils/interface/PhotonTools.h"
 #include "MitPhysics/Utils/interface/VertexTools.h"
 #include "MitPhysics/Utils/interface/PFMetCorrectionTools.h"
+#include "MitPhysics/Utils/interface/QGTagger.h"
 #include "MitAna/DataTree/interface/PFJetCol.h"
 #include "MitAna/DataTree/interface/PFTauCol.h"
 #include "MitAna/DataTree/interface/GenJetCol.h"
@@ -41,6 +42,7 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fTausName               (Names::gkPFTauBrn),
   fJetsName               (Names::gkPFJetBrn),
   fLeptonsName            (ModNames::gkMergedLeptonsName),
+  fVertexName             (ModNames::gkGoodVertexesName),
 
   fSuperClustersName      ("PFSuperClusters"),
   fTracksName             (Names::gkTrackBrn),
@@ -57,6 +59,7 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fTausFromBranch         (kTRUE),  
   fJetsFromBranch         (kTRUE),
   fPVFromBranch           (kTRUE),
+  fQGTaggerCHS            (kTRUE),
 
   // ----------------------------------------
   fPhotons                (0),
@@ -113,6 +116,8 @@ void MonoJetTreeWriter::Process()
   }
   ParticleOArr *leptons = GetObjThisEvt<ParticleOArr>(ModNames::gkMergedLeptonsName);
   const MuonCol *muons = GetObjThisEvt<MuonCol>("HggLeptonTagMuons"); //This should be identical to MuonIDMod->GetOutputName() in run macro
+  const VertexCol *vertices = GetObjThisEvt<VertexOArr>(fVertexName);
+
   fNEventsSelected++;
 
   fMitGPTree.InitVariables();
@@ -152,7 +157,6 @@ void MonoJetTreeWriter::Process()
   
 
   // TAU
-
   if (fPFTaus->GetEntries() >= 1) {
     const PFTau *tau = fPFTaus->At(0);
     fMitGPTree.tau1_ = tau->Mom();
@@ -287,15 +291,21 @@ void MonoJetTreeWriter::Process()
 
   //JETS
   fMitGPTree.njets_ = fJets->GetEntries();
+  QGTagger qgTagger(fQGTaggerCHS);
+  qgTagger.SetRhoIso(fPileUpDen->At(0)->RhoKt6PFJetsCentralChargedPileUp()); // is it this one?
   if (fJets->GetEntries() >= 1) {
-    const Jet *jet = fJets->At(0);
+    const PFJet *jet = dynamic_cast<const PFJet*>(fJets->At(0));
     fMitGPTree.jet1_     = jet->Mom();
     fMitGPTree.jet1Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
+    qgTagger.CalculateVariables(jet, vertices);
+    fMitGPTree.jet1QGtag_ = qgTagger.QGValue();
   }
   if (fJets->GetEntries() >= 2) {
-    const Jet *jet = fJets->At(1);
+    const PFJet *jet = dynamic_cast<const PFJet*>(fJets->At(1));
     fMitGPTree.jet2_     = jet->Mom();
     fMitGPTree.jet2Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
+    qgTagger.CalculateVariables(jet, vertices);
+    fMitGPTree.jet2QGtag_ = qgTagger.QGValue();
   }
   if (fJets->GetEntries() >= 3) {
     const Jet *jet = fJets->At(2);
@@ -307,6 +317,7 @@ void MonoJetTreeWriter::Process()
     fMitGPTree.jet4_     = jet->Mom();
     fMitGPTree.jet4Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
   }
+
         
   //TRACKS
   fMitGPTree.ntracks_ = 0;

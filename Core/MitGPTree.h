@@ -119,8 +119,10 @@ class MitGPTree {
   unsigned int   njets_;
   LorentzVector  jet1_;
   float          jet1Btag_;
+  float          jet1QGtag_;
   LorentzVector  jet2_;
   float          jet2Btag_;
+  float          jet2QGtag_;
   LorentzVector  jet3_;
   float          jet3Btag_;
   LorentzVector  jet4_;
@@ -270,8 +272,10 @@ class MitGPTree {
     tree_->Branch("njets"        , &njets_        ,   "njets/i");
     tree_->Branch("jet1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr1_);
     tree_->Branch("jet1Btag"     , &jet1Btag_     ,   "jet1Btag/F");
+    tree_->Branch("jet1QGtag"     , &jet1QGtag_     ,   "jet1QGtag/F");
     tree_->Branch("jet2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr2_);
     tree_->Branch("jet2Btag"     , &jet2Btag_     ,   "jet2Btag/F");
+    tree_->Branch("jet2QGtag"     , &jet2QGtag_     ,   "jet2QGtag/F");
     tree_->Branch("jet3"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr3_);
     tree_->Branch("jet3Btag"     , &jet3Btag_     ,   "jet3Btag/F");
     tree_->Branch("jet4"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr4_);
@@ -384,8 +388,10 @@ class MitGPTree {
     tree_->SetBranchAddress("njets",         &njets_);
     tree_->SetBranchAddress("jet1",          &jetPtr1_);
     tree_->SetBranchAddress("jet1Btag",      &jet1Btag_);
+    tree_->SetBranchAddress("jet1QGtag",      &jet1QGtag_);
     tree_->SetBranchAddress("jet2",          &jetPtr2_);
     tree_->SetBranchAddress("jet2Btag",      &jet2Btag_);
+    tree_->SetBranchAddress("jet2QGtag",      &jet2QGtag_);
     tree_->SetBranchAddress("jet3",          &jetPtr3_);
     tree_->SetBranchAddress("jet3Btag",      &jet3Btag_);
     tree_->SetBranchAddress("jet4",          &jetPtr4_);
@@ -510,8 +516,10 @@ MitGPTree::InitVariables(){
   njets_ = 0;
   jet1_     = LorentzVector();
   jet1Btag_ = -999.;
+  jet1QGtag_= -999.;  
   jet2_     = LorentzVector();
   jet2Btag_ = -999.;
+  jet2QGtag_= -999.;
   jet3_     = LorentzVector();
   jet3Btag_ = -999.;
   jet4_     = LorentzVector();

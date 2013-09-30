@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------------------------------
-// $Id: MonoJetTreeWriter.h,v 1.6 2013/08/20 22:45:14 twilkaso Exp $
+// $Id: MonoJetTreeWriter.h,v 1.7 2013/08/27 18:11:41 mzanetti Exp $
 //
 // MonoJetTreeWriter
 //
@@ -67,6 +67,7 @@ namespace mithep
 
     void                SetJetsName(const char *n)        { fJetsName = n;               }
     void                SetJetsFromBranch(bool b)         { fJetsFromBranch = b;         }
+    void                SetQGTaggerCHS(bool b)            { fQGTaggerCHS = b;            }
     void                SetLeptonsName(const char *n)     { fLeptonsName = n;            }
 
     void                SetSuperClustersName(const char *n){ fSuperClustersName = n;     }
@@ -95,6 +96,7 @@ namespace mithep
     TString             fTausName;
     TString             fJetsName;
     TString             fLeptonsName;
+    TString             fVertexName;
 
     TString             fSuperClustersName;
     TString             fTracksName;
@@ -115,6 +117,7 @@ namespace mithep
     Bool_t              fTausFromBranch;
     Bool_t              fJetsFromBranch;
     Bool_t              fPVFromBranch;
+    Bool_t              fQGTaggerCHS;
 
     const PFMetCol                *fMet;
     const PhotonCol               *fPhotons;
