@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------------------------------
-// $Id: MonoJetTreeWriter.h,v 1.7 2013/08/27 18:11:41 mzanetti Exp $
+// $Id: MonoJetTreeWriter.h,v 1.8 2013/09/30 15:42:05 mzanetti Exp $
 //
 // MonoJetTreeWriter
 //
@@ -34,6 +34,7 @@
 #include "MitPhysics/Utils/interface/PhotonTools.h"
 #include "MitPhysics/Utils/interface/MVAMet.h"
 #include "MitPhysics/Utils/interface/MVAVBF.h"
+#include "MitPhysics/Utils/interface/QGTagger.h"
 
 #include "MitPhysics/Utils/interface/VertexTools.h"
 #include "MitPhysics/Utils/interface/ElectronIDMVA.h"
@@ -118,6 +119,8 @@ namespace mithep
     Bool_t              fJetsFromBranch;
     Bool_t              fPVFromBranch;
     Bool_t              fQGTaggerCHS;
+
+    QGTagger                *qgTagger;
 
     const PFMetCol                *fMet;
     const PhotonCol               *fPhotons;

@@ -10,7 +10,6 @@
 #include "MitPhysics/Utils/interface/PhotonTools.h"
 #include "MitPhysics/Utils/interface/VertexTools.h"
 #include "MitPhysics/Utils/interface/PFMetCorrectionTools.h"
-#include "MitPhysics/Utils/interface/QGTagger.h"
 #include "MitAna/DataTree/interface/PFJetCol.h"
 #include "MitAna/DataTree/interface/PFTauCol.h"
 #include "MitAna/DataTree/interface/GenJetCol.h"
@@ -61,6 +60,7 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fPVFromBranch           (kTRUE),
   fQGTaggerCHS            (kTRUE),
 
+
   // ----------------------------------------
   fPhotons                (0),
   fElectrons              (0),
@@ -83,6 +83,9 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fNEventsSelected(0)
 
 {
+  // WARNING, defining the object here invalidates the call of the setter for the CHS flag
+  qgTagger = new QGTagger(fQGTaggerCHS);
+
   // Constructor
 }
 
@@ -291,21 +294,20 @@ void MonoJetTreeWriter::Process()
 
   //JETS
   fMitGPTree.njets_ = fJets->GetEntries();
-  QGTagger qgTagger(fQGTaggerCHS);
-  qgTagger.SetRhoIso(fPileUpDen->At(0)->RhoKt6PFJetsCentralChargedPileUp()); // is it this one?
+  qgTagger->SetRhoIso(fPileUpDen->At(0)->RhoKt6PFJetsCentralChargedPileUp()); // is it this one?
   if (fJets->GetEntries() >= 1) {
     const PFJet *jet = dynamic_cast<const PFJet*>(fJets->At(0));
     fMitGPTree.jet1_     = jet->Mom();
     fMitGPTree.jet1Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
-    qgTagger.CalculateVariables(jet, vertices);
-    fMitGPTree.jet1QGtag_ = qgTagger.QGValue();
+    qgTagger->CalculateVariables(jet, vertices);
+    fMitGPTree.jet1QGtag_ = qgTagger->QGValue();
   }
   if (fJets->GetEntries() >= 2) {
     const PFJet *jet = dynamic_cast<const PFJet*>(fJets->At(1));
     fMitGPTree.jet2_     = jet->Mom();
     fMitGPTree.jet2Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
-    qgTagger.CalculateVariables(jet, vertices);
-    fMitGPTree.jet2QGtag_ = qgTagger.QGValue();
+    qgTagger->CalculateVariables(jet, vertices);
+    fMitGPTree.jet2QGtag_ = qgTagger->QGValue();
   }
   if (fJets->GetEntries() >= 3) {
     const Jet *jet = fJets->At(2);
@@ -398,6 +400,8 @@ void MonoJetTreeWriter::SlaveBegin()
     ReqBranch(fPileUpName,         fPileUp);
     ReqBranch(fMCEvInfoName,       fMCEventInfo);
   }
+
+
 
   //***********************************************************************************************
   //Create Smurf Ntuple Tree
