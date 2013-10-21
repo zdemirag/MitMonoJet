@@ -47,6 +47,8 @@ class MitGPTree {
   unsigned int   nvtx_;
   unsigned int   cuts_;
   float          scale1fb_;
+  float          metRaw_;
+  float          metRawPhi_;
   float          met_;
   float          metPhi_;
   float          metCorZ_;
@@ -72,54 +74,15 @@ class MitGPTree {
 
   unsigned int   nphotons_;
   LorentzVector  pho1_;
-  float phoHCALisoDR03_a1_;
-  float phoECALisoDR03_a1_;
-  float phoHollowConeTKisoDR03_a1_;
-  float phoHCALisoDR04_a1_;
-  float phoECALisoDR04_a1_;
-  float phoHollowConeTKisoDR04_a1_;
-  float phoCoviEtaiEta_a1_;
-  float phoR9_a1_;
-  float phoSeedTime_a1_;
-  float phoHadOverEm_a1_;
   LorentzVector  pho2_;
-  float phoHCALisoDR03_a2_;
-  float phoECALisoDR03_a2_;
-  float phoHollowConeTKisoDR03_a2_;
-  float phoHCALisoDR04_a2_;
-  float phoECALisoDR04_a2_;
-  float phoHollowConeTKisoDR04_a2_;
-  float phoCoviEtaiEta_a2_;
-  float phoR9_a2_;
-  float phoSeedTime_a2_;
-  float phoHadOverEm_a2_;
   LorentzVector  pho3_;
-  float phoHCALisoDR03_a3_;
-  float phoECALisoDR03_a3_;
-  float phoHollowConeTKisoDR03_a3_;
-  float phoHCALisoDR04_a3_;
-  float phoECALisoDR04_a3_;
-  float phoHollowConeTKisoDR04_a3_;
-  float phoCoviEtaiEta_a3_;
-  float phoR9_a3_;
-  float phoSeedTime_a3_;
-  float phoHadOverEm_a3_;
   LorentzVector  pho4_;
-  float phoHCALisoDR03_a4_;
-  float phoECALisoDR03_a4_;
-  float phoHollowConeTKisoDR03_a4_;
-  float phoHCALisoDR04_a4_;
-  float phoECALisoDR04_a4_;
-  float phoHollowConeTKisoDR04_a4_;
-  float phoCoviEtaiEta_a4_;
-  float phoR9_a4_;
-  float phoSeedTime_a4_;
-  float phoHadOverEm_a4_;
 
   unsigned int   njets_;
   LorentzVector  jet1_;
   float          jet1Btag_;
   float          jet1QGtag_;
+  unsigned int   jet1PartonId_;
   LorentzVector  jet2_;
   float          jet2Btag_;
   float          jet2QGtag_;
@@ -144,6 +107,7 @@ class MitGPTree {
   float          npu_;
   float          npuPlusOne_;
   float          npuMinusOne_;
+  int            metFiltersWord_;
 
  public:
   /// this is the main element
@@ -200,6 +164,8 @@ class MitGPTree {
     tree_->Branch("lumi"         , &lumi_         ,   "lumi/i");
     tree_->Branch("nvtx"         , &nvtx_         ,   "nvtx/i");
     tree_->Branch("scale1fb"     , &scale1fb_     ,   "scale1fb/F");
+    tree_->Branch("metRaw"       , &metRaw_       ,   "metRaw/F");
+    tree_->Branch("metRawPhi"    , &metRawPhi_    ,   "metRawPhi/F");
     tree_->Branch("met"          , &met_          ,   "met/F");
     tree_->Branch("metPhi"       , &metPhi_       ,   "metPhi/F");
     tree_->Branch("metCorZ"      , &metCorZ_      ,   "metCorZ/F");
@@ -225,54 +191,15 @@ class MitGPTree {
 
     tree_->Branch("nphotons"     , &nphotons_     ,   "nphotons/i");
     tree_->Branch("pho1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr1_);
-    tree_->Branch("phoHCALisoDR03_a1"         , &phoHCALisoDR03_a1_         , "phoHCALisoDR03_a1/F");
-    tree_->Branch("phoECALisoDR03_a1"         , &phoECALisoDR03_a1_         , "phoECALisoDR03_a1/F");
-    tree_->Branch("phoHollowConeTKisoDR03_a1" , &phoHollowConeTKisoDR03_a1_ , "phoHollowConeTKisoDR03_a1/F");
-    tree_->Branch("phoHCALisoDR04_a1"         , &phoHCALisoDR04_a1_         , "phoHCALisoDR04_a1/F");
-    tree_->Branch("phoECALisoDR04_a1"         , &phoECALisoDR04_a1_         , "phoECALisoDR04_a1/F");
-    tree_->Branch("phoHollowConeTKisoDR04_a1" , &phoHollowConeTKisoDR04_a1_ , "phoHollowConeTKisoDR04_a1/F");
-    tree_->Branch("phoCoviEtaiEta_a1"         , &phoCoviEtaiEta_a1_         , "phoCoviEtaiEta_a1/F");
-    tree_->Branch("phoR9_a1"                  , &phoR9_a1_                  , "phoR9_a1/F");
-    tree_->Branch("phoSeedTime_a1"            , &phoSeedTime_a1_            , "phoSeedTime_a1/F");
-    tree_->Branch("phoHadOverEm_a1"           , &phoHadOverEm_a1_           , "phoHadOverEm_a1/F");
     tree_->Branch("pho2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr2_);
-    tree_->Branch("phoHCALisoDR03_a2"         , &phoHCALisoDR03_a2_         , "phoHCALisoDR03_a2/F");
-    tree_->Branch("phoECALisoDR03_a2"         , &phoECALisoDR03_a2_         , "phoECALisoDR03_a2/F");
-    tree_->Branch("phoHollowConeTKisoDR03_a2" , &phoHollowConeTKisoDR03_a2_ , "phoHollowConeTKisoDR03_a2/F");
-    tree_->Branch("phoHCALisoDR04_a2"         , &phoHCALisoDR04_a2_         , "phoHCALisoDR04_a2/F");
-    tree_->Branch("phoECALisoDR04_a2"         , &phoECALisoDR04_a2_         , "phoECALisoDR04_a2/F");
-    tree_->Branch("phoHollowConeTKisoDR04_a2" , &phoHollowConeTKisoDR04_a2_ , "phoHollowConeTKisoDR04_a2/F");
-    tree_->Branch("phoCoviEtaiEta_a2"         , &phoCoviEtaiEta_a2_         , "phoCoviEtaiEta_a2/F");
-    tree_->Branch("phoR9_a2"                  , &phoR9_a2_                  , "phoR9_a2/F");
-    tree_->Branch("phoSeedTime_a2"            , &phoSeedTime_a2_            , "phoSeedTime_a2/F");
-    tree_->Branch("phoHadOverEm_a2"           , &phoHadOverEm_a2_           , "phoHadOverEm_a2/F");
     tree_->Branch("pho3"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr3_);
-    tree_->Branch("phoHCALisoDR03_a3"         , &phoHCALisoDR03_a3_         , "phoHCALisoDR03_a3/F");
-    tree_->Branch("phoECALisoDR03_a3"         , &phoECALisoDR03_a3_         , "phoECALisoDR03_a3/F");
-    tree_->Branch("phoHollowConeTKisoDR03_a3" , &phoHollowConeTKisoDR03_a3_ , "phoHollowConeTKisoDR03_a3/F");
-    tree_->Branch("phoHCALisoDR04_a3"         , &phoHCALisoDR04_a3_         , "phoHCALisoDR04_a3/F");
-    tree_->Branch("phoECALisoDR04_a3"         , &phoECALisoDR04_a3_         , "phoECALisoDR04_a3/F");
-    tree_->Branch("phoHollowConeTKisoDR04_a3" , &phoHollowConeTKisoDR04_a3_ , "phoHollowConeTKisoDR04_a3/F");
-    tree_->Branch("phoCoviEtaiEta_a3"         , &phoCoviEtaiEta_a3_         , "phoCoviEtaiEta_a3/F");
-    tree_->Branch("phoR9_a3"                  , &phoR9_a3_                  , "phoR9_a3/F");
-    tree_->Branch("phoSeedTime_a3"            , &phoSeedTime_a3_            , "phoSeedTime_a3/F");
-    tree_->Branch("phoHadOverEm_a3"           , &phoHadOverEm_a3_           , "phoHadOverEm_a3/F");
     tree_->Branch("pho4"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr4_);
-    tree_->Branch("phoHCALisoDR03_a4"         , &phoHCALisoDR03_a4_         , "phoHCALisoDR03_a4/F");
-    tree_->Branch("phoECALisoDR03_a4"         , &phoECALisoDR03_a4_         , "phoECALisoDR03_a4/F");
-    tree_->Branch("phoHollowConeTKisoDR03_a4" , &phoHollowConeTKisoDR03_a4_ , "phoHollowConeTKisoDR03_a4/F");
-    tree_->Branch("phoHCALisoDR04_a4"         , &phoHCALisoDR04_a4_         , "phoHCALisoDR04_a4/F");
-    tree_->Branch("phoECALisoDR04_a4"         , &phoECALisoDR04_a4_         , "phoECALisoDR04_a4/F");
-    tree_->Branch("phoHollowConeTKisoDR04_a4" , &phoHollowConeTKisoDR04_a4_ , "phoHollowConeTKisoDR04_a4/F");
-    tree_->Branch("phoCoviEtaiEta_a4"         , &phoCoviEtaiEta_a4_         , "phoCoviEtaiEta_a4/F");
-    tree_->Branch("phoR9_a4"                  , &phoR9_a4_                  , "phoR9_a4/F");
-    tree_->Branch("phoSeedTime_a4"            , &phoSeedTime_a4_            , "phoSeedTime_a4/F");
-    tree_->Branch("phoHadOverEm_a4"           , &phoHadOverEm_a4_           , "phoHadOverEm_a4/F");
 
     tree_->Branch("njets"        , &njets_        ,   "njets/i");
     tree_->Branch("jet1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr1_);
     tree_->Branch("jet1Btag"     , &jet1Btag_     ,   "jet1Btag/F");
     tree_->Branch("jet1QGtag"     , &jet1QGtag_     ,   "jet1QGtag/F");
+    tree_->Branch("jet1PartonId"     , &jet1PartonId_     ,   "jet1PartonId/i");
     tree_->Branch("jet2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr2_);
     tree_->Branch("jet2Btag"     , &jet2Btag_     ,   "jet2Btag/F");
     tree_->Branch("jet2QGtag"     , &jet2QGtag_     ,   "jet2QGtag/F");
@@ -297,6 +224,7 @@ class MitGPTree {
     tree_->Branch("npu",           &npu_        , "npu/F");
     tree_->Branch("npuPlusOne",    &npuPlusOne_ , "npuPlusOne/F");
     tree_->Branch("npuMinusOne",   &npuMinusOne_, "npuMinusOne/F");
+    tree_->Branch("metFiltersWord",   &metFiltersWord_, "metFiltersWord/I");
 
   }
 
@@ -316,6 +244,8 @@ class MitGPTree {
     tree_->SetBranchAddress("lumi",          &lumi_);
     tree_->SetBranchAddress("nvtx",          &nvtx_);
     tree_->SetBranchAddress("scale1fb",      &scale1fb_);
+    tree_->SetBranchAddress("metRaw",        &metRaw_);
+    tree_->SetBranchAddress("metRawPhi",     &metRawPhi_);
     tree_->SetBranchAddress("met",           &met_);
     tree_->SetBranchAddress("metPhi",        &metPhi_);
     tree_->SetBranchAddress("metCorZ",       &metCorZ_);
@@ -341,54 +271,15 @@ class MitGPTree {
 
     tree_->SetBranchAddress("nphotons"                  , &nphotons_);
     tree_->SetBranchAddress("pho1"                      , &phoPtr1_);
-    tree_->SetBranchAddress("phoHCALisoDR03_a1"         , &phoHCALisoDR03_a1_);
-    tree_->SetBranchAddress("phoECALisoDR03_a1"         , &phoECALisoDR03_a1_);
-    tree_->SetBranchAddress("phoHollowConeTKisoDR03_a1" , &phoHollowConeTKisoDR03_a1_ );
-    tree_->SetBranchAddress("phoHCALisoDR04_a1"         , &phoHCALisoDR04_a1_);
-    tree_->SetBranchAddress("phoECALisoDR04_a1"         , &phoECALisoDR04_a1_);
-    tree_->SetBranchAddress("phoHollowConeTKisoDR04_a1" , &phoHollowConeTKisoDR04_a1_ );
-    tree_->SetBranchAddress("phoCoviEtaiEta_a1"         , &phoCoviEtaiEta_a1_);
-    tree_->SetBranchAddress("phoR9_a1"                  , &phoR9_a1_);
-    tree_->SetBranchAddress("phoSeedTime_a1"            , &phoSeedTime_a1_);
-    tree_->SetBranchAddress("phoHadOverEm_a1"           , &phoHadOverEm_a1_);
-    tree_->SetBranchAddress("pho1"                      , &phoPtr1_);
-    tree_->SetBranchAddress("phoHCALisoDR03_a2"         , &phoHCALisoDR03_a2_);
-    tree_->SetBranchAddress("phoECALisoDR03_a2"         , &phoECALisoDR03_a2_);
-    tree_->SetBranchAddress("phoHollowConeTKisoDR03_a2" , &phoHollowConeTKisoDR03_a2_ );
-    tree_->SetBranchAddress("phoHCALisoDR04_a2"         , &phoHCALisoDR04_a2_);
-    tree_->SetBranchAddress("phoECALisoDR04_a2"         , &phoECALisoDR04_a2_);
-    tree_->SetBranchAddress("phoHollowConeTKisoDR04_a2" , &phoHollowConeTKisoDR04_a2_ );
-    tree_->SetBranchAddress("phoCoviEtaiEta_a2"         , &phoCoviEtaiEta_a2_);
-    tree_->SetBranchAddress("phoR9_a2"                  , &phoR9_a2_);
-    tree_->SetBranchAddress("phoSeedTime_a2"            , &phoSeedTime_a2_);
-    tree_->SetBranchAddress("phoHadOverEm_a2"           , &phoHadOverEm_a2_);
+    tree_->SetBranchAddress("pho2"                      , &phoPtr2_);
     tree_->SetBranchAddress("pho3"                      , &phoPtr3_);
-    tree_->SetBranchAddress("phoHCALisoDR03_a3"         , &phoHCALisoDR03_a3_);
-    tree_->SetBranchAddress("phoECALisoDR03_a3"         , &phoECALisoDR03_a3_);
-    tree_->SetBranchAddress("phoHollowConeTKisoDR03_a3" , &phoHollowConeTKisoDR03_a3_ );
-    tree_->SetBranchAddress("phoHCALisoDR04_a3"         , &phoHCALisoDR04_a3_);
-    tree_->SetBranchAddress("phoECALisoDR04_a3"         , &phoECALisoDR04_a3_);
-    tree_->SetBranchAddress("phoHollowConeTKisoDR04_a3" , &phoHollowConeTKisoDR04_a3_ );
-    tree_->SetBranchAddress("phoCoviEtaiEta_a3"         , &phoCoviEtaiEta_a3_);
-    tree_->SetBranchAddress("phoR9_a3"                  , &phoR9_a3_);
-    tree_->SetBranchAddress("phoSeedTime_a3"            , &phoSeedTime_a3_);
-    tree_->SetBranchAddress("phoHadOverEm_a3"           , &phoHadOverEm_a3_);
     tree_->SetBranchAddress("pho4"                      , &phoPtr4_);
-    tree_->SetBranchAddress("phoHCALisoDR03_a4"         , &phoHCALisoDR03_a4_);
-    tree_->SetBranchAddress("phoECALisoDR03_a4"         , &phoECALisoDR03_a4_);
-    tree_->SetBranchAddress("phoHollowConeTKisoDR03_a4" , &phoHollowConeTKisoDR03_a4_ );
-    tree_->SetBranchAddress("phoHCALisoDR04_a4"         , &phoHCALisoDR04_a4_);
-    tree_->SetBranchAddress("phoECALisoDR04_a4"         , &phoECALisoDR04_a4_);
-    tree_->SetBranchAddress("phoHollowConeTKisoDR04_a4" , &phoHollowConeTKisoDR04_a4_ );
-    tree_->SetBranchAddress("phoCoviEtaiEta_a4"         , &phoCoviEtaiEta_a4_);
-    tree_->SetBranchAddress("phoR9_a4"                  , &phoR9_a4_);
-    tree_->SetBranchAddress("phoSeedTime_a4"            , &phoSeedTime_a4_);
-    tree_->SetBranchAddress("phoHadOverEm_a4"           , &phoHadOverEm_a4_);
 
     tree_->SetBranchAddress("njets",         &njets_);
     tree_->SetBranchAddress("jet1",          &jetPtr1_);
     tree_->SetBranchAddress("jet1Btag",      &jet1Btag_);
     tree_->SetBranchAddress("jet1QGtag",      &jet1QGtag_);
+    tree_->SetBranchAddress("jet1PartonId",      &jet1PartonId_);
     tree_->SetBranchAddress("jet2",          &jetPtr2_);
     tree_->SetBranchAddress("jet2Btag",      &jet2Btag_);
     tree_->SetBranchAddress("jet2QGtag",      &jet2QGtag_);
@@ -413,6 +304,7 @@ class MitGPTree {
     tree_->SetBranchAddress("npu",	     &npu_);
     tree_->SetBranchAddress("npuPlusOne",    &npuPlusOne_);
     tree_->SetBranchAddress("npuMinusOne",   &npuMinusOne_);
+    tree_->SetBranchAddress("metFiltersWord",   &metFiltersWord_);
 
     gErrorIgnoreLevel = currentState;
   }
@@ -444,6 +336,8 @@ MitGPTree::InitVariables(){
   lumi_          = 0;
   nvtx_          = 0;
   scale1fb_      = 0;
+  metRaw_        = -999.;
+  metRawPhi_     = -999.;
   met_           = -999.;
   metPhi_        = -999.;
   metCorZ_       = -999.;
@@ -469,54 +363,15 @@ MitGPTree::InitVariables(){
 
   nphotons_      = 0;
   pho1_       	 = LorentzVector();
-  phoHCALisoDR03_a1_ = 0.0;
-  phoECALisoDR03_a1_ = 0.0;
-  phoHollowConeTKisoDR03_a1_ = 0.0;
-  phoHCALisoDR04_a1_ = 0.0;
-  phoECALisoDR04_a1_ = 0.0;
-  phoHollowConeTKisoDR04_a1_ = 0.0;
-  phoCoviEtaiEta_a1_ = 0.0;
-  phoR9_a1_ = 0.0;
-  phoSeedTime_a1_ = 0.0;
-  phoHadOverEm_a1_ = 0.0;  
   pho2_       	 = LorentzVector();
-  phoHCALisoDR03_a2_ = 0.0;
-  phoECALisoDR03_a2_ = 0.0;
-  phoHollowConeTKisoDR03_a2_ = 0.0;
-  phoHCALisoDR04_a2_ = 0.0;
-  phoECALisoDR04_a2_ = 0.0;
-  phoHollowConeTKisoDR04_a2_ = 0.0;
-  phoCoviEtaiEta_a2_ = 0.0;
-  phoR9_a2_ = 0.0;
-  phoSeedTime_a2_ = 0.0;
-  phoHadOverEm_a2_ = 0.0;  
   pho3_       	 = LorentzVector();
-  phoHCALisoDR03_a3_ = 0.0;
-  phoECALisoDR03_a3_ = 0.0;
-  phoHollowConeTKisoDR03_a3_ = 0.0;
-  phoHCALisoDR04_a3_ = 0.0;
-  phoECALisoDR04_a3_ = 0.0;
-  phoHollowConeTKisoDR04_a3_ = 0.0;
-  phoCoviEtaiEta_a3_ = 0.0;
-  phoR9_a3_ = 0.0;
-  phoSeedTime_a3_ = 0.0;
-  phoHadOverEm_a3_ = 0.0;  
   pho4_       	 = LorentzVector();
-  phoHCALisoDR03_a4_ = 0.0;
-  phoECALisoDR03_a4_ = 0.0;
-  phoHollowConeTKisoDR03_a4_ = 0.0;
-  phoHCALisoDR04_a4_ = 0.0;
-  phoECALisoDR04_a4_ = 0.0;
-  phoHollowConeTKisoDR04_a4_ = 0.0;
-  phoCoviEtaiEta_a4_ = 0.0;
-  phoR9_a4_ = 0.0;
-  phoSeedTime_a4_ = 0.0;
-  phoHadOverEm_a4_ = 0.0;  
 
   njets_ = 0;
   jet1_     = LorentzVector();
   jet1Btag_ = -999.;
   jet1QGtag_= -999.;  
+  jet1PartonId_= 0;  
   jet2_     = LorentzVector();
   jet2Btag_ = -999.;
   jet2QGtag_= -999.;
@@ -541,6 +396,7 @@ MitGPTree::InitVariables(){
   npu_           = -999.;
   npuPlusOne_    = -999.;
   npuMinusOne_   = -999.;
+  metFiltersWord_= -1.;  
 }
 
 #endif

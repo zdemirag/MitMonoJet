@@ -2,6 +2,7 @@
 #include "MitAna/DataTree/interface/PhotonCol.h"
 #include "MitAna/DataTree/interface/PFCandidateCol.h"
 #include "MitAna/DataTree/interface/GenericParticle.h"
+#include "MitAna/DataTree/interface/MCParticleFwd.h"
 #include "MitAna/DataTree/interface/PFMet.h"
 #include "MitPhysics/Init/interface/ModNames.h"
 #include "MitPhysics/Utils/interface/IsolationTools.h"
@@ -51,7 +52,10 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fBeamspotName           (Names::gkBeamSpotBrn),
   fMCEvInfoName           (Names::gkMCEvtInfoBrn),
 
+  fMCPartName(Names::gkMCPartBrn),
+
   fIsData                 (false),
+  fMetFromBranch          (kTRUE),  
   fPhotonsFromBranch      (kTRUE),  
   fElectronsFromBranch    (kTRUE),  
   fMuonsFromBranch        (kTRUE),  
@@ -62,6 +66,8 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
 
 
   // ----------------------------------------
+  fRawMet                 (0),
+  fMet                    (0),
   fPhotons                (0),
   fElectrons              (0),
   fMuons                  (0),
@@ -74,12 +80,13 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fPileUp                 (0),
   fPileUpDen              (0),
   fSuperClusters          (0),
+  fParticles              (0),
+  fEvtSelData             (0),
 
   fDecay(0),
   fOutputFile(0),
   fTupleName("hMonoPhotonTree"),
   fFillNtupleType(0),
-
   fNEventsSelected(0)
 
 {
@@ -100,7 +107,8 @@ void MonoJetTreeWriter::Process()
 
   // ------------------------------------------------------------  
   // Process entries of the tree. 
-  LoadEventObject(fMetName,           fMet,           true);
+  LoadEventObject("PFMet",            fRawMet,        true);
+  LoadEventObject(fMetName,           fMet,           fMetFromBranch);
   LoadEventObject(fPhotonsName,       fPhotons,       fPhotonsFromBranch); 
   LoadEventObject(fElectronsName,     fElectrons,     fElectronsFromBranch);
   LoadEventObject(fMuonsName,         fMuons,         fMuonsFromBranch);
@@ -116,10 +124,12 @@ void MonoJetTreeWriter::Process()
   LoadEventObject(fPileUpDenName,     fPileUpDen,     true);
   if (!fIsData) {
     ReqBranch(fPileUpName,            fPileUp);
+    LoadEventObject(fMCPartName, fParticles);
   }
   ParticleOArr *leptons = GetObjThisEvt<ParticleOArr>(ModNames::gkMergedLeptonsName);
   const MuonCol *muons = GetObjThisEvt<MuonCol>("HggLeptonTagMuons"); //This should be identical to MuonIDMod->GetOutputName() in run macro
   const VertexCol *vertices = GetObjThisEvt<VertexOArr>(fVertexName);
+  LoadEventObject("EvtSelData",       fEvtSelData,    true);
 
   fNEventsSelected++;
 
@@ -128,7 +138,7 @@ void MonoJetTreeWriter::Process()
   // load event based information
       
   if( !fIsData ) {
-  LoadBranch(fPileUpName);
+    LoadBranch(fPileUpName);
   } 
   if( !fIsData ) {
     for (UInt_t i=0; i<fPileUp->GetEntries(); ++i) {
@@ -149,6 +159,8 @@ void MonoJetTreeWriter::Process()
   if(fDecay == 0) fMitGPTree.dstype_ = MitGPTree::data;
   else            fMitGPTree.dstype_ = MitGPTree::other;
 
+  fMitGPTree.metRaw_    = fRawMet->At(0)->Pt();
+  fMitGPTree.metRawPhi_ = fRawMet->At(0)->Phi();
   fMitGPTree.met_       = fMet->At(0)->Pt();
   fMitGPTree.metPhi_    = fMet->At(0)->Phi();
   fMitGPTree.metCorZ_   = fMet->At(0)->Pt();  //MetCor default value as Met
@@ -156,8 +168,8 @@ void MonoJetTreeWriter::Process()
   fMitGPTree.metCorW_   = fMet->At(0)->Pt();  //MetCor default value as Met
   fMitGPTree.metCorWPhi_= fMet->At(0)->Phi(); //MetCor default value as Met
   fMitGPTree.sumEt_     = fMet->At(0)->SumEt();
-  fMitGPTree.metSig_    = fMet->At(0)->PFMetSig();
-  
+  fMitGPTree.metSig_    = fRawMet->At(0)->PFMetSig(); //Use the RawPFMet for the sig. calculation
+
 
   // TAU
   if (fPFTaus->GetEntries() >= 1) {
@@ -238,69 +250,46 @@ void MonoJetTreeWriter::Process()
   if(fPhotons->GetEntries() >= 1) {
     const Photon *photon = fPhotons->At(0);
     fMitGPTree.pho1_			  = photon->Mom();
-    fMitGPTree.phoHCALisoDR03_a1_	  = photon->HcalTowerSumEtDr03();
-    fMitGPTree.phoECALisoDR03_a1_	  = photon->EcalRecHitIsoDr03();
-    fMitGPTree.phoHollowConeTKisoDR03_a1_ = photon->HollowConeTrkIsoDr03();
-    fMitGPTree.phoHCALisoDR04_a1_	  = photon->HcalTowerSumEtDr04();
-    fMitGPTree.phoECALisoDR04_a1_	  = photon->EcalRecHitIsoDr04();
-    fMitGPTree.phoHollowConeTKisoDR04_a1_ = photon->HollowConeTrkIsoDr04();
-    fMitGPTree.phoCoviEtaiEta_a1_	  = photon->CoviEtaiEta();
-    fMitGPTree.phoR9_a1_		  = photon->SCluster()->R9();
-    fMitGPTree.phoSeedTime_a1_  	  = photon->SCluster()->SeedTime();
-    fMitGPTree.phoHadOverEm_a1_ 	  = photon->HadOverEm();
   }
   if(fPhotons->GetEntries() >= 2) {
     const Photon *photon = fPhotons->At(1);
     fMitGPTree.pho2_			  = photon->Mom();
-    fMitGPTree.phoHCALisoDR03_a2_	  = photon->HcalTowerSumEtDr03();
-    fMitGPTree.phoECALisoDR03_a2_	  = photon->EcalRecHitIsoDr03();
-    fMitGPTree.phoHollowConeTKisoDR03_a2_ = photon->HollowConeTrkIsoDr03();
-    fMitGPTree.phoHCALisoDR04_a2_	  = photon->HcalTowerSumEtDr04();
-    fMitGPTree.phoECALisoDR04_a2_	  = photon->EcalRecHitIsoDr04();
-    fMitGPTree.phoHollowConeTKisoDR04_a2_ = photon->HollowConeTrkIsoDr04();
-    fMitGPTree.phoCoviEtaiEta_a2_	  = photon->CoviEtaiEta();
-    fMitGPTree.phoR9_a2_		  = photon->SCluster()->R9();
-    fMitGPTree.phoSeedTime_a2_  	  = photon->SCluster()->SeedTime();
-    fMitGPTree.phoHadOverEm_a2_ 	  = photon->HadOverEm();
   }
   if(fPhotons->GetEntries() >= 3) {
     const Photon *photon = fPhotons->At(2);
     fMitGPTree.pho3_			  = photon->Mom();
-    fMitGPTree.phoHCALisoDR03_a3_	  = photon->HcalTowerSumEtDr03();
-    fMitGPTree.phoECALisoDR03_a3_	  = photon->EcalRecHitIsoDr03();
-    fMitGPTree.phoHollowConeTKisoDR03_a3_ = photon->HollowConeTrkIsoDr03();
-    fMitGPTree.phoHCALisoDR04_a3_	  = photon->HcalTowerSumEtDr04();
-    fMitGPTree.phoECALisoDR04_a3_	  = photon->EcalRecHitIsoDr04();
-    fMitGPTree.phoHollowConeTKisoDR04_a3_ = photon->HollowConeTrkIsoDr04();
-    fMitGPTree.phoCoviEtaiEta_a3_	  = photon->CoviEtaiEta();
-    fMitGPTree.phoR9_a3_		  = photon->SCluster()->R9();
-    fMitGPTree.phoSeedTime_a3_  	  = photon->SCluster()->SeedTime();
-    fMitGPTree.phoHadOverEm_a3_ 	  = photon->HadOverEm();
   }
   if(fPhotons->GetEntries() >= 4) {
     const Photon *photon = fPhotons->At(3);
     fMitGPTree.pho4_			  = photon->Mom();
-    fMitGPTree.phoHCALisoDR03_a4_	  = photon->HcalTowerSumEtDr03();
-    fMitGPTree.phoECALisoDR03_a4_	  = photon->EcalRecHitIsoDr03();
-    fMitGPTree.phoHollowConeTKisoDR03_a4_ = photon->HollowConeTrkIsoDr03();
-    fMitGPTree.phoHCALisoDR04_a4_	  = photon->HcalTowerSumEtDr04();
-    fMitGPTree.phoECALisoDR04_a4_	  = photon->EcalRecHitIsoDr04();
-    fMitGPTree.phoHollowConeTKisoDR04_a4_ = photon->HollowConeTrkIsoDr04();
-    fMitGPTree.phoCoviEtaiEta_a4_	  = photon->CoviEtaiEta();
-    fMitGPTree.phoR9_a4_		  = photon->SCluster()->R9();
-    fMitGPTree.phoSeedTime_a4_  	  = photon->SCluster()->SeedTime();
-    fMitGPTree.phoHadOverEm_a4_ 	  = photon->HadOverEm();
   }
 
   //JETS
   fMitGPTree.njets_ = fJets->GetEntries();
-  qgTagger->SetRhoIso(fPileUpDen->At(0)->RhoKt6PFJetsCentralChargedPileUp()); // is it this one?
+  //qgTagger->SetRhoIso(fPileUpDen->At(0)->RhoKt6PFJetsCentralChargedPileUp()); // is it this one?
+  qgTagger->SetRhoIso(fPileUpDen->At(0)->RhoRandomLowEta()); // is it this one?
   if (fJets->GetEntries() >= 1) {
     const PFJet *jet = dynamic_cast<const PFJet*>(fJets->At(0));
     fMitGPTree.jet1_     = jet->Mom();
     fMitGPTree.jet1Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
     qgTagger->CalculateVariables(jet, vertices);
     fMitGPTree.jet1QGtag_ = qgTagger->QGValue();
+
+    // matching
+    if (!fIsData) {
+      double minPartonicDR = 0.8;
+      unsigned int partonId = 0;
+      for (UInt_t i=0; i<fParticles->GetEntries(); ++i) {
+        const MCParticle *p = fParticles->At(i);
+        if (p->Status()!=3) continue;
+        if (p->AbsPdgId()>5 and p->AbsPdgId()!=21) continue; //1, 2, 3, 4, 5, 21 
+        if (MathUtils::DeltaR(*p,*jet)< minPartonicDR){
+          minPartonicDR = MathUtils::DeltaR(*p,*jet);
+          partonId = p->AbsPdgId();
+        }
+      }
+      fMitGPTree.jet1PartonId_ = partonId;
+    }
   }
   if (fJets->GetEntries() >= 2) {
     const PFJet *jet = dynamic_cast<const PFJet*>(fJets->At(1));
@@ -371,7 +360,7 @@ void MonoJetTreeWriter::Process()
   fMitGPTree.x2_        = x2;
   fMitGPTree.pdf2_      = pdf2;
   fMitGPTree.processId_ = processId;
-
+  fMitGPTree.metFiltersWord_ = fEvtSelData->metFiltersWord();
   fMitGPTree.tree_->Fill();
   
   return;
@@ -382,7 +371,8 @@ void MonoJetTreeWriter::SlaveBegin()
 {
   // Run startup code on the computer (slave) doing the actual analysis. Here,
   // we just request the photon collection branch.  
-  ReqEventObject(fMetName,           fMet,            true);
+  ReqEventObject("PFMet",            fRawMet,         true);
+  ReqEventObject(fMetName,           fMet,            fMetFromBranch);
   ReqEventObject(fPhotonsName,       fPhotons,        fPhotonsFromBranch); 
   ReqEventObject(fElectronsName,     fElectrons,      fElectronsFromBranch);
   ReqEventObject(fMuonsName,         fMuons,          fMuonsFromBranch);
@@ -399,8 +389,9 @@ void MonoJetTreeWriter::SlaveBegin()
   if (!fIsData) { 
     ReqBranch(fPileUpName,         fPileUp);
     ReqBranch(fMCEvInfoName,       fMCEventInfo);
+    ReqEventObject(fMCPartName, fParticles, kTRUE);
   }
-
+  ReqEventObject("EvtSelData",        fEvtSelData,    true);
 
 
   //***********************************************************************************************

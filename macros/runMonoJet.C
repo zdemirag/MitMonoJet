@@ -1,4 +1,4 @@
-// $Id: runMonoJet.C,v 1.11 2013/08/20 22:41:45 twilkaso Exp $
+// $Id: runMonoJet.C,v 1.12 2013/08/28 08:38:22 mzanetti Exp $
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TSystem.h>
 #include <TProfile.h>
@@ -25,6 +25,7 @@
 #include "MitPhysics/Mods/interface/PhotonCleaningMod.h"
 #include "MitPhysics/Mods/interface/MergeLeptonsMod.h"
 #include "MitPhysics/Mods/interface/JetCorrectionMod.h"
+#include "MitPhysics/Mods/interface/MetCorrectionMod.h"
 #include "MitPhysics/Mods/interface/PhotonMvaMod.h"
 #include "MitPhysics/Mods/interface/MVASystematicsMod.h"
 #include "MitPhysics/Mods/interface/SeparatePileUpMod.h"
@@ -62,6 +63,7 @@ void runMonoJet(const char *fileset    = "0000",
   TString jsonFile = TString("/home/cmsprod/cms/json/") + TString(json);
   //TString jsonFile = TString("/home/cmsprod/cms/json/") + TString("Cert_136033-149442_7TeV_Dec22ReReco_Collisions10_JSON_v4.txt");
   Bool_t  isData   = ( (jsonFile.CompareTo("/home/cmsprod/cms/json/~") != 0) );
+  isData = true;
   
   if (gSystem->Getenv("MIT_PROD_OVERLAP")) {
     sprintf(overlap,"%s",gSystem->Getenv("MIT_PROD_OVERLAP"));
@@ -309,15 +311,15 @@ void runMonoJet(const char *fileset    = "0000",
 
   JetCorrectionMod *jetCorr = new JetCorrectionMod;
   if(isData){ 
-    jetCorr->AddCorrectionFromFile(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer12_V7_DATA_L1FastJet_AK5PF.txt")).Data())); 
-    jetCorr->AddCorrectionFromFile(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer12_V7_DATA_L2Relative_AK5PF.txt")).Data())); 
-    jetCorr->AddCorrectionFromFile(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer12_V7_DATA_L3Absolute_AK5PF.txt")).Data())); 
-    jetCorr->AddCorrectionFromFile(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer12_V7_DATA_L2L3Residual_AK5PF.txt")).Data())); 
-  }
-  else {
-    jetCorr->AddCorrectionFromFile(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer12_V7_MC_L1FastJet_AK5PF.txt")).Data())); 
-    jetCorr->AddCorrectionFromFile(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer12_V7_MC_L2Relative_AK5PF.txt")).Data())); 
-    jetCorr->AddCorrectionFromFile(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer12_V7_MC_L3Absolute_AK5PF.txt")).Data())); 
+    jetCorr->AddCorrectionFromFile(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_DATA_L1FastJet_AK5PF.txt")).Data())); 
+    jetCorr->AddCorrectionFromFile(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_DATA_L2Relative_AK5PF.txt")).Data())); 
+    jetCorr->AddCorrectionFromFile(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_DATA_L3Absolute_AK5PF.txt")).Data())); 
+    jetCorr->AddCorrectionFromFile(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_DATA_L2L3Residual_AK5PF.txt")).Data()));
+  }                                                                                      
+  else {                                                                                 
+    jetCorr->AddCorrectionFromFile(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_MC_L1FastJet_AK5PF.txt")).Data())); 
+    jetCorr->AddCorrectionFromFile(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_MC_L2Relative_AK5PF.txt")).Data())); 
+    jetCorr->AddCorrectionFromFile(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_MC_L3Absolute_AK5PF.txt")).Data())); 
   }
   jetCorr->SetInputName(pubJet->GetOutputName());
   jetCorr->SetCorrectedName("CorrectedJets");    
@@ -339,10 +341,22 @@ void runMonoJet(const char *fileset    = "0000",
   theJetCleaning->SetGoodJetsName(theJetID->GetOutputName());
   theJetCleaning->SetCleanJetsName("CleanJets");
         
+  MetCorrectionMod *metCorrT0T1Shift = new MetCorrectionMod;
+  metCorrT0T1Shift->SetInputName("PFMet");
+  metCorrT0T1Shift->SetJetsName(pubJet->GetOutputName());    
+  metCorrT0T1Shift->SetCorrectedJetsName(jetCorr->GetOutputName());    
+  metCorrT0T1Shift->SetCorrectedName("PFMetT0T1Shift");   
+  metCorrT0T1Shift->ApplyType0(kTRUE);   
+  metCorrT0T1Shift->ApplyType1(kTRUE);   
+  metCorrT0T1Shift->ApplyShift(kTRUE);   
+  metCorrT0T1Shift->IsData(isData);
+  metCorrT0T1Shift->SetPrint(kFALSE);
   //------------------------------------------------------------------------------------------------
   // select events with jet+MET
   //------------------------------------------------------------------------------------------------
   MonoJetAnalysisMod         *jetplusmet = new MonoJetAnalysisMod("MonoJetSelector");
+  jetplusmet->SetInputMetName(metCorrT0T1Shift->GetOutputName()); //corrected met
+  jetplusmet->SetMetFromBranch(kFALSE);
   jetplusmet->SetJetsName(theJetCleaning->GetOutputName()); //identified jets
   jetplusmet->SetJetsFromBranch(kFALSE);
   jetplusmet->SetElectronsName(electronCleaning->GetOutputName());
@@ -362,6 +376,8 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmet->SetMinMetEt(200);
 
   MonoJetAnalysisMod         *dilepton = new MonoJetAnalysisMod("MonoJetSelector_dilepton");
+  dilepton->SetInputMetName(metCorrT0T1Shift->GetOutputName()); //corrected met
+  dilepton->SetMetFromBranch(kFALSE);
   dilepton->SetJetsName(theJetCleaning->GetOutputName()); //identified jets
   dilepton->SetJetsFromBranch(kFALSE);
   dilepton->SetElectronsName(electronCleaning->GetOutputName());
@@ -375,9 +391,14 @@ void runMonoJet(const char *fileset    = "0000",
   dilepton->SetMinNumLeptons(2);
   dilepton->SetMinJetEt(80);
   dilepton->SetMaxJetEta(4.5);
+  dilepton->SetMinChargedHadronFrac(0.2);
+  dilepton->SetMaxNeutralHadronFrac(0.7);
+  dilepton->SetMaxNeutralEmFrac(0.7);
   dilepton->SetMinMetEt(0);
   
   MonoJetAnalysisMod         *wlnu = new MonoJetAnalysisMod("MonoJetSelector_wlnu");
+  wlnu->SetInputMetName(metCorrT0T1Shift->GetOutputName()); //corrected met
+  wlnu->SetMetFromBranch(kFALSE);
   wlnu->SetJetsName(theJetCleaning->GetOutputName()); //identified jets
   wlnu->SetJetsFromBranch(kFALSE);
   wlnu->SetElectronsName(electronCleaning->GetOutputName());
@@ -394,6 +415,8 @@ void runMonoJet(const char *fileset    = "0000",
   wlnu->SetMinMetEt(0);
 
   MonoJetTreeWriter *jetplusmettree = new MonoJetTreeWriter("MonoJetTreeWriter");
+  jetplusmettree->SetMetName(metCorrT0T1Shift->GetOutputName()); //corrected met
+  jetplusmettree->SetMetFromBranch(kFALSE);
   jetplusmettree->SetPhotonsFromBranch(kFALSE);
   jetplusmettree->SetPhotonsName(photonCleaningMod->GetOutputName());
   jetplusmettree->SetElectronsFromBranch(kFALSE);
@@ -412,6 +435,8 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmettree->SetFillNtupleType(0);
 
   MonoJetTreeWriter *dileptontree = new MonoJetTreeWriter("MonoJetTreeWriter_dilepton");
+  dileptontree->SetMetName(metCorrT0T1Shift->GetOutputName()); //corrected met
+  dileptontree->SetMetFromBranch(kFALSE);
   dileptontree->SetPhotonsFromBranch(kFALSE);
   dileptontree->SetPhotonsName(photonCleaningMod->GetOutputName());
   dileptontree->SetElectronsFromBranch(kFALSE);
@@ -430,6 +455,8 @@ void runMonoJet(const char *fileset    = "0000",
   dileptontree->SetFillNtupleType(1);
 
   MonoJetTreeWriter *wlnutree = new MonoJetTreeWriter("MonoJetTreeWriter_wlnu");
+  wlnutree->SetMetName(metCorrT0T1Shift->GetOutputName()); //corrected met
+  wlnutree->SetMetFromBranch(kFALSE);
   wlnutree->SetPhotonsFromBranch(kFALSE);
   wlnutree->SetPhotonsName(photonCleaningMod->GetOutputName());
   wlnutree->SetElectronsFromBranch(kFALSE);
@@ -462,16 +489,17 @@ void runMonoJet(const char *fileset    = "0000",
   photreg          ->Add(SepPUMod); 
   SepPUMod         ->Add(muonIdMod);
   muonIdMod        ->Add(eleIdMod);
-  eleIdMod	   ->Add(electronCleaning);
+  eleIdMod	       ->Add(electronCleaning);
   electronCleaning ->Add(merger);
   merger           ->Add(photonIDMod);
-  photonIDMod	   ->Add(photonCleaningMod);
+  photonIDMod	     ->Add(photonCleaningMod);
   photonCleaningMod->Add(pftauIDMod);
   pftauIDMod       ->Add(pftauCleaningMod);
   pftauCleaningMod ->Add(pubJet);
   pubJet           ->Add(jetCorr);
-  jetCorr          ->Add(theJetID);
-  theJetID	   ->Add(theJetCleaning);
+  jetCorr          ->Add(metCorrT0T1Shift);
+  metCorrT0T1Shift ->Add(theJetID);
+  theJetID         ->Add(theJetCleaning);
    
   // Jet+met selection
   theJetCleaning   ->Add(jetplusmet);
@@ -504,15 +532,17 @@ void runMonoJet(const char *fileset    = "0000",
   Dataset *d = NULL;
   TString bookstr = book;
   if (TString(skim).CompareTo("noskim") == 0) {
-    //d = c->FindDataset(bookstr,dataset,fileset, true);
-    d = c->FindDataset(bookstr,dataset,fileset, false);
+    d = c->FindDataset(bookstr,dataset,fileset, true);
+    //d = c->FindDataset(bookstr,dataset,fileset, false);
   }
   else {
-    //d = c->FindDataset(bookstr,skimdataset.Data(),fileset, true);
-    d = c->FindDataset(bookstr,skimdataset.Data(),fileset, false);
+    d = c->FindDataset(bookstr,skimdataset.Data(),fileset, true);
+    //d = c->FindDataset(bookstr,skimdataset.Data(),fileset, false);
   }
   ana->AddDataset(d);
-//------------------------------------------------------------------------------------------------
+  
+
+  //------------------------------------------------------------------------------------------------
   // organize output
   //------------------------------------------------------------------------------------------------
   TString rootFile = TString(outputName);

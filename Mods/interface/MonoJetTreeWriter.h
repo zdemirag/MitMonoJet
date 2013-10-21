@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------------------------------
-// $Id: MonoJetTreeWriter.h,v 1.8 2013/09/30 15:42:05 mzanetti Exp $
+// $Id: MonoJetTreeWriter.h,v 1.9 2013/09/30 23:08:36 mzanetti Exp $
 //
 // MonoJetTreeWriter
 //
@@ -25,16 +25,19 @@
 #include "MitAna/DataTree/interface/MCParticleCol.h"
 #include "MitAna/DataTree/interface/MCEventInfo.h"
 #include "MitAna/DataTree/interface/SuperClusterCol.h"
+#include "MitAna/DataTree/interface/MetCol.h"
 #include "MitAna/DataTree/interface/PFMetCol.h"
 #include "MitAna/DataTree/interface/JetCol.h"
 #include "MitAna/DataTree/interface/PFJetCol.h"
 #include "MitAna/DataTree/interface/GenJetCol.h"
 #include "MitAna/DataTree/interface/MCEventInfo.h"
+#include "MitAna/DataTree/interface/MCParticleFwd.h"
 #include "MitPhysics/Utils/interface/PhotonFix.h"
 #include "MitPhysics/Utils/interface/PhotonTools.h"
 #include "MitPhysics/Utils/interface/MVAMet.h"
 #include "MitPhysics/Utils/interface/MVAVBF.h"
 #include "MitPhysics/Utils/interface/QGTagger.h"
+#include "MitAna/DataTree/interface/EvtSelData.h"
 
 #include "MitPhysics/Utils/interface/VertexTools.h"
 #include "MitPhysics/Utils/interface/ElectronIDMVA.h"
@@ -57,14 +60,15 @@ namespace mithep
 
     // setting all the input Names
     void                SetMetName(const char *n)         { fMetName= n;                 }
+    void                SetMetFromBranch(bool b)          { fMetFromBranch = b;          }
     void                SetPhotonsName(const char *n)     { fPhotonsName= n;             }
     void                SetPhotonsFromBranch(bool b)      { fPhotonsFromBranch = b;      }
     void                SetElectronsName(const char *n)   { fElectronsName = n;          }
     void                SetElectronsFromBranch(bool b)    { fElectronsFromBranch = b;    }
     void                SetMuonsName(const char *n)       { fMuonsName = n;              }
     void                SetMuonsFromBranch(bool b)        { fMuonsFromBranch = b;        }
-    void                SetTausName(const char *n)        { fTausName = n;              }
-    void                SetTausFromBranch(bool b)         { fTausFromBranch = b;        }
+    void                SetTausName(const char *n)        { fTausName = n;               }
+    void                SetTausFromBranch(bool b)         { fTausFromBranch = b;         }
 
     void                SetJetsName(const char *n)        { fJetsName = n;               }
     void                SetJetsFromBranch(bool b)         { fJetsFromBranch = b;         }
@@ -106,12 +110,13 @@ namespace mithep
     TString             fPileUpName;
     TString             fBeamspotName;
     TString             fMCEvInfoName;
-
+    TString             fMCPartName;
 
     // is it Data or MC?
     Bool_t              fIsData;
     
     // there are not some PV pre-selection?
+    Bool_t              fMetFromBranch;
     Bool_t              fPhotonsFromBranch;
     Bool_t              fElectronsFromBranch;
     Bool_t              fMuonsFromBranch;
@@ -120,14 +125,16 @@ namespace mithep
     Bool_t              fPVFromBranch;
     Bool_t              fQGTaggerCHS;
 
-    QGTagger                *qgTagger;
+    QGTagger           *qgTagger;
 
-    const PFMetCol                *fMet;
+    const PFMetCol                *fRawMet;
+    const MetCol                  *fMet;
     const PhotonCol               *fPhotons;
     const ElectronCol             *fElectrons;
     const MuonCol                 *fMuons;
     const PFTauCol                *fPFTaus;
     const JetCol                  *fJets;
+    const EvtSelData              *fEvtSelData;
 
     const TrackCol                *fTracks;
     const VertexCol               *fPV;
@@ -136,11 +143,12 @@ namespace mithep
     const PileupInfoCol           *fPileUp;    
     const PileupEnergyDensityCol  *fPileUpDen;
     const SuperClusterCol         *fSuperClusters; 
-    
+    const MCParticleCol           *fParticles;	        
+
     // --------------------------------
     Int_t                          fDecay;
-    TFile	                  *fOutputFile;
-    TString	                   fTupleName;
+    TFile	                      *fOutputFile;
+    TString	                       fTupleName;
     Int_t                          fFillNtupleType;
     MitGPTree                      fMitGPTree;
 
