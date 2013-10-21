@@ -1,4 +1,4 @@
-// $Id: runMonoJet.C,v 1.12 2013/08/28 08:38:22 mzanetti Exp $
+// $Id: runMonoJet.C,v 1.13 2013/10/21 19:34:03 dimatteo Exp $
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TSystem.h>
 #include <TProfile.h>
@@ -63,7 +63,6 @@ void runMonoJet(const char *fileset    = "0000",
   TString jsonFile = TString("/home/cmsprod/cms/json/") + TString(json);
   //TString jsonFile = TString("/home/cmsprod/cms/json/") + TString("Cert_136033-149442_7TeV_Dec22ReReco_Collisions10_JSON_v4.txt");
   Bool_t  isData   = ( (jsonFile.CompareTo("/home/cmsprod/cms/json/~") != 0) );
-  isData = true;
   
   if (gSystem->Getenv("MIT_PROD_OVERLAP")) {
     sprintf(overlap,"%s",gSystem->Getenv("MIT_PROD_OVERLAP"));
