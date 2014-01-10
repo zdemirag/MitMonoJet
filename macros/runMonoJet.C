@@ -56,14 +56,14 @@ void runMonoJet(const char *fileset    = "0000",
     sprintf(json,   "%s",gSystem->Getenv("MIT_PROD_JSON"));
   else {
     sprintf(json, "%s", "~");
-    //printf(" JSON file was not properly defined. EXIT!\n");
-    //return;
   } 
   
   TString jsonFile = TString("/home/cmsprod/cms/json/") + TString(json);
-  //TString jsonFile = TString("/home/cmsprod/cms/json/") + TString("Cert_136033-149442_7TeV_Dec22ReReco_Collisions10_JSON_v4.txt");
+  std::cout<<"JSON "<<jsonFile<<std::endl;
   Bool_t  isData   = ( (jsonFile.CompareTo("/home/cmsprod/cms/json/~") != 0) );
-  
+    
+  std::cout<<"*********** Is data?? **********"<<isData<<std::endl;
+
   if (gSystem->Getenv("MIT_PROD_OVERLAP")) {
     sprintf(overlap,"%s",gSystem->Getenv("MIT_PROD_OVERLAP"));
     if (EOF == sscanf(overlap,"%f",&overlapCut)) {
@@ -89,12 +89,6 @@ void runMonoJet(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   // set up information
   //------------------------------------------------------------------------------------------------
-  MCProcessSelectionMod *mcselmod = new MCProcessSelectionMod;
-  
-  MVASystematicsMod *sysMod = new MVASystematicsMod;
-  sysMod->SetMCR9Scale(1.0035, 1.0035);  
-  sysMod->SetIsData(isData);
-  
   RunLumiSelectionMod *runLumiSel = new RunLumiSelectionMod;      
   runLumiSel->SetAcceptMC(!isData);
   runLumiSel->SetAbortIfNotAccepted(kFALSE);   // accept all events if there is no valid JSON file
@@ -106,7 +100,6 @@ void runMonoJet(const char *fileset    = "0000",
   }
   if ((jsonFile.CompareTo("/home/cmsprod/cms/json/-") == 0)   ) {
     printf("\n WARNING -- Looking at data without JSON file: always accept.\n\n");
-//    runLumiSel->SetAbortIfNotAccepted(kFALSE);   // accept all events if there is no valid JSON file
   }
 
   printf("\n Run lumi worked\n");
@@ -127,41 +120,29 @@ void runMonoJet(const char *fileset    = "0000",
   generatorMod->SetApplyVGFilter(kFALSE);
   generatorMod->SetFilterBTEvents(kFALSE);
 
-  //------------------------------------------------------------------------------------------------
-  // HLT information : [TBF]
-  //------------------------------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------------------------------------
+  // HLT information : trigger not applied (neither for data nor for MC, store info to apply selection offline
+  //-----------------------------------------------------------------------------------------------------------
   HLTMod *hltModP = new HLTMod("HLTModP");
-  
-  //------------------------------------------------------------------------------------------------
-  // Run2012
-  //------------------------------------------------------------------------------------------------
 
-  hltModP->AddTrigger("HLT_MET120_HBHENoiseCleaned_v*",0,999999); 
-  hltModP->AddTrigger("HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v*",0,999999); 
-  hltModP->AddTrigger("HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v*",0,999999);  
+  // monojet triggers
+  TString monoJetTriggers[12] = {"HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v4", "HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v3", "HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v1", "HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v5", "HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v4", "HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v3", "HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v2","HLT_MET120_HBHENoiseCleaned_v6", "HLT_MET120_HBHENoiseCleaned_v5", "HLT_MET120_HBHENoiseCleaned_v4", "HLT_MET120_HBHENoiseCleaned_v3", "HLT_MET120_HBHENoiseCleaned_v2"};
+  for (int i=0; i<12; i++) {
+    hltModP->AddTrigger(monoJetTriggers[i],0,999999); //jet 85 , met 90
+    hltModP->AddTrigger(TString("!"+monoJetTriggers[i]),0,999999); //jet 85 , met 90
+  }
 
+  // VBF triggers
+  TString vbfTriggers[12] = {"HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v9", "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v8", "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v6", "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v5", "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v4", "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v3", "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v2"};
+  for (int i=0; i<12; i++) {
+    hltModP->AddTrigger(vbfTriggers[i],0,999999); //jet 85 , met 90
+    hltModP->AddTrigger(TString("!"+vbfTriggers[i]),0,999999); //jet 85 , met 90
+  }
+
+  hltModP->SetBitsName("HLTBits");
   hltModP->SetTrigObjsName("MyHltPhotObjs");
   hltModP->SetAbortIfNotAccepted(isData);
-//  hltModP->SetAbortIfNotAccepted(kFALSE);
   hltModP->SetPrintTable(kFALSE); // set to true to print HLT table
-
-  if(isData == kFALSE){ // ugly, but it works
-    hltModP->AddTrigger("HLT_Mu15_v9");
-    hltModP->AddTrigger("!HLT_Mu15_v9");
-    hltModP->AddTrigger("HLT_Mu15_v2");
-    hltModP->AddTrigger("!HLT_Mu15_v2");
-    hltModP->AddTrigger("HLT_Mu9");
-    hltModP->AddTrigger("!HLT_Mu9");
-    hltModP->AddTrigger("HLT_Mu12_v13");
-    hltModP->AddTrigger("!HLT_Mu12_v13");
-    hltModP->AddTrigger("HLT_Mu12_v14");
-    hltModP->AddTrigger("!HLT_Mu12_v14");
-    hltModP->AddTrigger("HLT_Mu12_v16");
-    hltModP->AddTrigger("!HLT_Mu12_v16");
-    // // MC signal triggers
-    hltModP->AddTrigger("HLT_MET120_HBHENoiseCleaned_v*");
-    hltModP->AddTrigger("MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v*");
-  }
 
   //------------------------------------------------------------------------------------------------
   // split pfcandidates to PFPU and PFnoPU
@@ -191,45 +172,61 @@ void runMonoJet(const char *fileset    = "0000",
   // Lepton Selection 
   //-----------------------------------
   ElectronIDMod* eleIdMod = new ElectronIDMod;
-  eleIdMod -> SetPtMin(10.);  
-  eleIdMod -> SetEtaMax(2.5);
-  eleIdMod -> SetApplyEcalFiducial(true);
-  eleIdMod -> SetIDType("VBTFWorkingPoint95Id");  
-  eleIdMod -> SetIsoType("PFIso");
-  eleIdMod -> SetApplyConversionFilterType1(kTRUE);
-  eleIdMod -> SetApplyConversionFilterType2(kFALSE);
-  eleIdMod -> SetChargeFilter(kFALSE);
-  eleIdMod -> SetApplyD0Cut(kTRUE);
-  eleIdMod -> SetApplyDZCut(kTRUE);
-  eleIdMod -> SetWhichVertex(-1);
-  eleIdMod -> SetNExpectedHitsInnerCut(0);  
-  eleIdMod -> SetGoodElectronsName("GoodElectronsBS");
-  eleIdMod -> SetRhoType(RhoUtilities::CMS_RHO_RHOKT6PFJETS); 
+  eleIdMod->SetPtMin(10.);  
+  eleIdMod->SetEtaMax(2.5);
+  eleIdMod->SetApplyEcalFiducial(true);
+  eleIdMod->SetIDType("VBTFWorkingPoint95Id");  
+  eleIdMod->SetIsoType("PFIso");
+  eleIdMod->SetApplyConversionFilterType1(kTRUE);
+  eleIdMod->SetApplyConversionFilterType2(kFALSE);
+  eleIdMod->SetChargeFilter(kFALSE);
+  eleIdMod->SetApplyD0Cut(kTRUE);
+  eleIdMod->SetApplyDZCut(kTRUE);
+  eleIdMod->SetWhichVertex(-1);
+  eleIdMod->SetNExpectedHitsInnerCut(0);  
+  eleIdMod->SetGoodElectronsName("GoodElectronsBS");
+  eleIdMod->SetRhoType(RhoUtilities::CMS_RHO_RHOKT6PFJETS); 
 
-  MuonIDMod* muonIdMod = new MuonIDMod;
+  MuonIDMod* muonIdGammaGamma = new MuonIDMod;
   // base kinematics
-  muonIdMod -> SetPtMin(10.);
-  muonIdMod -> SetEtaCut(2.4);
+  muonIdGammaGamma->SetPtMin(10.);
+  muonIdGammaGamma->SetEtaCut(2.4);
   // base ID
-  muonIdMod -> SetIDType("NoId");
-  muonIdMod -> SetClassType("GlobalorTracker");
-  muonIdMod -> SetWhichVertex(-1); // this is a 'hack'.. but hopefully good enough...
-  muonIdMod -> SetD0Cut(0.02);
-  muonIdMod -> SetDZCut(0.5);
-  muonIdMod -> SetIsoType("PFIsoBetaPUCorrected"); //h
-  muonIdMod -> SetPFIsoCut(0.2); //h
-  muonIdMod -> SetOutputName("HggLeptonTagMuons");
-  muonIdMod -> SetPFNoPileUpName("pfnopileupcands");
-  muonIdMod -> SetPFPileUpName("pfpileupcands");
-  muonIdMod -> SetPVName(Names::gkPVBeamSpotBrn); 
+  muonIdGammaGamma->SetIDType("NoId");
+  muonIdGammaGamma->SetClassType("GlobalorTracker");
+  muonIdGammaGamma->SetWhichVertex(-1); // this is a 'hack'.. but hopefully good enough...
+  muonIdGammaGamma->SetD0Cut(0.02);
+  muonIdGammaGamma->SetDZCut(0.5);
+  muonIdGammaGamma->SetIsoType("PFIsoBetaPUCorrected"); //h
+  muonIdGammaGamma->SetPFIsoCut(0.2); //h
+  muonIdGammaGamma->SetOutputName("HggLeptonTagMuons");
+  muonIdGammaGamma->SetPFNoPileUpName("pfnopileupcands");
+  muonIdGammaGamma->SetPFPileUpName("pfpileupcands");
+  muonIdGammaGamma->SetPVName(Names::gkPVBeamSpotBrn); 
+
+  MuonIDMod *muonIdWW = new MuonIDMod;
+  muonIdWW->SetOutputName("HWWMuons");
+  muonIdWW->SetIntRadius(0.0);
+  muonIdWW->SetClassType("GlobalTracker");
+  muonIdWW->SetIDType("WWMuIdV4");
+  muonIdWW->SetIsoType("IsoRingsV0_BDTG_Iso");
+  muonIdWW->SetApplyD0Cut(kTRUE);
+  muonIdWW->SetApplyDZCut(kTRUE);
+  muonIdWW->SetWhichVertex(0);
+  muonIdWW->SetRhoType(RhoUtilities::CMS_RHO_RHOKT6PFJETS);
+  muonIdWW->SetPtMin(10.);
+  muonIdWW->SetEtaCut(2.4);
+
+  MuonIDMod *muonId = muonIdWW;
+  //MuonIDMod *muonId = muonIdGammaGamma;
   
   ElectronCleaningMod *electronCleaning = new ElectronCleaningMod;
-  electronCleaning->SetCleanMuonsName(muonIdMod->GetOutputName());
+  electronCleaning->SetCleanMuonsName(muonId->GetOutputName());
   electronCleaning->SetGoodElectronsName(eleIdMod->GetOutputName());
   electronCleaning->SetCleanElectronsName("CleanElectrons");
 
   MergeLeptonsMod *merger = new MergeLeptonsMod;
-  merger->SetMuonsName(muonIdMod->GetOutputName());
+  merger->SetMuonsName(muonId->GetOutputName());
   merger->SetElectronsName(electronCleaning->GetOutputName());
   merger->SetMergedName("MergedLeptons");
 
@@ -295,7 +292,6 @@ void runMonoJet(const char *fileset    = "0000",
   pftauIDMod->SetPFTausName("HPSTaus");
   pftauIDMod->SetIsLooseId(kFALSE);
 
-
   PhotonCleaningMod *photonCleaningMod = new PhotonCleaningMod;
   photonCleaningMod->SetCleanElectronsName(electronCleaning->GetOutputName());
   photonCleaningMod->SetGoodPhotonsName(photonIDMod->GetOutputName());
@@ -303,7 +299,8 @@ void runMonoJet(const char *fileset    = "0000",
 
   PFTauCleaningMod *pftauCleaningMod = new PFTauCleaningMod;
   pftauCleaningMod->SetGoodPFTausName(pftauIDMod->GetGoodPFTausName());
-  pftauCleaningMod->SetCleanMuonsName(muonIdMod->GetOutputName());
+  pftauCleaningMod->SetCleanMuonsName(muonId->GetOutputName());
+
   PublisherMod<PFJet,Jet> *pubJet = new PublisherMod<PFJet,Jet>("JetPub");
   pubJet->SetInputName("AKt5PFJets");
   pubJet->SetOutputName("PubAKt5PFJets");
@@ -334,7 +331,7 @@ void runMonoJet(const char *fileset    = "0000",
 
   JetCleaningMod *theJetCleaning = new JetCleaningMod;
   theJetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());
-  theJetCleaning->SetCleanMuonsName(muonIdMod->GetOutputName());
+  theJetCleaning->SetCleanMuonsName(muonId->GetOutputName());
   theJetCleaning->SetCleanPhotonsName(photonCleaningMod->GetOutputName());
   theJetCleaning->SetApplyPhotonRemoval(kTRUE);
   theJetCleaning->SetGoodJetsName(theJetID->GetOutputName());
@@ -350,9 +347,22 @@ void runMonoJet(const char *fileset    = "0000",
   metCorrT0T1Shift->ApplyShift(kTRUE);   
   metCorrT0T1Shift->IsData(isData);
   metCorrT0T1Shift->SetPrint(kFALSE);
+
   //------------------------------------------------------------------------------------------------
   // select events with jet+MET
   //------------------------------------------------------------------------------------------------
+
+  // VBF
+  float minLeadingJetEt = 40;
+  float maxJetEta = 4.7;
+  //float minMet = 110;
+  float minMet = 0;
+
+  // Monojet
+//   float minLeadingJetEt = 40;
+//   float maxJetEta = 4.5;
+//   float minMet = 200;
+
   MonoJetAnalysisMod         *jetplusmet = new MonoJetAnalysisMod("MonoJetSelector");
   jetplusmet->SetInputMetName(metCorrT0T1Shift->GetOutputName()); //corrected met
   jetplusmet->SetMetFromBranch(kFALSE);
@@ -360,19 +370,21 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmet->SetJetsFromBranch(kFALSE);
   jetplusmet->SetElectronsName(electronCleaning->GetOutputName());
   jetplusmet->SetElectronsFromBranch(kFALSE);
-  jetplusmet->SetMuonsName(muonIdMod->GetOutputName());
+  jetplusmet->SetMuonsName(muonId->GetOutputName());
   jetplusmet->SetMuonsFromBranch(kFALSE);
   jetplusmet->SetTausName(pftauCleaningMod->GetOutputName());
   jetplusmet->SetTausFromBranch(kFALSE);
   jetplusmet->SetLeptonsName(merger->GetOutputName());
+  //jetplusmet->SetPFCandidatesName(Names::gkPFCandidatesBrn);
+  //jetplusmet->SetPFCandidatesFromBranch(kFALSE);
   jetplusmet->SetMinNumJets(1);
   jetplusmet->SetMinNumLeptons(0);
-  jetplusmet->SetMinJetEt(80);
-  jetplusmet->SetMaxJetEta(4.5);
-  jetplusmet->SetMinChargedHadronFrac(0.2);
+  jetplusmet->SetMinChargedHadronFrac(0.2); 
   jetplusmet->SetMaxNeutralHadronFrac(0.7);
   jetplusmet->SetMaxNeutralEmFrac(0.7);
-  jetplusmet->SetMinMetEt(200);
+  jetplusmet->SetMinJetEt(minLeadingJetEt); // 40
+  jetplusmet->SetMaxJetEta(maxJetEta); //4.7, FIXME: add cut for 2nd jet offline!
+  jetplusmet->SetMinMetEt(minMet); // 110, too low?
 
   MonoJetAnalysisMod         *dilepton = new MonoJetAnalysisMod("MonoJetSelector_dilepton");
   dilepton->SetInputMetName(metCorrT0T1Shift->GetOutputName()); //corrected met
@@ -381,18 +393,20 @@ void runMonoJet(const char *fileset    = "0000",
   dilepton->SetJetsFromBranch(kFALSE);
   dilepton->SetElectronsName(electronCleaning->GetOutputName());
   dilepton->SetElectronsFromBranch(kFALSE);
-  dilepton->SetMuonsName(muonIdMod->GetOutputName());
+  dilepton->SetMuonsName(muonId->GetOutputName());
   dilepton->SetMuonsFromBranch(kFALSE);
   dilepton->SetTausName(pftauCleaningMod->GetOutputName());
   dilepton->SetTausFromBranch(kFALSE);
   dilepton->SetLeptonsName(merger->GetOutputName());
+  //dilepton->SetPFCandidatesName(Names::gkPFCandidatesBrn);
+  //dilepton->SetPFCandidatesFromBranch(kFALSE);
   dilepton->SetMinNumJets(1);
   dilepton->SetMinNumLeptons(2);
-  dilepton->SetMinJetEt(80);
-  dilepton->SetMaxJetEta(4.5);
   dilepton->SetMinChargedHadronFrac(0.2);
   dilepton->SetMaxNeutralHadronFrac(0.7);
   dilepton->SetMaxNeutralEmFrac(0.7);
+  dilepton->SetMinJetEt(minLeadingJetEt);
+  dilepton->SetMaxJetEta(maxJetEta);
   dilepton->SetMinMetEt(0);
   
   MonoJetAnalysisMod         *wlnu = new MonoJetAnalysisMod("MonoJetSelector_wlnu");
@@ -402,18 +416,24 @@ void runMonoJet(const char *fileset    = "0000",
   wlnu->SetJetsFromBranch(kFALSE);
   wlnu->SetElectronsName(electronCleaning->GetOutputName());
   wlnu->SetElectronsFromBranch(kFALSE);
-  wlnu->SetMuonsName(muonIdMod->GetOutputName());
+  wlnu->SetMuonsName(muonId->GetOutputName());
   wlnu->SetMuonsFromBranch(kFALSE);
   wlnu->SetTausName(pftauCleaningMod->GetOutputName());
   wlnu->SetTausFromBranch(kFALSE);
   wlnu->SetLeptonsName(merger->GetOutputName());
+  //wlnu->SetPFCandidatesName(Names::gkPFCandidatesBrn);
+  //wlnu->SetPFCandidatesFromBranch(kFALSE);
   wlnu->SetMinNumJets(1);
   wlnu->SetMinNumLeptons(1);
-  wlnu->SetMinJetEt(80);
-  wlnu->SetMaxJetEta(4.5);
+  wlnu->SetMinChargedHadronFrac(0.2);
+  wlnu->SetMaxNeutralHadronFrac(0.7);
+  wlnu->SetMaxNeutralEmFrac(0.7);
+  wlnu->SetMinJetEt(minLeadingJetEt);
+  wlnu->SetMaxJetEta(maxJetEta);
   wlnu->SetMinMetEt(0);
 
   MonoJetTreeWriter *jetplusmettree = new MonoJetTreeWriter("MonoJetTreeWriter");
+  jetplusmettree->SetTriggerObjectsName(hltModP->GetOutputName());
   jetplusmettree->SetMetName(metCorrT0T1Shift->GetOutputName()); //corrected met
   jetplusmettree->SetMetFromBranch(kFALSE);
   jetplusmettree->SetPhotonsFromBranch(kFALSE);
@@ -421,7 +441,7 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmettree->SetElectronsFromBranch(kFALSE);
   jetplusmettree->SetElectronsName(electronCleaning->GetOutputName());
   jetplusmettree->SetMuonsFromBranch(kFALSE);
-  jetplusmettree->SetMuonsName(muonIdMod->GetOutputName());
+  jetplusmettree->SetMuonsName(muonId->GetOutputName());
   jetplusmettree->SetTausFromBranch(kFALSE);
   jetplusmettree->SetTausName(pftauCleaningMod->GetOutputName());
   jetplusmettree->SetJetsFromBranch(kFALSE);
@@ -429,11 +449,14 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmettree->SetPVFromBranch(kFALSE);
   jetplusmettree->SetPVName(goodPVFilterMod->GetOutputName());
   jetplusmettree->SetLeptonsName(merger->GetOutputName());
+  //jetplusmettree->SetPFCandidatesName(Names::gkPFCandidatesBrn);
+  //jetplusmettree->SetPFCandidatesFromBranch(kFALSE);
   jetplusmettree->SetIsData(isData);
   jetplusmettree->SetProcessID(0);
   jetplusmettree->SetFillNtupleType(0);
 
   MonoJetTreeWriter *dileptontree = new MonoJetTreeWriter("MonoJetTreeWriter_dilepton");
+  dileptontree->SetTriggerObjectsName(hltModP->GetOutputName());
   dileptontree->SetMetName(metCorrT0T1Shift->GetOutputName()); //corrected met
   dileptontree->SetMetFromBranch(kFALSE);
   dileptontree->SetPhotonsFromBranch(kFALSE);
@@ -441,7 +464,7 @@ void runMonoJet(const char *fileset    = "0000",
   dileptontree->SetElectronsFromBranch(kFALSE);
   dileptontree->SetElectronsName(electronCleaning->GetOutputName());
   dileptontree->SetMuonsFromBranch(kFALSE);
-  dileptontree->SetMuonsName(muonIdMod->GetOutputName());
+  dileptontree->SetMuonsName(muonId->GetOutputName());
   dileptontree->SetTausFromBranch(kFALSE);
   dileptontree->SetTausName(pftauCleaningMod->GetOutputName());
   dileptontree->SetJetsFromBranch(kFALSE);
@@ -449,11 +472,14 @@ void runMonoJet(const char *fileset    = "0000",
   dileptontree->SetPVFromBranch(kFALSE);
   dileptontree->SetPVName(goodPVFilterMod->GetOutputName());
   dileptontree->SetLeptonsName(merger->GetOutputName());
+  //dileptontree->SetPFCandidatesName(Names::gkPFCandidatesBrn);
+  //dileptontree->SetPFCandidatesFromBranch(kFALSE);
   dileptontree->SetIsData(isData);
   dileptontree->SetProcessID(0);
   dileptontree->SetFillNtupleType(1);
 
   MonoJetTreeWriter *wlnutree = new MonoJetTreeWriter("MonoJetTreeWriter_wlnu");
+  wlnutree->SetTriggerObjectsName(hltModP->GetOutputName());
   wlnutree->SetMetName(metCorrT0T1Shift->GetOutputName()); //corrected met
   wlnutree->SetMetFromBranch(kFALSE);
   wlnutree->SetPhotonsFromBranch(kFALSE);
@@ -461,7 +487,7 @@ void runMonoJet(const char *fileset    = "0000",
   wlnutree->SetElectronsFromBranch(kFALSE);
   wlnutree->SetElectronsName(electronCleaning->GetOutputName());
   wlnutree->SetMuonsFromBranch(kFALSE);
-  wlnutree->SetMuonsName(muonIdMod->GetOutputName());
+  wlnutree->SetMuonsName(muonId->GetOutputName());
   wlnutree->SetTausFromBranch(kFALSE);
   wlnutree->SetTausName(pftauCleaningMod->GetOutputName());
   wlnutree->SetJetsFromBranch(kFALSE);
@@ -469,6 +495,8 @@ void runMonoJet(const char *fileset    = "0000",
   wlnutree->SetPVFromBranch(kFALSE);
   wlnutree->SetPVName(goodPVFilterMod->GetOutputName());
   wlnutree->SetLeptonsName(merger->GetOutputName());
+  //wlnutree->SetPFCandidatesName(Names::gkPFCandidatesBrn);
+  //wlnutree->SetPFCandidatesFromBranch(kFALSE);
   wlnutree->SetIsData(isData);
   wlnutree->SetProcessID(0);
   wlnutree->SetFillNtupleType(2);
@@ -477,21 +505,19 @@ void runMonoJet(const char *fileset    = "0000",
   // making analysis chain
   //------------------------------------------------------------------------------------------------
   // this is how it always starts
-  runLumiSel      ->Add(mcselmod);
- 
-  mcselmod->Add(generatorMod);
+  runLumiSel->Add(generatorMod);
   generatorMod->Add(goodPVFilterMod);
   goodPVFilterMod->Add(hltModP);
   // photon regression
   hltModP->Add(photreg);
   // simple object id modules
   photreg          ->Add(SepPUMod); 
-  SepPUMod         ->Add(muonIdMod);
-  muonIdMod        ->Add(eleIdMod);
-  eleIdMod	       ->Add(electronCleaning);
+  SepPUMod         ->Add(muonId);
+  muonId           ->Add(eleIdMod);
+  eleIdMod	   ->Add(electronCleaning);
   electronCleaning ->Add(merger);
   merger           ->Add(photonIDMod);
-  photonIDMod	     ->Add(photonCleaningMod);
+  photonIDMod	   ->Add(photonCleaningMod);
   photonCleaningMod->Add(pftauIDMod);
   pftauIDMod       ->Add(pftauCleaningMod);
   pftauCleaningMod ->Add(pubJet);
@@ -531,14 +557,15 @@ void runMonoJet(const char *fileset    = "0000",
   Dataset *d = NULL;
   TString bookstr = book;
   if (TString(skim).CompareTo("noskim") == 0) {
-    d = c->FindDataset(bookstr,dataset,fileset, true);
-    //d = c->FindDataset(bookstr,dataset,fileset, false);
+    d = c->FindDataset(bookstr,dataset,fileset, true); // chaching on
+    //d = c->FindDataset(bookstr,dataset,fileset, false); // chaching off
   }
   else {
     d = c->FindDataset(bookstr,skimdataset.Data(),fileset, true);
     //d = c->FindDataset(bookstr,skimdataset.Data(),fileset, false);
   }
   ana->AddDataset(d);
+  //ana->AddFile("/mnt/hadoop/cms/store/user/paus/filefi/032/r12a-met-j22-v1/C4AC0AB8-BA82-E211-B238-003048678FF4.root");
   
 
   //------------------------------------------------------------------------------------------------
