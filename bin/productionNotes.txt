@@ -1,0 +1,9 @@
+- data have not been run yet
+- run on wtop
+- check merge script (ttj in paricular)
+
+- TauId needs to be updated
+- Muon and Electron ID need to be checked
+
+- run with different IDs to check effect on the analysis
+

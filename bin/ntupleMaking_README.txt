@@ -1,0 +1,2 @@
+- run on bambu until all data samples are processes
+- merging step produces 2 ntuples, one just merging the output, the other cleaning the latter
