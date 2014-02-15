@@ -1,51 +1,51 @@
 //--------------------------------------------------------------------------------------------------
-// $Id: MonoJetTreeWriter.h,v 1.9 2013/09/30 23:08:36 mzanetti Exp $
+// $Id: MonoJetTreeWriter.h,v 1.10 2013/10/21 19:34:02 dimatteo Exp $
 //
 // MonoJetTreeWriter
 //
 // Authors: L. Di Matteo
 //--------------------------------------------------------------------------------------------------
-
 #ifndef MITMONOJET_MODS_MonoJetTreeWriter_H
 #define MITMONOJET_MODS_MonoJetTreeWriter_H
 
+#include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+
 #include "MitAna/TreeMod/interface/BaseMod.h" 
+#include "MitAna/DataTree/interface/MCEventInfo.h"
+#include "MitAna/DataTree/interface/MCParticleFwd.h"
+#include "MitAna/DataTree/interface/MCParticleCol.h"
+#include "MitAna/DataTree/interface/GenJetCol.h"
+#include "MitAna/DataTree/interface/BeamSpotCol.h"
+#include "MitAna/DataTree/interface/EvtSelData.h"
+#include "MitAna/DataTree/interface/TriggerObjectCol.h"
+#include "MitAna/DataTree/interface/PileupInfoCol.h"
+#include "MitAna/DataTree/interface/PileupEnergyDensityCol.h"
+#include "MitAna/DataTree/interface/VertexCol.h"
 #include "MitAna/DataTree/interface/PhotonFwd.h"
 #include "MitAna/DataTree/interface/TrackCol.h"
-#include "MitAna/DataTree/interface/VertexCol.h"
-#include "MitAna/DataTree/interface/BeamSpotCol.h"
 #include "MitAna/DataTree/interface/PFCandidateCol.h"
-#include "MitAna/DataTree/interface/PileupEnergyDensityCol.h"
 #include "MitAna/DataTree/interface/DecayParticleCol.h"
 #include "MitAna/DataTree/interface/ElectronCol.h"
 #include "MitAna/DataTree/interface/MuonCol.h"
 #include "MitAna/DataTree/interface/PFTauCol.h"
 #include "MitAna/DataTree/interface/DecayParticleCol.h"
-#include "MitAna/DataTree/interface/PileupInfoCol.h"
-#include "MitAna/DataTree/interface/MCParticleCol.h"
-#include "MitAna/DataTree/interface/MCEventInfo.h"
 #include "MitAna/DataTree/interface/SuperClusterCol.h"
 #include "MitAna/DataTree/interface/MetCol.h"
 #include "MitAna/DataTree/interface/PFMetCol.h"
 #include "MitAna/DataTree/interface/JetCol.h"
 #include "MitAna/DataTree/interface/PFJetCol.h"
-#include "MitAna/DataTree/interface/GenJetCol.h"
-#include "MitAna/DataTree/interface/MCEventInfo.h"
-#include "MitAna/DataTree/interface/MCParticleFwd.h"
 #include "MitPhysics/Utils/interface/PhotonFix.h"
 #include "MitPhysics/Utils/interface/PhotonTools.h"
 #include "MitPhysics/Utils/interface/MVAMet.h"
 #include "MitPhysics/Utils/interface/MVAVBF.h"
 #include "MitPhysics/Utils/interface/QGTagger.h"
-#include "MitAna/DataTree/interface/EvtSelData.h"
-
+#include "MitPhysics/Utils/interface/RhoUtilities.h"
 #include "MitPhysics/Utils/interface/VertexTools.h"
 #include "MitPhysics/Utils/interface/ElectronIDMVA.h"
 
 #include "MitMonoJet/Core/MitGPTree.h"
 
-class TNtuple;
-class TRandom3;
 
 namespace mithep 
 {
@@ -53,8 +53,8 @@ namespace mithep
   class MonoJetTreeWriter : public BaseMod
   {
   public:
-    MonoJetTreeWriter(const char *name ="MonoJetTreeWriter", 
-		         const char *title="Selecting PhotonPairs");
+    MonoJetTreeWriter(const char *name  = "MonoJetTreeWriter", 
+		      const char *title = "Selecting MonoJets");
     
     ~MonoJetTreeWriter();
 
@@ -74,6 +74,8 @@ namespace mithep
     void                SetJetsFromBranch(bool b)         { fJetsFromBranch = b;         }
     void                SetQGTaggerCHS(bool b)            { fQGTaggerCHS = b;            }
     void                SetLeptonsName(const char *n)     { fLeptonsName = n;            }
+    void                SetPFCandidatesName(const char *n)        { fPFCandidatesName = n;               }
+    void                SetPFCandidatesFromBranch(bool b)         { fPFCandidatesFromBranch = b;         }
 
     void                SetSuperClustersName(const char *n){ fSuperClustersName = n;     }
     void                SetTracksName(const char *n)      { fTracksName = n;             }
@@ -83,17 +85,18 @@ namespace mithep
     void                SetBeamspotName(const char *n)    { fBeamspotName = n;           }
 
     void                SetIsData (Bool_t b)              { fIsData = b;                 }
+    void                SetTriggerObjectsName(const char *n)  { fTriggerObjectsName = n;        }
 
     void                SetProcessID(Int_t n)             { fDecay = n;                  }
-    void                SetTupleName(const char* c)       { fTupleName = c;              }
     void                SetFillNtupleType(Int_t d)        { fFillNtupleType= d;          }
 
   protected:
     void                Process();
     void                SlaveBegin();
     void                SlaveTerminate();
-    // Private auxiliary methods...
-    // Names of the input Collections
+
+    // Private auxiliary methods... Names of the input Collections
+
     TString             fMetName;
     TString             fPhotonsName;
     TString             fElectronsName;
@@ -111,17 +114,17 @@ namespace mithep
     TString             fBeamspotName;
     TString             fMCEvInfoName;
     TString             fMCPartName;
+    TString             fPFCandidatesName;
 
-    // is it Data or MC?
     Bool_t              fIsData;
-    
-    // there are not some PV pre-selection?
+    TString             fTriggerObjectsName;
     Bool_t              fMetFromBranch;
     Bool_t              fPhotonsFromBranch;
     Bool_t              fElectronsFromBranch;
     Bool_t              fMuonsFromBranch;
     Bool_t              fTausFromBranch;
     Bool_t              fJetsFromBranch;
+    Bool_t              fPFCandidatesFromBranch;
     Bool_t              fPVFromBranch;
     Bool_t              fQGTaggerCHS;
 
@@ -129,12 +132,19 @@ namespace mithep
 
     const PFMetCol                *fRawMet;
     const MetCol                  *fMet;
+    MVAMet                        *fMVAMet;
     const PhotonCol               *fPhotons;
     const ElectronCol             *fElectrons;
     const MuonCol                 *fMuons;
     const PFTauCol                *fPFTaus;
     const JetCol                  *fJets;
-    const EvtSelData              *fEvtSelData;
+    const TriggerObjectCol        *fTrigObj;
+
+    std::vector<std::string>      fCorrectionFiles;   // list of jet correction files
+    FactorizedJetCorrector        *fJetCorrector;
+    JetCorrectionUncertainty      *fJetUncertainties;
+
+    const PFCandidateCol          *fPFCandidates;
 
     const TrackCol                *fTracks;
     const VertexCol               *fPV;
@@ -144,17 +154,20 @@ namespace mithep
     const PileupEnergyDensityCol  *fPileUpDen;
     const SuperClusterCol         *fSuperClusters; 
     const MCParticleCol           *fParticles;	        
+    const EvtSelData              *fEvtSelData;
+    
+    // selected primary vertex
+    const Vertex                  *fVertex;
 
-    // --------------------------------
+
     Int_t                          fDecay;
-    TFile	                      *fOutputFile;
-    TString	                       fTupleName;
+    TFile	                  *fOutputFile;
     Int_t                          fFillNtupleType;
     MitGPTree                      fMitGPTree;
 
     Int_t                          fNEventsSelected;
 
-    ClassDef(MonoJetTreeWriter, 1) // Photon identification module
-      };
+    ClassDef(MonoJetTreeWriter,1)
+  };
 }
 #endif

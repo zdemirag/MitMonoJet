@@ -44,6 +44,8 @@ class MitGPTree {
   unsigned int   event_;
   unsigned int   run_;
   unsigned int   lumi_;
+  unsigned int   trigger_;
+  unsigned int   HLTmatch_;
   unsigned int   nvtx_;
   unsigned int   cuts_;
   float          scale1fb_;
@@ -51,10 +53,24 @@ class MitGPTree {
   float          metRawPhi_;
   float          met_;
   float          metPhi_;
+  float          mvamet_;
+  float          mvametPhi_;
+  float          mvaCov00_;
+  float          mvaCov10_;
+  float          mvaCov01_;
+  float          mvaCov11_;
   float          metCorZ_;
   float          metCorZPhi_;
   float          metCorW_;
   float          metCorWPhi_;
+  float          metRawCorZ_;
+  float          metRawCorZPhi_;
+  float          metRawCorW_;
+  float          metRawCorWPhi_;
+  float          mvametCorZ_;
+  float          mvametCorZPhi_;
+  float          mvametCorW_;
+  float          mvametCorWPhi_;
   float          sumEt_;
   float          metSig_;
   DataType       dstype_;
@@ -70,23 +86,42 @@ class MitGPTree {
   int            lid3_;
   int		 lep3IsTightMuon_;
 
+  unsigned int   ntaus_;
   LorentzVector  tau1_;
+  LorentzVector  tau2_;
 
   unsigned int   nphotons_;
   LorentzVector  pho1_;
-  LorentzVector  pho2_;
-  LorentzVector  pho3_;
-  LorentzVector  pho4_;
+/*   LorentzVector  pho2_; */
+/*   LorentzVector  pho3_; */
+/*   LorentzVector  pho4_; */
 
   unsigned int   njets_;
+  unsigned int   noiseCleaning_;
   LorentzVector  jet1_;
+  float          jet1CHF_;
+  float          jet1NHF_;
+  float          jet1NEMF_;
+  float          jet1Unc_;
   float          jet1Btag_;
   float          jet1QGtag_;
   unsigned int   jet1PartonId_;
+  float          jet1QGRho_;
+  float          jet1QGPtD_;
+  float          jet1QGAxis1_;
+  float          jet1QGAxis2_;
+  float          jet1QGMult_;
   LorentzVector  jet2_;
+  float          jet2CHF_;
+  float          jet2NHF_;
+  float          jet2NEMF_;
+  float          jet2Unc_;
   float          jet2Btag_;
   float          jet2QGtag_;
   LorentzVector  jet3_;
+  float          jet3CHF_;
+  float          jet3NHF_;
+  float          jet3NEMF_;
   float          jet3Btag_;
   LorentzVector  jet4_;
   float          jet4Btag_;
@@ -111,17 +146,17 @@ class MitGPTree {
 
  public:
   /// this is the main element
-  TTree *tree_;
   TFile *f_;
-  
+  TTree *tree_;
+
   /// hold the names of variables to facilitate things (filled during Init)
   std::vector<std::string> variables_;
 
   /// default constructor  
   MitGPTree():
     lepPtr1_(&lep1_),lepPtr2_(&lep2_),lepPtr3_(&lep3_),
-    tauPtr1_(&tau1_),
-    phoPtr1_(&pho1_),phoPtr2_(&pho2_),phoPtr3_(&pho3_),phoPtr4_(&pho4_),
+    tauPtr1_(&tau1_),tauPtr2_(&tau2_),
+    phoPtr1_(&pho1_),//phoPtr2_(&pho2_),phoPtr3_(&pho3_),phoPtr4_(&pho4_),
     jetPtr1_(&jet1_),jetPtr2_(&jet2_),jetPtr3_(&jet3_),jetPtr4_(&jet4_),
     trackPtr1_(&track1_),trackPtr2_(&track2_),trackPtr3_(&track3_){}
   /// default destructor
@@ -146,6 +181,14 @@ class MitGPTree {
     assert(tree_);
   }
 
+  /// load a MitGPTree
+  void LoadTree(const char* file, const char* treeName){
+    f_ = TFile::Open(file);
+    assert(f_);
+    tree_ = dynamic_cast<TTree*>(f_->Get(treeName));
+    assert(tree_);
+  }
+
   /// create a MitGPTree
   void CreateTree(int type = -1){
     assert(type==type); // just to suppress warnings
@@ -162,16 +205,32 @@ class MitGPTree {
     tree_->Branch("event"        , &event_        ,   "event/i");
     tree_->Branch("run"          , &run_          ,   "run/i");
     tree_->Branch("lumi"         , &lumi_         ,   "lumi/i");
+    tree_->Branch("trigger"      , &trigger_      ,   "trigger/i");
+    tree_->Branch("HLTmatch"     , &HLTmatch_     ,   "HLTmatch/i");
     tree_->Branch("nvtx"         , &nvtx_         ,   "nvtx/i");
     tree_->Branch("scale1fb"     , &scale1fb_     ,   "scale1fb/F");
     tree_->Branch("metRaw"       , &metRaw_       ,   "metRaw/F");
     tree_->Branch("metRawPhi"    , &metRawPhi_    ,   "metRawPhi/F");
     tree_->Branch("met"          , &met_          ,   "met/F");
     tree_->Branch("metPhi"       , &metPhi_       ,   "metPhi/F");
+    tree_->Branch("mvamet"       , &mvamet_       ,   "mvamet/F");
+    tree_->Branch("mvametPhi"    , &mvametPhi_    ,   "mvametPhi/F");
+    tree_->Branch("mvaCov00"     , &mvaCov00_     ,   "mvaCov00/F");
+    tree_->Branch("mvaCov10"     , &mvaCov10_     ,   "mvaCov10/F");
+    tree_->Branch("mvaCov01"     , &mvaCov01_     ,   "mvaCov01/F");
+    tree_->Branch("mvaCov11"     , &mvaCov11_     ,   "mvaCov11/F");
     tree_->Branch("metCorZ"      , &metCorZ_      ,   "metCorZ/F");
     tree_->Branch("metCorZPhi"   , &metCorZPhi_   ,   "metCorZPhi/F");
     tree_->Branch("metCorW"      , &metCorW_      ,   "metCorW/F");
     tree_->Branch("metCorWPhi"   , &metCorWPhi_   ,   "metCorWPhi/F");
+    tree_->Branch("metRawCorZ"      , &metRawCorZ_      ,   "metRawCorZ/F");
+    tree_->Branch("metRawCorZPhi"   , &metRawCorZPhi_   ,   "metRawCorZPhi/F");
+    tree_->Branch("metRawCorW"      , &metRawCorW_      ,   "metRawCorW/F");
+    tree_->Branch("metRawCorWPhi"   , &metRawCorWPhi_   ,   "metRawCorWPhi/F");
+    tree_->Branch("mvametCorZ"      , &mvametCorZ_      ,   "mvametCorZ/F");
+    tree_->Branch("mvametCorZPhi"   , &mvametCorZPhi_   ,   "mvametCorZPhi/F");
+    tree_->Branch("mvametCorW"      , &mvametCorW_      ,   "mvametCorW/F");
+    tree_->Branch("mvametCorWPhi"   , &mvametCorWPhi_   ,   "mvametCorWPhi/F");
     tree_->Branch("sumEt"        , &sumEt_        ,   "sumEt/F");
     tree_->Branch("metSig"       , &metSig_       ,   "metSig/F");
     tree_->Branch("dstype"       , &dstype_       ,   "dstype/I");
@@ -187,23 +246,44 @@ class MitGPTree {
     tree_->Branch("lid3"         , &lid3_         ,   "lid3/I");
     tree_->Branch("lep3IsTightMuon"         , &lep3IsTightMuon_         ,   "lep3IsTightMuon/I");
 
+    tree_->Branch("ntaus"        , &ntaus_     ,   "ntaus/i");
     tree_->Branch("tau1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &tauPtr1_);
+    tree_->Branch("tau2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &tauPtr2_);
 
     tree_->Branch("nphotons"     , &nphotons_     ,   "nphotons/i");
     tree_->Branch("pho1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr1_);
-    tree_->Branch("pho2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr2_);
-    tree_->Branch("pho3"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr3_);
-    tree_->Branch("pho4"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr4_);
+/*     tree_->Branch("pho2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr2_); */
+/*     tree_->Branch("pho3"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr3_); */
+/*     tree_->Branch("pho4"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr4_); */
 
     tree_->Branch("njets"        , &njets_        ,   "njets/i");
+    tree_->Branch("noiseCleaning", &noiseCleaning_ ,   "noiseCleaning/i");
     tree_->Branch("jet1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr1_);
+    tree_->Branch("jet1CHF"      , &jet1CHF_      ,   "jet1CHF/F");
+    tree_->Branch("jet1NHF"      , &jet1NHF_      ,   "jet1NHF/F");
+    tree_->Branch("jet1NEMF"     , &jet1NEMF_      ,   "jet1NEMF/F");
+    tree_->Branch("jet1Unc"      , &jet1Unc_      ,   "jet1Unc/F");
     tree_->Branch("jet1Btag"     , &jet1Btag_     ,   "jet1Btag/F");
     tree_->Branch("jet1QGtag"     , &jet1QGtag_     ,   "jet1QGtag/F");
     tree_->Branch("jet1PartonId"     , &jet1PartonId_     ,   "jet1PartonId/i");
+    tree_->Branch("jet1QGRho"     , &jet1QGRho_    ,   "jet1QGRho/F");
+    tree_->Branch("jet1QGPtD"     , &jet1QGPtD_    ,   "jet1QGPtD/F");
+    tree_->Branch("jet1QGAxis1"   , &jet1QGAxis1_  ,   "jet1QGAxis1/F");
+    tree_->Branch("jet1QGAxis2"   , &jet1QGAxis2_  ,   "jet1QGAxis2/F");
+    tree_->Branch("jet1QGMult"    , &jet1QGMult_   ,   "jet1QGMult/F");
+    
     tree_->Branch("jet2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr2_);
+    tree_->Branch("jet2CHF"      , &jet2CHF_      ,   "jet2CHF/F");
+    tree_->Branch("jet2NHF"      , &jet2NHF_      ,   "jet2NHF/F");
+    tree_->Branch("jet2NEMF"     , &jet2NEMF_      ,   "jet2NEMF/F");
+    tree_->Branch("jet2Unc"      , &jet2Unc_     ,   "jet2Unc/F");
     tree_->Branch("jet2Btag"     , &jet2Btag_     ,   "jet2Btag/F");
     tree_->Branch("jet2QGtag"     , &jet2QGtag_     ,   "jet2QGtag/F");
+   
     tree_->Branch("jet3"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr3_);
+    tree_->Branch("jet3CHF"      , &jet3CHF_      ,   "jet3CHF/F");
+    tree_->Branch("jet3NHF"      , &jet3NHF_      ,   "jet3NHF/F");
+    tree_->Branch("jet3NEMF"     , &jet3NEMF_      ,   "jet3NEMF/F");
     tree_->Branch("jet3Btag"     , &jet3Btag_     ,   "jet3Btag/F");
     tree_->Branch("jet4"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr4_);
     tree_->Branch("jet4Btag"     , &jet4Btag_     ,   "jet4Btag/F");
@@ -242,16 +322,32 @@ class MitGPTree {
     tree_->SetBranchAddress("event",         &event_);
     tree_->SetBranchAddress("run",           &run_);
     tree_->SetBranchAddress("lumi",          &lumi_);
+    tree_->SetBranchAddress("trigger",       &trigger_);
+    tree_->SetBranchAddress("HLTmatch",      &HLTmatch_);
     tree_->SetBranchAddress("nvtx",          &nvtx_);
     tree_->SetBranchAddress("scale1fb",      &scale1fb_);
     tree_->SetBranchAddress("metRaw",        &metRaw_);
     tree_->SetBranchAddress("metRawPhi",     &metRawPhi_);
     tree_->SetBranchAddress("met",           &met_);
     tree_->SetBranchAddress("metPhi",        &metPhi_);
+    tree_->SetBranchAddress("mvamet",        &mvamet_);
+    tree_->SetBranchAddress("mvametPhi",     &mvametPhi_);
+    tree_->SetBranchAddress("mvaCov00",      &mvaCov00_);
+    tree_->SetBranchAddress("mvaCov10",      &mvaCov10_);
+    tree_->SetBranchAddress("mvaCov01",      &mvaCov01_);
+    tree_->SetBranchAddress("mvaCov11",      &mvaCov11_);
     tree_->SetBranchAddress("metCorZ",       &metCorZ_);
     tree_->SetBranchAddress("metCorZPhi",    &metCorZPhi_);
     tree_->SetBranchAddress("metCorW",       &metCorW_);
     tree_->SetBranchAddress("metCorWPhi",    &metCorWPhi_);
+    tree_->SetBranchAddress("metRawCorZ",       &metRawCorZ_);
+    tree_->SetBranchAddress("metRawCorZPhi",    &metRawCorZPhi_);
+    tree_->SetBranchAddress("metRawCorW",       &metRawCorW_);
+    tree_->SetBranchAddress("metRawCorWPhi",    &metRawCorWPhi_);
+    tree_->SetBranchAddress("mvametCorZ",       &mvametCorZ_);
+    tree_->SetBranchAddress("mvametCorZPhi",    &mvametCorZPhi_);
+    tree_->SetBranchAddress("mvametCorW",       &mvametCorW_);
+    tree_->SetBranchAddress("mvametCorWPhi",    &mvametCorWPhi_);
     tree_->SetBranchAddress("sumEt",         &sumEt_);
     tree_->SetBranchAddress("metSig",        &metSig_);
     tree_->SetBranchAddress("dstype",        &dstype_);
@@ -267,23 +363,43 @@ class MitGPTree {
     tree_->SetBranchAddress("lid3",          &lid3_);
     tree_->SetBranchAddress("lep3IsTightMuon",&lep3IsTightMuon_);
 
+    tree_->SetBranchAddress("ntaus",         &ntaus_);
     tree_->SetBranchAddress("tau1",          &tauPtr1_);
+    tree_->SetBranchAddress("tau2",          &tauPtr2_);
 
     tree_->SetBranchAddress("nphotons"                  , &nphotons_);
     tree_->SetBranchAddress("pho1"                      , &phoPtr1_);
-    tree_->SetBranchAddress("pho2"                      , &phoPtr2_);
-    tree_->SetBranchAddress("pho3"                      , &phoPtr3_);
-    tree_->SetBranchAddress("pho4"                      , &phoPtr4_);
+/*     tree_->SetBranchAddress("pho2"                      , &phoPtr2_); */
+/*     tree_->SetBranchAddress("pho3"                      , &phoPtr3_); */
+/*     tree_->SetBranchAddress("pho4"                      , &phoPtr4_); */
 
     tree_->SetBranchAddress("njets",         &njets_);
+    tree_->SetBranchAddress("noiseCleaning", &noiseCleaning_);
     tree_->SetBranchAddress("jet1",          &jetPtr1_);
+    tree_->SetBranchAddress("jet1CHF",       &jet1CHF_);
+    tree_->SetBranchAddress("jet1NHF",       &jet1NHF_);
+    tree_->SetBranchAddress("jet1NEMF",      &jet1NEMF_);
+    tree_->SetBranchAddress("jet1Unc",       &jet1Unc_);
     tree_->SetBranchAddress("jet1Btag",      &jet1Btag_);
-    tree_->SetBranchAddress("jet1QGtag",      &jet1QGtag_);
-    tree_->SetBranchAddress("jet1PartonId",      &jet1PartonId_);
+    tree_->SetBranchAddress("jet1QGtag",     &jet1QGtag_);
+    tree_->SetBranchAddress("jet1PartonId",  &jet1PartonId_);
+    tree_->SetBranchAddress("jet1QGRho"    , &jet1QGRho_   );
+    tree_->SetBranchAddress("jet1QGPtD"    , &jet1QGPtD_   );
+    tree_->SetBranchAddress("jet1QGAxis1"  , &jet1QGAxis1_ );
+    tree_->SetBranchAddress("jet1QGAxis2"  , &jet1QGAxis2_ );
+    tree_->SetBranchAddress("jet1QGMult"   , &jet1QGMult_  );
+    
     tree_->SetBranchAddress("jet2",          &jetPtr2_);
+    tree_->SetBranchAddress("jet2CHF",       &jet2CHF_);
+    tree_->SetBranchAddress("jet2NHF",       &jet2NHF_);
+    tree_->SetBranchAddress("jet2NEMF",      &jet2NEMF_);
+    tree_->SetBranchAddress("jet2Unc",       &jet2Unc_);
     tree_->SetBranchAddress("jet2Btag",      &jet2Btag_);
-    tree_->SetBranchAddress("jet2QGtag",      &jet2QGtag_);
+    tree_->SetBranchAddress("jet2QGtag",     &jet2QGtag_);
     tree_->SetBranchAddress("jet3",          &jetPtr3_);
+    tree_->SetBranchAddress("jet3CHF",       &jet3CHF_);
+    tree_->SetBranchAddress("jet3NHF",       &jet3NHF_);
+    tree_->SetBranchAddress("jet3NEMF",      &jet3NEMF_);
     tree_->SetBranchAddress("jet3Btag",      &jet3Btag_);
     tree_->SetBranchAddress("jet4",          &jetPtr4_);
     tree_->SetBranchAddress("jet4Btag",      &jet4Btag_);
@@ -315,6 +431,7 @@ class MitGPTree {
   LorentzVector* lepPtr2_;
   LorentzVector* lepPtr3_;
   LorentzVector* tauPtr1_;
+  LorentzVector* tauPtr2_;
   LorentzVector* phoPtr1_;
   LorentzVector* phoPtr2_;
   LorentzVector* phoPtr3_;
@@ -334,16 +451,33 @@ MitGPTree::InitVariables(){
   event_         = 0;
   run_           = 0;
   lumi_          = 0;
+  trigger_       = 0;
+  HLTmatch_       = 0;
   nvtx_          = 0;
   scale1fb_      = 0;
   metRaw_        = -999.;
   metRawPhi_     = -999.;
   met_           = -999.;
   metPhi_        = -999.;
+  mvamet_        = -999.;
+  mvametPhi_     = -999.;
+  mvaCov00_      = -999.;
+  mvaCov10_      = -999.; 
+  mvaCov01_      = -999.;
+  mvaCov11_      = -999.;
   metCorZ_       = -999.;
   metCorZPhi_    = -999.;
   metCorW_       = -999.;
   metCorWPhi_    = -999.;
+  metRawCorZ_       = -999.;
+  metRawCorZPhi_    = -999.;
+  metRawCorW_       = -999.;
+  metRawCorWPhi_    = -999.;
+  mvametCorZ_       = -999.;
+  mvametCorZPhi_    = -999.;
+  mvametCorW_       = -999.;
+  mvametCorWPhi_    = -999.;
+
   sumEt_         = -999.;
   metSig_        = -999.;
   dstype_        = data;
@@ -359,23 +493,42 @@ MitGPTree::InitVariables(){
   lid3_          = 0;
   lep3IsTightMuon_ = 0;
 
+  ntaus_          = 0;
   tau1_       	 = LorentzVector();
+  tau2_       	 = LorentzVector();
 
   nphotons_      = 0;
   pho1_       	 = LorentzVector();
-  pho2_       	 = LorentzVector();
-  pho3_       	 = LorentzVector();
-  pho4_       	 = LorentzVector();
+/*   pho2_       	 = LorentzVector(); */
+/*   pho3_       	 = LorentzVector(); */
+/*   pho4_       	 = LorentzVector(); */
 
   njets_ = 0;
+  noiseCleaning_  = 0;
   jet1_     = LorentzVector();
+  jet1CHF_  = 0.;
+  jet1NHF_  = 0.;
+  jet1NEMF_  = 0.;
+  jet1Unc_  = 0.;
   jet1Btag_ = -999.;
   jet1QGtag_= -999.;  
   jet1PartonId_= 0;  
+  jet1QGRho_   = -1.;
+  jet1QGPtD_   = -1.;
+  jet1QGAxis1_ = -1.;
+  jet1QGAxis2_ = -1.;
+  jet1QGMult_  = -1.;
   jet2_     = LorentzVector();
+  jet2CHF_  = 0.;
+  jet2NHF_  = 0.;
+  jet2NEMF_  = 0.;
+  jet2Unc_  = 0.;
   jet2Btag_ = -999.;
   jet2QGtag_= -999.;
   jet3_     = LorentzVector();
+  jet3CHF_  = 0.;
+  jet3NHF_  = 0.;
+  jet3NEMF_  = 0.;
   jet3Btag_ = -999.;
   jet4_     = LorentzVector();
   jet4Btag_ = -999.;

@@ -26,6 +26,9 @@
 #include <TRandom3.h>
 #include <TSystem.h>
 
+#include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+
 using namespace mithep;
 
 ClassImp(mithep::MonoJetTreeWriter)
@@ -34,7 +37,7 @@ ClassImp(mithep::MonoJetTreeWriter)
 MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) : 
   // Base Module...
   BaseMod                 (name,title),
-
+  
   fMetName                ("PFMet"),
   fPhotonsName            (Names::gkPhotonBrn),
   fElectronsName          (Names::gkElectronBrn),
@@ -42,6 +45,7 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fTausName               (Names::gkPFTauBrn),
   fJetsName               (Names::gkPFJetBrn),
   fLeptonsName            (ModNames::gkMergedLeptonsName),
+  fPFCandidatesName       (Names::gkPFCandidatesBrn),
   fVertexName             (ModNames::gkGoodVertexesName),
 
   fSuperClustersName      ("PFSuperClusters"),
@@ -55,12 +59,14 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fMCPartName(Names::gkMCPartBrn),
 
   fIsData                 (false),
+  fTriggerObjectsName     ("MyHltPhotObjs"),
   fMetFromBranch          (kTRUE),  
   fPhotonsFromBranch      (kTRUE),  
   fElectronsFromBranch    (kTRUE),  
   fMuonsFromBranch        (kTRUE),  
   fTausFromBranch         (kTRUE),  
   fJetsFromBranch         (kTRUE),
+  fPFCandidatesFromBranch  (kTRUE),
   fPVFromBranch           (kTRUE),
   fQGTaggerCHS            (kTRUE),
 
@@ -73,6 +79,10 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fMuons                  (0),
   fPFTaus                 (0),
   fJets                   (0),
+  fJetCorrector           (0),
+  fJetUncertainties       (0),
+  fTrigObj                (0),
+  fPFCandidates           (0),
   fTracks                 (0),
   fPV                     (0),
   fBeamspot               (0),
@@ -85,7 +95,6 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
 
   fDecay(0),
   fOutputFile(0),
-  fTupleName("hMonoPhotonTree"),
   fFillNtupleType(0),
   fNEventsSelected(0)
 
@@ -99,7 +108,19 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
 MonoJetTreeWriter::~MonoJetTreeWriter()
 {
   // Destructor
+  fOutputFile->Close();
 }
+
+//--------------------------------------------------------------------------------------------------
+void MonoJetTreeWriter::SlaveTerminate()
+{
+  fOutputFile->WriteTObject(fMitGPTree.tree_,fMitGPTree.tree_->GetName());
+  cout << "Processed events on MonoJetTreeWriter: " << fNEventsSelected << endl;
+  delete fJetCorrector;
+  delete fJetUncertainties;
+  delete fMVAMet;
+}
+
 
 //--------------------------------------------------------------------------------------------------
 void MonoJetTreeWriter::Process()
@@ -114,6 +135,7 @@ void MonoJetTreeWriter::Process()
   LoadEventObject(fMuonsName,         fMuons,         fMuonsFromBranch);
   LoadEventObject(fTausName,          fPFTaus,        fTausFromBranch);
   LoadEventObject(fJetsName,          fJets,          fJetsFromBranch);
+  LoadEventObject(fPFCandidatesName,   fPFCandidates, fPFCandidatesFromBranch);
 
   LoadEventObject(fPVName,            fPV,            fPVFromBranch);    
   LoadEventObject(fBeamspotName,      fBeamspot);
@@ -126,21 +148,20 @@ void MonoJetTreeWriter::Process()
     ReqBranch(fPileUpName,            fPileUp);
     LoadEventObject(fMCPartName, fParticles);
   }
+
   ParticleOArr *leptons = GetObjThisEvt<ParticleOArr>(ModNames::gkMergedLeptonsName);
-  const MuonCol *muons = GetObjThisEvt<MuonCol>("HggLeptonTagMuons"); //This should be identical to MuonIDMod->GetOutputName() in run macro
+  //const MuonCol *muons = GetObjThisEvt<MuonCol>("HggLeptonTagMuons"); //This should be identical to MuonIDMod->GetOutputName() in run macro
+  const MuonCol *muons = GetObjThisEvt<MuonCol>(fMuonsName);
   const VertexCol *vertices = GetObjThisEvt<VertexOArr>(fVertexName);
   LoadEventObject("EvtSelData",       fEvtSelData,    true);
 
   fNEventsSelected++;
 
   fMitGPTree.InitVariables();
-  // ------------------------------------------------------------  
-  // load event based information
       
+  // Pileup related stuff
   if( !fIsData ) {
     LoadBranch(fPileUpName);
-  } 
-  if( !fIsData ) {
     for (UInt_t i=0; i<fPileUp->GetEntries(); ++i) {
       const PileupInfo *puinfo = fPileUp->At(i);
       if (puinfo->GetBunchCrossing() ==  0) fMitGPTree.npu_	    = puinfo->GetPU_NumMean();
@@ -148,6 +169,54 @@ void MonoJetTreeWriter::Process()
       if (puinfo->GetBunchCrossing() == -1) fMitGPTree.npuMinusOne_ = puinfo->GetPU_NumInteractions();
     }
   }
+
+  // Trigger stuff
+
+  //cout<<"Event Number: "<<fNEventsSelected<<endl;
+  fMitGPTree.trigger_  = 0; 
+  fTrigObj = GetHLTObjects(fTriggerObjectsName);
+  int n_trigjets=0;
+  if (!fTrigObj) printf("MonoJetTreeWriter::TriggerObjectCol not found\n");
+  else {
+    for(UInt_t i=0;i<fTrigObj->GetEntries();++i) {
+      const TriggerObject *to = fTrigObj->At(i);
+      TString trName = to->TrigName();
+     
+      /*if(trName.Contains("HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v"))
+	//if(trName.Contains("HLT_DiPFJet40_PFMETnoMu65_MJJ600VBF_LeadingJets_v"))
+	{
+	  if(to->Type()==85)
+	    {
+	      cout<<"Trigger Object Id: "<<to->Type()<<endl;
+	      cout<<"Trigger Object pT: "<<to->Pt()<<endl;
+	      cout<<"Trigger Object eta: "<<to->Eta()<<endl;
+	      cout<<"Trigger Object phi: "<<to->Phi()<<endl;
+	      cout<<"Trigger Object Name: "<<to->TrigName()<<endl<<endl<<endl;
+	      n_trigjets++;
+
+	      //cout<<"Number of trigger Jets: "<<n_trigjets<<endl;
+	    }
+	    }*/
+
+      // default MonoJet
+      if(trName.Contains("MonoCentralPFJet80_PFMETnoMu"))
+	fMitGPTree.trigger_ |= 1 << 0;
+      if(trName.Contains("HLT_MET120_HBHENoiseCleaned_v") )
+      fMitGPTree.trigger_ |= 1 << 1;
+      // default VBF
+      if(trName.Contains("HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v")) 
+	fMitGPTree.trigger_ |= 1 << 2;
+      // parked VBF, B-D. FIXME
+      if(trName.Contains("HLT_DiJet30_MJJ700_AllJets_DEta3p5_VBF_v1") or 
+	 trName.Contains("HLT_DiJet35_MJJ700_AllJets_DEta3p5_VBF_v5"))	
+	fMitGPTree.trigger_ |= 1 << 3;
+      // default single muon
+      if(trName.Contains("HLT_IsoMu24_eta2p1_v")) 
+      fMitGPTree.trigger_ |= 1 << 4;
+    }
+  }
+
+  //cout<<"Number of trigger Jets: "<<n_trigjets<<endl;
 
   fMitGPTree.run_   = GetEventHeader()->RunNum();
   fMitGPTree.lumi_  = GetEventHeader()->LumiSec();
@@ -161,6 +230,10 @@ void MonoJetTreeWriter::Process()
 
   fMitGPTree.metRaw_    = fRawMet->At(0)->Pt();
   fMitGPTree.metRawPhi_ = fRawMet->At(0)->Phi();
+  fMitGPTree.metRawCorZ_    = fRawMet->At(0)->Pt();
+  fMitGPTree.metRawCorZPhi_ = fRawMet->At(0)->Phi();
+  fMitGPTree.metRawCorW_    = fRawMet->At(0)->Pt();
+  fMitGPTree.metRawCorWPhi_ = fRawMet->At(0)->Phi();
   fMitGPTree.met_       = fMet->At(0)->Pt();
   fMitGPTree.metPhi_    = fMet->At(0)->Phi();
   fMitGPTree.metCorZ_   = fMet->At(0)->Pt();  //MetCor default value as Met
@@ -171,10 +244,15 @@ void MonoJetTreeWriter::Process()
   fMitGPTree.metSig_    = fRawMet->At(0)->PFMetSig(); //Use the RawPFMet for the sig. calculation
 
 
-  // TAU
+  // TAUs
+  fMitGPTree.ntaus_ = fPFTaus->GetEntries();
   if (fPFTaus->GetEntries() >= 1) {
     const PFTau *tau = fPFTaus->At(0);
     fMitGPTree.tau1_ = tau->Mom();
+    if (fPFTaus->GetEntries() >= 2) {
+      tau = fPFTaus->At(1);
+      fMitGPTree.tau2_ = tau->Mom();
+    }
   }
 
   // LEPTONS
@@ -189,10 +267,10 @@ void MonoJetTreeWriter::Process()
     if     (lep->ObjType() == kMuon    ){
     muoncount++;
     fMitGPTree.lid1_ = 13;
-    if(((mu->HasGlobalTrk() && mu->GlobalTrk()->Chi2()/mu->GlobalTrk()->Ndof() < 10 &&
-	       (mu->NSegments() > 1 || mu->NMatches() > 1) && mu->NValidHits() > 0) ||
-	       mu->IsTrackerMuon()) && (mu->BestTrk() != 0 && mu->BestTrk()->NHits() > 10 &&
-		(mu->NSegments() > 1 || mu->NMatches() > 1) && mu->BestTrk()->NPixelHits() > 0)){ fMitGPTree.lep1IsTightMuon_ = 1;}
+    if(((mu->HasGlobalTrk() && mu->GlobalTrk()->Chi2()/mu->GlobalTrk()->Ndof() < 10 && (mu->NSegments() > 1 || mu->NMatches() > 1) && mu->NValidHits() > 0) 
+	|| mu->IsTrackerMuon()) && (mu->BestTrk() != 0 && mu->BestTrk()->NHits() > 10 &&
+				    (mu->NSegments() > 1 || mu->NMatches() > 1) && mu->BestTrk()->NPixelHits() > 0))
+      { fMitGPTree.lep1IsTightMuon_ = 1;}
     }
     else if(lep->ObjType() == kElectron) fMitGPTree.lid1_ = 11;
     else                                 assert(0);
@@ -203,6 +281,12 @@ void MonoJetTreeWriter::Process()
 
     fMitGPTree.metCorW_    = TMath::Sqrt(TMath::Power(met_new_x,2) + TMath::Power(met_new_y,2));
     fMitGPTree.metCorWPhi_ = TMath::ATan2(met_new_y,met_new_x);
+
+    float metRaw_new_x = fMitGPTree.metRaw_*TMath::Cos(fMitGPTree.metRawPhi_) + fMitGPTree.lep1_.Px();
+    float metRaw_new_y = fMitGPTree.metRaw_*TMath::Sin(fMitGPTree.metRawPhi_) + fMitGPTree.lep1_.Py();
+
+    fMitGPTree.metRawCorW_    = TMath::Sqrt(TMath::Power(metRaw_new_x,2) + TMath::Power(metRaw_new_y,2));
+    fMitGPTree.metRawCorWPhi_ = TMath::ATan2(metRaw_new_y,metRaw_new_x);
   }
   if (leptons->GetEntries() >= 2) {
     const Particle *lep = leptons->At(1);
@@ -226,6 +310,12 @@ void MonoJetTreeWriter::Process()
 
     fMitGPTree.metCorZ_    = TMath::Sqrt(TMath::Power(met_new_x,2) + TMath::Power(met_new_y,2));
     fMitGPTree.metCorZPhi_ = TMath::ATan2(met_new_y,met_new_x);
+
+    float metRaw_new_x = fMitGPTree.metRaw_*TMath::Cos(fMitGPTree.metRawPhi_) + fMitGPTree.lep1_.Px() + fMitGPTree.lep2_.Px();
+    float metRaw_new_y = fMitGPTree.metRaw_*TMath::Sin(fMitGPTree.metRawPhi_) + fMitGPTree.lep1_.Py() + fMitGPTree.lep2_.Py();
+
+    fMitGPTree.metRawCorZ_    = TMath::Sqrt(TMath::Power(metRaw_new_x,2) + TMath::Power(metRaw_new_y,2));
+    fMitGPTree.metRawCorZPhi_ = TMath::ATan2(metRaw_new_y,metRaw_new_x);
   }
   if (leptons->GetEntries() >= 3) {
     const Particle *lep = leptons->At(2);
@@ -251,30 +341,88 @@ void MonoJetTreeWriter::Process()
     const Photon *photon = fPhotons->At(0);
     fMitGPTree.pho1_			  = photon->Mom();
   }
-  if(fPhotons->GetEntries() >= 2) {
-    const Photon *photon = fPhotons->At(1);
-    fMitGPTree.pho2_			  = photon->Mom();
-  }
-  if(fPhotons->GetEntries() >= 3) {
-    const Photon *photon = fPhotons->At(2);
-    fMitGPTree.pho3_			  = photon->Mom();
-  }
-  if(fPhotons->GetEntries() >= 4) {
-    const Photon *photon = fPhotons->At(3);
-    fMitGPTree.pho4_			  = photon->Mom();
-  }
+//   if(fPhotons->GetEntries() >= 2) {
+//     const Photon *photon = fPhotons->At(1);
+//     fMitGPTree.pho2_			  = photon->Mom();
+//   }
+//   if(fPhotons->GetEntries() >= 3) {
+//     const Photon *photon = fPhotons->At(2);
+//     fMitGPTree.pho3_			  = photon->Mom();
+//   }
+//   if(fPhotons->GetEntries() >= 4) {
+//     const Photon *photon = fPhotons->At(3);
+//     fMitGPTree.pho4_			  = photon->Mom();
+//   }
 
   //JETS
+  bool jet1HLTmatch=false;
+  double trigjet1_Px=0.;
+  double trigjet1_Py=0.;
+  double trigjet1_Pz=0.;
+  double trigjet1_E=0.;
+  double trigjet1_Eta=0.;
+
+  bool jet2HLTmatch=false;
+  double trigjet2_Px=0.;
+  double trigjet2_Py=0.;
+  double trigjet2_Pz=0.;
+  double trigjet2_E=0.;
+  double trigjet2_Eta=0.;
+
+  PFJetOArr *PFJets = new PFJetOArr;
+  PFJets->SetOwner(kTRUE);
+  //PFJets->SetName(fPFJetsName);
+
+  for (UInt_t i=0; i<fJets->GetEntries(); ++i) {
+    const Jet *inJet = fJets->At(i);
+  
+    //copy input jet, using special function to copy full derived class
+    Jet *jet = inJet->MakeCopy();
+    PFJets->AddOwned(dynamic_cast<PFJet*>(jet));
+
+    //cache uncorrected momentum
+    const FourVectorM rawMom = jet->RawMom();
+
+    //compute correction factors
+    fJetCorrector->setJetEta(rawMom.Eta());
+    fJetCorrector->setJetPt(rawMom.Pt());
+    fJetCorrector->setJetPhi(rawMom.Phi());
+    fJetCorrector->setJetE(rawMom.E());
+    
+    fJetCorrector->setRho(fPileUpDen->At(0)->RhoRandom());
+    fJetCorrector->setJetA(jet->JetArea());
+
+    fJetCorrector->setJetEMF(-99.0);
+
+  }  
+
   fMitGPTree.njets_ = fJets->GetEntries();
+  fMitGPTree.noiseCleaning_ = 0;
   //qgTagger->SetRhoIso(fPileUpDen->At(0)->RhoKt6PFJetsCentralChargedPileUp()); // is it this one?
   qgTagger->SetRhoIso(fPileUpDen->At(0)->RhoRandomLowEta()); // is it this one?
   if (fJets->GetEntries() >= 1) {
     const PFJet *jet = dynamic_cast<const PFJet*>(fJets->At(0));
     fMitGPTree.jet1_     = jet->Mom();
+    fJetUncertainties->setJetPt(jet->Pt());
+    fJetUncertainties->setJetEta(jet->Eta());
+    fMitGPTree.jet1Unc_ = fJetUncertainties ->getUncertainty(true);
+    fMitGPTree.jet1CHF_  = jet->ChargedHadronEnergy()/jet->RawMom().E();
+    fMitGPTree.jet1NHF_  = jet->NeutralHadronEnergy()/jet->RawMom().E();
+    fMitGPTree.jet1NEMF_  = jet->NeutralEmEnergy()/jet->RawMom().E();
+    fMitGPTree.noiseCleaning_ |= int(fMitGPTree.jet1CHF_>0.2) << 0;
+    fMitGPTree.noiseCleaning_ |= int(fMitGPTree.jet1NHF_>0.7) << 1;
+    fMitGPTree.noiseCleaning_ |= int(fMitGPTree.jet1NEMF_>0.7) << 2;
     fMitGPTree.jet1Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
     qgTagger->CalculateVariables(jet, vertices);
     fMitGPTree.jet1QGtag_ = qgTagger->QGValue();
 
+    // variables used for the QG retraining
+    fMitGPTree.jet1QGRho_   = fPileUpDen->At(0)->RhoRandomLowEta();
+    fMitGPTree.jet1QGPtD_   = qgTagger->GetPtD();
+    fMitGPTree.jet1QGAxis1_ = qgTagger->GetAxis1();
+    fMitGPTree.jet1QGAxis2_ = qgTagger->GetAxis2();
+    fMitGPTree.jet1QGMult_  = qgTagger->GetMult();
+    
     // matching
     if (!fIsData) {
       double minPartonicDR = 0.8;
@@ -290,17 +438,102 @@ void MonoJetTreeWriter::Process()
       }
       fMitGPTree.jet1PartonId_ = partonId;
     }
+
+    // trigger matching
+    for(unsigned int i=0; i<fTrigObj->GetEntries(); ++i){
+      const TriggerObject *trigobj=fTrigObj->At(i);
+      TString trigName = trigobj->TrigName();
+      if(trigobj->IsHLT() ){
+	if(trigName.Contains("MonoCentralPFJet80_PFMETnoMu"))
+	  {
+	    bool match = true;
+	    if(trigobj->Pt()<80) match=false;
+	    if(trigobj->Type()!=85) match=false;
+	    if(MathUtils::DeltaR(trigobj->Phi(), trigobj->Eta(), jet->Phi(), jet->Eta())>0.5) match=false;
+	    if(match)
+	      {
+		fMitGPTree.HLTmatch_ |= 1 << 0;
+	      }
+	  }
+	if(trigName.Contains("HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v"))
+	  {
+	    bool match = true;
+	   
+	    if(trigobj->Pt()<40) match=false;
+	    if(trigobj->Type()!=85) match=false;
+	    if(MathUtils::DeltaR(trigobj->Phi(), trigobj->Eta(), jet->Phi(), jet->Eta())>0.5) match=false;
+	    if(match)
+	      {
+		jet1HLTmatch=true;
+		trigjet1_Px=trigobj->Px();
+		trigjet1_Py=trigobj->Py();
+		trigjet1_Pz=trigobj->Pz();
+		trigjet1_E=trigobj->E();
+		trigjet1_Eta=trigobj->Eta();
+	      }
+	  }
+      } 
+    }
   }
+
   if (fJets->GetEntries() >= 2) {
     const PFJet *jet = dynamic_cast<const PFJet*>(fJets->At(1));
     fMitGPTree.jet2_     = jet->Mom();
+    fJetUncertainties->setJetPt(jet->Pt());
+    fJetUncertainties->setJetEta(jet->Eta());
+    fMitGPTree.jet2Unc_ = fJetUncertainties ->getUncertainty(true);
+    fMitGPTree.jet2CHF_  = jet->ChargedHadronEnergy()/jet->RawMom().E();
+    fMitGPTree.jet2NHF_  = jet->NeutralHadronEnergy()/jet->RawMom().E();
+    fMitGPTree.jet2NEMF_  = jet->NeutralEmEnergy()/jet->RawMom().E();
+    fMitGPTree.noiseCleaning_ |= int(fMitGPTree.jet2CHF_>0.2) << 3;
+    fMitGPTree.noiseCleaning_ |= int(fMitGPTree.jet2NHF_>0.7) << 4;
+    fMitGPTree.noiseCleaning_ |= int(fMitGPTree.jet2NEMF_>0.7) << 5;
     fMitGPTree.jet2Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
     qgTagger->CalculateVariables(jet, vertices);
     fMitGPTree.jet2QGtag_ = qgTagger->QGValue();
+
+
+    // trigger matching
+    for(unsigned int i=0; i<fTrigObj->GetEntries(); ++i){
+      const TriggerObject *trigobj=fTrigObj->At(i);
+      TString trigName = trigobj->TrigName();
+      if(trigobj->IsHLT() ){
+	if(trigName.Contains("HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v"))
+	  {
+	    bool match = true;
+	    if(trigobj->Pt()<40) match=false;
+	    if(trigobj->Type()!=85) match=false;
+	    if(MathUtils::DeltaR(trigobj->Phi(), trigobj->Eta(), jet->Phi(), jet->Eta())>0.5) match=false;
+	    if(match)
+	      {
+		jet2HLTmatch=true;
+		trigjet2_Px=trigobj->Px();
+		trigjet2_Py=trigobj->Py();
+		trigjet2_Pz=trigobj->Pz();
+		trigjet2_E=trigobj->E();
+		trigjet2_Eta=trigobj->Eta();
+	      }
+	  }
+      } 
+    } 
   }
+
+  if(jet1HLTmatch&&jet2HLTmatch)
+    {
+      double dijetmass=sqrt(pow(trigjet1_E+trigjet2_E,2)-(pow(trigjet1_Px+trigjet2_Px,2)+pow(trigjet1_Py+trigjet2_Py,2)+pow(trigjet1_Pz+trigjet2_Pz,2)));
+      double deltaeta=fabs(trigjet1_Eta-trigjet2_Eta);
+      if((dijetmass>800)&&(deltaeta>3.5)&&(trigjet1_Eta*trigjet2_Eta<0))
+	{
+	  fMitGPTree.HLTmatch_ |= 1 << 2;
+	}
+    }
+
   if (fJets->GetEntries() >= 3) {
-    const Jet *jet = fJets->At(2);
+    const PFJet *jet = dynamic_cast<const PFJet*>(fJets->At(2));
     fMitGPTree.jet3_     = jet->Mom();
+    fMitGPTree.jet3CHF_  = jet->ChargedHadronEnergy()/jet->RawMom().E();
+    fMitGPTree.jet3NHF_  = jet->NeutralHadronEnergy()/jet->RawMom().E();
+    fMitGPTree.jet3NEMF_  = jet->NeutralEmEnergy()/jet->RawMom().E();
     fMitGPTree.jet3Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
   }
   if (fJets->GetEntries() >= 4) {
@@ -309,7 +542,7 @@ void MonoJetTreeWriter::Process()
     fMitGPTree.jet4Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
   }
 
-        
+          
   //TRACKS
   fMitGPTree.ntracks_ = 0;
   for(unsigned int i = 0; i < fTracks->GetEntries(); i++) {
@@ -331,6 +564,35 @@ void MonoJetTreeWriter::Process()
     if(fMitGPTree.ntracks_ == 2) fMitGPTree.track3_ = p->Mom();
     delete p;
     fMitGPTree.ntracks_++;
+  }
+
+  Met mvaMet = fMVAMet->GetMet(fMuons,fElectrons,fPFTaus,fPFCandidates,PFJets,0,fPV,fRawMet,fJetCorrector,fPileUpDen);
+  TMatrixD* MVACov = fMVAMet->GetMetCovariance();
+
+  fMitGPTree.mvamet_ = mvaMet.Pt();
+  fMitGPTree.mvametPhi_ = mvaMet.Phi();
+  fMitGPTree.mvametCorZ_ = mvaMet.Pt();
+  fMitGPTree.mvametCorZPhi_ = mvaMet.Phi();
+  fMitGPTree.mvametCorW_ = mvaMet.Pt();
+  fMitGPTree.mvametCorWPhi_ = mvaMet.Phi();
+  fMitGPTree.mvaCov00_ = (*MVACov)(0,0);
+  fMitGPTree.mvaCov10_ = (*MVACov)(1,0);
+  fMitGPTree.mvaCov01_ = (*MVACov)(0,1);
+  fMitGPTree.mvaCov11_ = (*MVACov)(1,1);
+
+  if (leptons->GetEntries() >= 1) {
+    float mvamet_new_x = fMitGPTree.mvamet_*TMath::Cos(fMitGPTree.mvametPhi_) + fMitGPTree.lep1_.Px();
+    float mvamet_new_y = fMitGPTree.mvamet_*TMath::Sin(fMitGPTree.mvametPhi_) + fMitGPTree.lep1_.Py();
+
+    fMitGPTree.mvametCorW_    = TMath::Sqrt(TMath::Power(mvamet_new_x,2) + TMath::Power(mvamet_new_y,2));
+    fMitGPTree.mvametCorWPhi_ = TMath::ATan2(mvamet_new_y,mvamet_new_x);
+  }
+  if (leptons->GetEntries() >= 2) {
+    float mvamet_new_x = fMitGPTree.mvamet_*TMath::Cos(fMitGPTree.mvametPhi_) + fMitGPTree.lep1_.Px() + fMitGPTree.lep2_.Px();
+    float mvamet_new_y = fMitGPTree.mvamet_*TMath::Sin(fMitGPTree.mvametPhi_) + fMitGPTree.lep1_.Py() + fMitGPTree.lep2_.Py();
+
+    fMitGPTree.mvametCorZ_    = TMath::Sqrt(TMath::Power(mvamet_new_x,2) + TMath::Power(mvamet_new_y,2));
+    fMitGPTree.mvametCorZPhi_ = TMath::ATan2(mvamet_new_y,mvamet_new_x);
   }
 
   Double_t Q	     = 0.0;
@@ -378,6 +640,7 @@ void MonoJetTreeWriter::SlaveBegin()
   ReqEventObject(fMuonsName,         fMuons,          fMuonsFromBranch);
   ReqEventObject(fTausName,          fPFTaus,         fTausFromBranch);
   ReqEventObject(fJetsName,          fJets,           fJetsFromBranch);
+  ReqEventObject(fPFCandidatesName,  fPFCandidates,   fPFCandidatesFromBranch);
 
   ReqEventObject(fSuperClustersName,  fSuperClusters, true);
   ReqEventObject(fTracksName,         fTracks,        true);
@@ -393,20 +656,53 @@ void MonoJetTreeWriter::SlaveBegin()
   }
   ReqEventObject("EvtSelData",        fEvtSelData,    true);
 
+  if (fIsData )
+    {
+      fCorrectionFiles.push_back(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_DATA_L1FastJet_AK5PF.txt")).Data()));
+      fCorrectionFiles.push_back(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_DATA_L2Relative_AK5PF.txt")).Data()));
+      fCorrectionFiles.push_back(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_DATA_L3Absolute_AK5PF.txt")).Data()));
+      fCorrectionFiles.push_back(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_DATA_L2L3Residual_AK5PF.txt")).Data()));
+    }
+  else
+    {
+      fCorrectionFiles.push_back(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_MC_L1FastJet_AK5PF.txt")).Data()));
+      fCorrectionFiles.push_back(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_MC_L2Relative_AK5PF.txt")).Data()));
+      fCorrectionFiles.push_back(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_MC_L3Absolute_AK5PF.txt")).Data()));
+    }
+
+  //fill JetCorrectorParameters from files
+  std::vector<JetCorrectorParameters> correctionParameters;
+  for (std::vector<std::string>::const_iterator it = fCorrectionFiles.begin(); it!=fCorrectionFiles.end(); ++it) {
+    correctionParameters.push_back(JetCorrectorParameters(*it));
+  }
+  
+  //initialize jet corrector class
+  fJetCorrector = new FactorizedJetCorrector(correctionParameters);
+
+  std::string jetCorrectorParams;
+  if (fIsData ) jetCorrectorParams = std::string(TString::Format("%s/src/MitPhysics/data/Summer13_V1_DATA_Uncertainty_AK5PF.txt", getenv("CMSSW_BASE")));
+  else jetCorrectorParams = std::string(TString::Format("%s/src/MitPhysics/data/Summer13_V1_MC_Uncertainty_AK5PF.txt", getenv("CMSSW_BASE")));
+  JetCorrectorParameters param(jetCorrectorParams);
+  fJetUncertainties = new JetCorrectionUncertainty(param);
+
+  fMVAMet     = new MVAMet();
+
+  fMVAMet->Initialize(TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
+		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
+		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/Utils/python/JetIdParams_cfi.py")),
+		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmet_53_Dec2012.root")),
+		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmetphi_53_Dec2012.root")),
+		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru1cov_53_Dec2012.root")),
+		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru2cov_53_Dec2012.root")),JetIDMVA::k53MET);
 
   //***********************************************************************************************
   //Create Smurf Ntuple Tree
   //***********************************************************************************************
+  fOutputFile = TFile::Open(TString::Format("%s_tmp.root",GetName()),"RECREATE");
   fMitGPTree.CreateTree(fFillNtupleType);
+  fMitGPTree.tree_->SetAutoSave(300e9);
+  fMitGPTree.tree_->SetDirectory(fOutputFile);
   AddOutput(fMitGPTree.tree_);
 
   
-}
-//--------------------------------------------------------------------------------------------------
-void MonoJetTreeWriter::SlaveTerminate()
-{
-  //fOutputFile->cd();
-  //fOutputFile->Write();
-  //fOutputFile->Close();
-  cout << "Processed events on MonoJetTreeWriter: " << fNEventsSelected << endl;
 }

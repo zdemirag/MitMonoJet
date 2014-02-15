@@ -182,7 +182,7 @@ void runMonoJet(const char *fileset    = "0000",
   eleIdMod->SetChargeFilter(kFALSE);
   eleIdMod->SetApplyD0Cut(kTRUE);
   eleIdMod->SetApplyDZCut(kTRUE);
-  eleIdMod->SetWhichVertex(-1);
+  eleIdMod->SetWhichVertex(0);
   eleIdMod->SetNExpectedHitsInnerCut(0);  
   eleIdMod->SetGoodElectronsName("GoodElectronsBS");
   eleIdMod->SetRhoType(RhoUtilities::CMS_RHO_RHOKT6PFJETS); 
@@ -194,7 +194,7 @@ void runMonoJet(const char *fileset    = "0000",
   // base ID
   muonIdGammaGamma->SetIDType("NoId");
   muonIdGammaGamma->SetClassType("GlobalorTracker");
-  muonIdGammaGamma->SetWhichVertex(-1); // this is a 'hack'.. but hopefully good enough...
+  muonIdGammaGamma->SetWhichVertex(0); // this is a 'hack'.. but hopefully good enough...
   muonIdGammaGamma->SetD0Cut(0.02);
   muonIdGammaGamma->SetDZCut(0.5);
   muonIdGammaGamma->SetIsoType("PFIsoBetaPUCorrected"); //h
@@ -355,8 +355,7 @@ void runMonoJet(const char *fileset    = "0000",
   // VBF
   float minLeadingJetEt = 40;
   float maxJetEta = 4.7;
-  //float minMet = 110;
-  float minMet = 0;
+  float minMet = 110;
 
   // Monojet
 //   float minLeadingJetEt = 40;
@@ -375,8 +374,6 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmet->SetTausName(pftauCleaningMod->GetOutputName());
   jetplusmet->SetTausFromBranch(kFALSE);
   jetplusmet->SetLeptonsName(merger->GetOutputName());
-  //jetplusmet->SetPFCandidatesName(Names::gkPFCandidatesBrn);
-  //jetplusmet->SetPFCandidatesFromBranch(kFALSE);
   jetplusmet->SetMinNumJets(1);
   jetplusmet->SetMinNumLeptons(0);
   jetplusmet->SetMinChargedHadronFrac(0.2); 
@@ -398,8 +395,6 @@ void runMonoJet(const char *fileset    = "0000",
   dilepton->SetTausName(pftauCleaningMod->GetOutputName());
   dilepton->SetTausFromBranch(kFALSE);
   dilepton->SetLeptonsName(merger->GetOutputName());
-  //dilepton->SetPFCandidatesName(Names::gkPFCandidatesBrn);
-  //dilepton->SetPFCandidatesFromBranch(kFALSE);
   dilepton->SetMinNumJets(1);
   dilepton->SetMinNumLeptons(2);
   dilepton->SetMinChargedHadronFrac(0.2);
@@ -421,11 +416,9 @@ void runMonoJet(const char *fileset    = "0000",
   wlnu->SetTausName(pftauCleaningMod->GetOutputName());
   wlnu->SetTausFromBranch(kFALSE);
   wlnu->SetLeptonsName(merger->GetOutputName());
-  //wlnu->SetPFCandidatesName(Names::gkPFCandidatesBrn);
-  //wlnu->SetPFCandidatesFromBranch(kFALSE);
   wlnu->SetMinNumJets(1);
   wlnu->SetMinNumLeptons(1);
-  wlnu->SetMinChargedHadronFrac(0.2);
+  wlnu->SetMinChargedHadronFrac(0.2); 
   wlnu->SetMaxNeutralHadronFrac(0.7);
   wlnu->SetMaxNeutralEmFrac(0.7);
   wlnu->SetMinJetEt(minLeadingJetEt);
@@ -449,8 +442,6 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmettree->SetPVFromBranch(kFALSE);
   jetplusmettree->SetPVName(goodPVFilterMod->GetOutputName());
   jetplusmettree->SetLeptonsName(merger->GetOutputName());
-  //jetplusmettree->SetPFCandidatesName(Names::gkPFCandidatesBrn);
-  //jetplusmettree->SetPFCandidatesFromBranch(kFALSE);
   jetplusmettree->SetIsData(isData);
   jetplusmettree->SetProcessID(0);
   jetplusmettree->SetFillNtupleType(0);
@@ -472,8 +463,6 @@ void runMonoJet(const char *fileset    = "0000",
   dileptontree->SetPVFromBranch(kFALSE);
   dileptontree->SetPVName(goodPVFilterMod->GetOutputName());
   dileptontree->SetLeptonsName(merger->GetOutputName());
-  //dileptontree->SetPFCandidatesName(Names::gkPFCandidatesBrn);
-  //dileptontree->SetPFCandidatesFromBranch(kFALSE);
   dileptontree->SetIsData(isData);
   dileptontree->SetProcessID(0);
   dileptontree->SetFillNtupleType(1);
@@ -495,8 +484,6 @@ void runMonoJet(const char *fileset    = "0000",
   wlnutree->SetPVFromBranch(kFALSE);
   wlnutree->SetPVName(goodPVFilterMod->GetOutputName());
   wlnutree->SetLeptonsName(merger->GetOutputName());
-  //wlnutree->SetPFCandidatesName(Names::gkPFCandidatesBrn);
-  //wlnutree->SetPFCandidatesFromBranch(kFALSE);
   wlnutree->SetIsData(isData);
   wlnutree->SetProcessID(0);
   wlnutree->SetFillNtupleType(2);
