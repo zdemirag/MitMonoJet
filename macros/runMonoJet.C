@@ -126,23 +126,40 @@ void runMonoJet(const char *fileset    = "0000",
   HLTMod *hltModP = new HLTMod("HLTModP");
 
   // monojet triggers
-  TString monoJetTriggers[12] = {"HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v4", "HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v3", "HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v1", "HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v5", "HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v4", "HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v3", "HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v2","HLT_MET120_HBHENoiseCleaned_v6", "HLT_MET120_HBHENoiseCleaned_v5", "HLT_MET120_HBHENoiseCleaned_v4", "HLT_MET120_HBHENoiseCleaned_v3", "HLT_MET120_HBHENoiseCleaned_v2"};
-  for (int i=0; i<12; i++) {
-    hltModP->AddTrigger(monoJetTriggers[i],0,999999); //jet 85 , met 90
-    hltModP->AddTrigger(TString("!"+monoJetTriggers[i]),0,999999); //jet 85 , met 90
-  }
+  const int nMjtTrigs = 12;
+  TString monoJetTriggers[nMjtTrigs] = { "HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v4",
+					 "HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v3",
+					 "HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v1",
+					 "HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v5",
+					 "HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v4",
+					 "HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v3",
+					 "HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v2",
+					 "HLT_MET120_HBHENoiseCleaned_v6",
+					 "HLT_MET120_HBHENoiseCleaned_v5",
+					 "HLT_MET120_HBHENoiseCleaned_v4",
+					 "HLT_MET120_HBHENoiseCleaned_v3",
+					 "HLT_MET120_HBHENoiseCleaned_v2" };
+
+  for (int i=0; i<nMjtTrigs; i++)
+    hltModP->AddTrigger(TString("!+"+monoJetTriggers[i]),0,999999);
 
   // VBF triggers
-  TString vbfTriggers[12] = {"HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v9", "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v8", "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v6", "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v5", "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v4", "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v3", "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v2"};
-  for (int i=0; i<12; i++) {
-    hltModP->AddTrigger(vbfTriggers[i],0,999999); //jet 85 , met 90
-    hltModP->AddTrigger(TString("!"+vbfTriggers[i]),0,999999); //jet 85 , met 90
-  }
+  const int nVbfTrigs = 7;
+  TString vbfTriggers[nVbfTrigs] = { "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v9",
+				     "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v8",
+				     "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v6",
+				     "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v5",
+				     "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v4",
+				     "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v3",
+				     "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v2" };
+
+  for (int i=0; i<nVbfTrigs; i++)
+    hltModP->AddTrigger((TString("!+")+vbfTriggers[i]).Data(),0,999999);
 
   hltModP->SetBitsName("HLTBits");
   hltModP->SetTrigObjsName("MyHltPhotObjs");
   hltModP->SetAbortIfNotAccepted(isData);
-  hltModP->SetPrintTable(kFALSE); // set to true to print HLT table
+  hltModP->SetPrintTable(kFALSE);
 
   //------------------------------------------------------------------------------------------------
   // split pfcandidates to PFPU and PFnoPU
