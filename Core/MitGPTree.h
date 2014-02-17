@@ -15,7 +15,7 @@
 class MitGPTree {
  public:
   /// float doesn't have dictionary by default, so use double
-  typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LorentzVector; 
+  typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LorentzVector;
 
   /// DON'T CHANGE ORDER
   enum DataType {

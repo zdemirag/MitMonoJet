@@ -60,6 +60,7 @@ namespace mithep
 
     // setting all the input Names
     void                SetMetName(const char *n)         { fMetName= n;                 }
+    void                SetRawMetName(const char *n)      { fRawMetName= n;              }
     void                SetMetFromBranch(bool b)          { fMetFromBranch = b;          }
     void                SetPhotonsName(const char *n)     { fPhotonsName= n;             }
     void                SetPhotonsFromBranch(bool b)      { fPhotonsFromBranch = b;      }
@@ -74,8 +75,8 @@ namespace mithep
     void                SetJetsFromBranch(bool b)         { fJetsFromBranch = b;         }
     void                SetQGTaggerCHS(bool b)            { fQGTaggerCHS = b;            }
     void                SetLeptonsName(const char *n)     { fLeptonsName = n;            }
-    void                SetPFCandidatesName(const char *n)        { fPFCandidatesName = n;               }
-    void                SetPFCandidatesFromBranch(bool b)         { fPFCandidatesFromBranch = b;         }
+    void                SetPFCandidatesName(const char *n){ fPFCandidatesName = n;       }
+    void                SetPFCandidatesFromBranch(bool b) { fPFCandidatesFromBranch = b; }
 
     void                SetSuperClustersName(const char *n){ fSuperClustersName = n;     }
     void                SetTracksName(const char *n)      { fTracksName = n;             }
@@ -85,7 +86,7 @@ namespace mithep
     void                SetBeamspotName(const char *n)    { fBeamspotName = n;           }
 
     void                SetIsData (Bool_t b)              { fIsData = b;                 }
-    void                SetTriggerObjectsName(const char *n)  { fTriggerObjectsName = n;        }
+    void                SetTriggerObjectsName(const char *n) { fTriggerObjectsName = n;  }
 
     void                SetProcessID(Int_t n)             { fDecay = n;                  }
     void                SetFillNtupleType(Int_t d)        { fFillNtupleType= d;          }
@@ -95,40 +96,51 @@ namespace mithep
     void                SlaveBegin();
     void                SlaveTerminate();
 
+  private:
+    bool                IsTightMuon(const Muon *muon);
+    void                CorrectMet(const float met, const float metPhi,
+				   const Particle *l1, const Particle *l2,
+                                   float &newMet, float &newMetPhi);
+
     // Private auxiliary methods... Names of the input Collections
 
-    TString             fMetName;
-    TString             fPhotonsName;
-    TString             fElectronsName;
-    TString             fMuonsName;
-    TString             fTausName;
-    TString             fJetsName;
-    TString             fLeptonsName;
-    TString             fVertexName;
+    TString                        fEvtSelDataName;
+    TString                        fRawMetName;
+    TString                        fMetName;
+    TString                        fPhotonsName;
+    TString                        fElectronsName;
+    TString                        fMuonsName;
+    TString                        fTausName;
+    TString                        fJetsName;
+    TString                        fLeptonsName;
+    TString                        fPFCandidatesName;
+    TString                        fVertexName;
+    TString                        fSuperClustersName;
+    TString                        fTracksName;
+    TString                        fPVName;
+    TString                        fPileUpDenName;    
+    TString                        fPileUpName;
+    TString                        fBeamspotName;
+    TString                        fMCEvInfoName;
+    TString                        fMCPartName;
+    TString                        fTriggerObjectsName;
+			           
+    Bool_t                         fIsData;
+    Bool_t                         fMetFromBranch;
+    Bool_t                         fPhotonsFromBranch;
+    Bool_t                         fElectronsFromBranch;
+    Bool_t                         fMuonsFromBranch;
+    Bool_t                         fTausFromBranch;
+    Bool_t                         fJetsFromBranch;
+    Bool_t                         fPFCandidatesFromBranch;
+    Bool_t                         fPVFromBranch;
+    Bool_t                         fQGTaggerCHS;
+			         
+    QGTagger                      *qgTagger;
 
-    TString             fSuperClustersName;
-    TString             fTracksName;
-    TString             fPVName;
-    TString             fPileUpDenName;    
-    TString             fPileUpName;
-    TString             fBeamspotName;
-    TString             fMCEvInfoName;
-    TString             fMCPartName;
-    TString             fPFCandidatesName;
-
-    Bool_t              fIsData;
-    TString             fTriggerObjectsName;
-    Bool_t              fMetFromBranch;
-    Bool_t              fPhotonsFromBranch;
-    Bool_t              fElectronsFromBranch;
-    Bool_t              fMuonsFromBranch;
-    Bool_t              fTausFromBranch;
-    Bool_t              fJetsFromBranch;
-    Bool_t              fPFCandidatesFromBranch;
-    Bool_t              fPVFromBranch;
-    Bool_t              fQGTaggerCHS;
-
-    QGTagger           *qgTagger;
+    std::vector<std::string>       fCorrectionFiles;   // list of jet correction files
+    FactorizedJetCorrector        *fJetCorrector;
+    JetCorrectionUncertainty      *fJetUncertainties;
 
     const PFMetCol                *fRawMet;
     const MetCol                  *fMet;
@@ -139,13 +151,7 @@ namespace mithep
     const PFTauCol                *fPFTaus;
     const JetCol                  *fJets;
     const TriggerObjectCol        *fTrigObj;
-
-    std::vector<std::string>      fCorrectionFiles;   // list of jet correction files
-    FactorizedJetCorrector        *fJetCorrector;
-    JetCorrectionUncertainty      *fJetUncertainties;
-
     const PFCandidateCol          *fPFCandidates;
-
     const TrackCol                *fTracks;
     const VertexCol               *fPV;
     const BeamSpotCol             *fBeamspot;
@@ -155,17 +161,14 @@ namespace mithep
     const SuperClusterCol         *fSuperClusters; 
     const MCParticleCol           *fParticles;	        
     const EvtSelData              *fEvtSelData;
-    
-    // selected primary vertex
     const Vertex                  *fVertex;
 
-
     Int_t                          fDecay;
-    TFile	                  *fOutputFile;
     Int_t                          fFillNtupleType;
-    MitGPTree                      fMitGPTree;
-
     Int_t                          fNEventsSelected;
+
+    TFile	                  *fOutputFile;
+    MitGPTree                      fMitGPTree;
 
     ClassDef(MonoJetTreeWriter,1)
   };
