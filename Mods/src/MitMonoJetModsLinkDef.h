@@ -4,7 +4,6 @@
 #define MITMONOJET_MODS_LINKDEF_H
 #include "MitMonoJet/Mods/interface/MonoJetTreeWriter.h"
 #include "MitMonoJet/Mods/interface/HltEvtSelMod.h"
-#include "MitMonoJet/Mods/interface/HLTEvtSelMod.h"
 #endif
 
 #ifdef __CINT__
@@ -18,8 +17,4 @@
 #pragma link C++ class mithep::MonoJetTreeWriter+;
 #pragma link C++ class mithep::HltEvtSelMod+;
 #pragma link C++ class mithep::MonoJetEventHlt+;
-
-#pragma link C++ class mithep::HLTEvtSelMod+;
-#pragma link C++ class mithep::MonoJetEventHLT+;
-
 #endif
