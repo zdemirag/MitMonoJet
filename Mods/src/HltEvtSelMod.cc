@@ -1,5 +1,3 @@
-// $Id: HLTEvtSelMod.cc,v 1.3 2010/11/12 10:31:40 ceballos Exp $
-
 #include "MitMonoJet/Mods/interface/HltEvtSelMod.h"
 #include "MitPhysics/Init/interface/ModNames.h"
 #include "MitAna/DataTree/interface/PFMet.h"
