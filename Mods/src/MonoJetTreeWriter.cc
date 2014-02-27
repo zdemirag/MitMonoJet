@@ -360,7 +360,7 @@ void MonoJetTreeWriter::Process()
   for (UInt_t i=0; i<fJets->GetEntries(); ++i) {
     const Jet *inJet = fJets->At(i);
 
-    // copy input jet, using special function to copy full derived class
+    // copy input jet, using special function to a deep copy (and own it)
     Jet *jet = inJet->MakeCopy();
     pfJets->AddOwned(dynamic_cast<PFJet*>(jet));
 
@@ -407,8 +407,8 @@ void MonoJetTreeWriter::Process()
     fMitGPTree.jet1QGAxis2_ = qgTagger->GetAxis2();
     fMitGPTree.jet1QGMult_  = qgTagger->GetMult();
 
-    // matching
-    if (!fIsData) {
+    // matching in MC
+    if (! fIsData) {
       double minPartonicDR = 0.8;
       UInt_t partonId = 0;
       for (UInt_t i=0; i<fParticles->GetEntries(); ++i) {
@@ -443,7 +443,6 @@ void MonoJetTreeWriter::Process()
         }
         if (trigName.Contains("HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v")) {
           bool match = true;
-
           if (trigobj->Pt() < 40)
             match = false;
           if (trigobj->Type() != 85)

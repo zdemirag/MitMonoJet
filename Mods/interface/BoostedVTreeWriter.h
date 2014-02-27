@@ -17,6 +17,9 @@
 #include "fastjet/tools/Pruner.hh"
 
 #include "MitAna/TreeMod/interface/BaseMod.h"
+#include "MitAna/DataTree/interface/TriggerObjectCol.h"
+#include "MitAna/DataTree/interface/JetCol.h"
+#include "MitAna/DataTree/interface/PFJetCol.h"
 #include "MitAna/DataTree/interface/PFCandidateCol.h"
 #include "MitMonoJet/Core/MitGPBoostedVTree.h"
 
@@ -29,35 +32,38 @@ namespace mithep
     BoostedVTreeWriter(const char *name  = "BoostedVTreeWriter",
 		       const char *title = "Vector Boson Tagging module");
 
-    void                          SetHistNPtBins(Int_t n)        { fHistNPtBins = n;       }
-    void                          SetHistNEtaBins(Int_t n)       { fHistNEtaBins = n;      }
-    void                          SetHistMinPt(Double_t b)       { fHistMinPt = b;         }
-    void                          SetHistMaxPt(Double_t b)       { fHistMaxPt = b;         }
-    void                          SetHistMinEta(Double_t b)      { fHistMinEta = b;        }
-    void                          SetHistMaxEta(Double_t b)      { fHistMaxEta = b;        }
-    void                          SetHistTau1Bins(Int_t n)       { fHistTau1Bins = n;      }
-    void                          SetHistTau2Bins(Int_t n)       { fHistTau2Bins = n;      }
-    void                          SetHistTau3Bins(Int_t n)       { fHistTau3Bins = n;      }
-    void                          SetHistT2ovrT1Bins(Double_t b) { fHistT2ovrT1Bins = b;   }
-    void                          SetHistT3ovrT2Bins(Double_t b) { fHistT3ovrT2Bins = b;   }
-    void                          SetHistMinTau1(Double_t b)     { fHistMinTau1 = b;       }
-    void                          SetHistMinTau2(Double_t b)     { fHistMinTau2 = b;       }
-    void                          SetHistMinTau3(Double_t b)     { fHistMinTau3 = b;       }
-    void                          SetHistMinT2ovrT1(Double_t b)  { fHistMinT2ovrT1 = b;    }
-    void                          SetHistMinT3ovrT2(Double_t b)  { fHistMinT3ovrT2 = b;    }
-    void                          SetHistMaxTau1(Double_t b)     { fHistMaxTau1 = b;       }
-    void                          SetHistMaxTau2(Double_t b)     { fHistMaxTau2 = b;       }
-    void                          SetHistMaxTau3(Double_t b)     { fHistMaxTau3 = b;       }
-    void                          SetHistMaxT2ovrT1(Double_t b)  { fHistMaxT2ovrT1 = b;    }
-    void                          SetHistMaxT3ovrT2(Double_t b)  { fHistMaxT3ovrT2 = b;    }
+    void                          SetTriggerObjsName(const char *n) { fTriggerObjsName = n;   }
+    void                          SetHistNPtBins(Int_t n)           { fHistNPtBins = n;       }
+    void                          SetHistNEtaBins(Int_t n)          { fHistNEtaBins = n;      }
+    void                          SetHistMinPt(Double_t b)          { fHistMinPt = b;         }
+    void                          SetHistMaxPt(Double_t b)          { fHistMaxPt = b;         }
+    void                          SetHistMinEta(Double_t b)         { fHistMinEta = b;        }
+    void                          SetHistMaxEta(Double_t b)         { fHistMaxEta = b;        }
+    void                          SetHistTau1Bins(Int_t n)          { fHistTau1Bins = n;      }
+    void                          SetHistTau2Bins(Int_t n)          { fHistTau2Bins = n;      }
+    void                          SetHistTau3Bins(Int_t n)          { fHistTau3Bins = n;      }
+    void                          SetHistT2ovrT1Bins(Double_t b)    { fHistT2ovrT1Bins = b;   }
+    void                          SetHistT3ovrT2Bins(Double_t b)    { fHistT3ovrT2Bins = b;   }
+    void                          SetHistMinTau1(Double_t b)        { fHistMinTau1 = b;       }
+    void                          SetHistMinTau2(Double_t b)        { fHistMinTau2 = b;       }
+    void                          SetHistMinTau3(Double_t b)        { fHistMinTau3 = b;       }
+    void                          SetHistMinT2ovrT1(Double_t b)     { fHistMinT2ovrT1 = b;    }
+    void                          SetHistMinT3ovrT2(Double_t b)     { fHistMinT3ovrT2 = b;    }
+    void                          SetHistMaxTau1(Double_t b)        { fHistMaxTau1 = b;       }
+    void                          SetHistMaxTau2(Double_t b)        { fHistMaxTau2 = b;       }
+    void                          SetHistMaxTau3(Double_t b)        { fHistMaxTau3 = b;       }
+    void                          SetHistMaxT2ovrT1(Double_t b)     { fHistMaxT2ovrT1 = b;    }
+    void                          SetHistMaxT3ovrT2(Double_t b)     { fHistMaxT3ovrT2 = b;    }
 
   private:
     float                         GetTau(fastjet::PseudoJet &iJet,int iN, float iKappa);
 
-    TString                       fJetsBranchName;        //(i) name of
-    TString                       fPFCandidatesName;      //(i) name of PF candidates colleciont
-    TString                       fGoodVTagsName;         //(o) name of VTags collection
-    const PFCandidateCol         *fPFCandidates;          //particle flow candidates collection handle
+    TString                       fTriggerObjsName;       //(i) name of trigger objects
+    const TriggerObjectCol       *fTrigObjs;              //trigger objects coll handle
+    TString                       fJetsName;              //(i) name of jets used to make trigger
+    const JetCol                 *fJets;                  //jets used to make the trigger
+    TString                       fPFCandidatesName;      //(i) name of PF candidates coll
+    const PFCandidateCol         *fPFCandidates;          //particle flow candidates coll handle
 
     // Objects from fastjet we want to use
     double                        fConeSize;

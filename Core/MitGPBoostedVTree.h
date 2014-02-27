@@ -29,6 +29,7 @@ public:
   typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LorentzVector;
 
   /// variables
+  unsigned int           trigger_;
   unsigned int           nPFCandidates_;
   float                  jet1Eta_;
   float                  jet1Phi_;
@@ -109,6 +110,7 @@ public:
     InitVariables();
 
     //book the branches
+    tree_->Branch("trigger"      , &trigger_      ,"trigger/i");
     tree_->Branch("nPFCandidates", &nPFCandidates_,"nPFCandidates/i");
     tree_->Branch("jet1Eta"      , &jet1Eta_,      "jet1Eta/F");
     tree_->Branch("jet1Phi"      , &jet1Phi_,      "jet1Phi/F");
@@ -148,6 +150,7 @@ public:
     Int_t currentState = gErrorIgnoreLevel;
     // gErrorIgnoreLevel = kError;
     gErrorIgnoreLevel = kBreak;
+    tree_->SetBranchAddress("trigger",       &trigger_);
     tree_->SetBranchAddress("nPFCandidates", &nPFCandidates_);
     tree_->SetBranchAddress("jet1Eta"      , &jet1Eta_);
     tree_->SetBranchAddress("jet1Phi"      , &jet1Phi_);
@@ -184,26 +187,27 @@ inline void
 MitGPBoostedVTree::InitVariables()
 {
   // inizialize variables
-  nPFCandidates_  = 0;
-  numJets_        = 0;
-  jet1Eta_        = 0;
-  jet1Phi_        = 0;
-  jet1Pt_         = 0;
-  jet1Tau1_       = 0;
-  jet1Tau2_       = 0;
-  jet1Tau3_       = 0;
-  jet1R_          = 0;
-  jet1M_          = 0;
-  jet2Eta_        = 0;
-  jet2Phi_        = 0;
-  jet2Pt_         = 0;
-  jet2Tau1_       = 0;
-  jet2Tau2_       = 0;
-  jet2Tau3_       = 0;
-  jet2R_          = 0;
-  jet2M_          = 0;
-  jet1_           = LorentzVector();
-  jet2_           = LorentzVector();
+  trigger_       = 0;
+  nPFCandidates_ = 0;
+  numJets_       = 0;
+  jet1Eta_       = 0;
+  jet1Phi_       = 0;
+  jet1Pt_        = 0;
+  jet1Tau1_      = 0;
+  jet1Tau2_      = 0;
+  jet1Tau3_      = 0;
+  jet1R_         = 0;
+  jet1M_         = 0;
+  jet2Eta_       = 0;
+  jet2Phi_       = 0;
+  jet2Pt_        = 0;
+  jet2Tau1_      = 0;
+  jet2Tau2_      = 0;
+  jet2Tau3_      = 0;
+  jet2R_         = 0;
+  jet2M_         = 0;
+  jet1_          = LorentzVector();
+  jet2_          = LorentzVector();
 }
 
 #endif

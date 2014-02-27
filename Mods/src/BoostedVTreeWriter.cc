@@ -11,7 +11,12 @@ ClassImp(mithep::BoostedVTreeWriter)
 //--------------------------------------------------------------------------------------------------
 BoostedVTreeWriter::BoostedVTreeWriter(const char *name, const char *title) : 
   BaseMod          (name,title),
+  fTriggerObjsName ("HltObjsMonoJet"),
+  fTrigObjs        (0),
+  fJetsName        (Names::gkPFJetBrn),
+  fJets            (0),
   fPFCandidatesName(Names::gkPFCandidatesBrn),
+  fPFCandidates    (0),
   fConeSize        (0.8),
   fHistNPtBins     (100),
   fHistNEtaBins    (100),
@@ -42,30 +47,59 @@ BoostedVTreeWriter::BoostedVTreeWriter(const char *name, const char *title) :
 void BoostedVTreeWriter::Process()
 {
   // Load the branches we want to work with
+  LoadBranch(fJetsName);
   LoadBranch(fPFCandidatesName);
 
   // Do not even continue if particle flow candidates are not there
+  assert(fJets);
   assert(fPFCandidates);
 
   // Initializes all variables
   fMitGPTree.InitVariables();
-   
-  // Push all particle flow candidates into fastjet particle collection
+ 
+  // Loop over jets and perform Nsubjettiness analysis (for now just stick with the first jet)
   std::vector<fastjet::PseudoJet> lFJParts;
-  for(UInt_t i=0; i<fPFCandidates->GetEntries(); ++i) {      
-    const PFCandidate *pfCand = fPFCandidates->At(i);
-    lFJParts.push_back(fastjet::PseudoJet(pfCand->Px(),pfCand->Py(),pfCand->Pz(),pfCand->E()));
-    lFJParts.back().set_user_index(i);
-
-    // Fill the PFCand histograms
-    fPFCandidatesPt ->Fill(pfCand->Pt());
-    fPFCandidatesEta->Fill(pfCand->Eta());
-    if (i==0) {
-      fMitGPTree.eta_ = pfCand->Eta();
-      fMitGPTree.phi_ = pfCand->Phi();
-      fMitGPTree.pt_ =  pfCand->Pt();
-    } 
-  }	
+  for (UInt_t i=0; i<fJets->GetEntries(); ++i) {      
+    const PFJet *jet = dynamic_cast<const PFJet*>(fJets->At(i));
+    if (! jet) {
+      printf(" BoostedVTreeWriter::Process() - ERROR - jets provided are not PFJets.");
+      break;
+    }
+    
+    // Figure out whether the jet is matched with one of the triggers
+    fTrigObjs = GetHLTObjects(fTriggerObjsName);
+    if (! fTrigObjs)
+      printf("MonoJetTreeWriter::TriggerObjectCol not found\n");
+    else {
+      // loop through the stored trigger objects and find corresponding trigger name
+      for (UInt_t j=0; j<fTrigObjs->GetEntries();++j) {
+    	const TriggerObject *to = fTrigObjs->At(j);
+    	TString trName = to->TrigName();
+    	// default MonoJet
+    	if (trName.Contains("MonoCentralPFJet80_PFMETnoMu"))
+    	  fMitGPTree.trigger_ |= 1 << 0;
+    	if (trName.Contains("HLT_MET120_HBHENoiseCleaned_v") )
+    	  fMitGPTree.trigger_ |= 1 << 1;
+      }
+    }
+    
+    // Push all particle flow candidates into fastjet particle collection
+    for (UInt_t j=0; j<jet->NPFCands(); ++j) {      
+      const PFCandidate *pfCand = jet->PFCand(j);
+      lFJParts.push_back(fastjet::PseudoJet(pfCand->Px(),pfCand->Py(),pfCand->Pz(),pfCand->E()));
+      lFJParts.back().set_user_index(j);
+      
+      // Fill the PFCand histograms
+      fPFCandidatesPt ->Fill(pfCand->Pt());
+      fPFCandidatesEta->Fill(pfCand->Eta());
+      if (i==0) {
+    	fMitGPTree.eta_ = pfCand->Eta();
+    	fMitGPTree.phi_ = pfCand->Phi();
+    	fMitGPTree.pt_ =  pfCand->Pt();
+      } 
+    }	
+    break; // this is for now just considering the first jet (consider all in the future)
+  }
 
   // Setup the cluster for fastjet
   fastjet::ClusterSequenceArea *lClustering =
@@ -142,7 +176,8 @@ void BoostedVTreeWriter::SlaveBegin()
   // Run startup code on the computer (slave) doing the actual analysis. Here, we just request the
   // particle flow collection branch.
 
-  ReqEventObject(fPFCandidatesName, fPFCandidates, kTRUE);
+  ReqBranch(fJetsName,         fJets);
+  ReqBranch(fPFCandidatesName, fPFCandidates);
 
   // Default pruning parameters
   fPruner          = new fastjet::Pruner( fastjet::cambridge_algorithm, 0.1, 0.5); // CMS Default      
