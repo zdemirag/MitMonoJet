@@ -390,9 +390,6 @@ void runBoostedV(const char *fileset    = "0000",
     d = c->FindDataset(bookstr,skimdataset.Data(),fileset,true);
   ana->AddDataset(d);
   //ana->AddFile("/mnt/hadoop/cms/store/user/paus/filefi/032/s12-wjets-ptw100-v7a/FCEC7DAE-A367-E211-A486-0024E87687BE.root");
-  
-
-  return;
 
   //------------------------------------------------------------------------------------------------
   // organize output
