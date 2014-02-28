@@ -389,9 +389,9 @@ void MonoJetTreeWriter::Process()
     fJetUncertainties->setJetPt(jet->Pt());
     fJetUncertainties->setJetEta(jet->Eta());
     fMitGPTree.jet1Unc_ = fJetUncertainties ->getUncertainty(true);
-    fMitGPTree.jet1CHF_  = jet->ChargedHadronEnergy()/jet->RawMom().E();
-    fMitGPTree.jet1NHF_  = jet->NeutralHadronEnergy()/jet->RawMom().E();
-    fMitGPTree.jet1NEMF_  = jet->NeutralEmEnergy()/jet->RawMom().E();
+    fMitGPTree.jet1CHF_ = jet->ChargedHadronEnergy()/jet->RawMom().E();
+    fMitGPTree.jet1NHF_ = jet->NeutralHadronEnergy()/jet->RawMom().E();
+    fMitGPTree.jet1NEMF_ = jet->NeutralEmEnergy()/jet->RawMom().E();
     fMitGPTree.noiseCleaning_ |= int(fMitGPTree.jet1CHF_>0.2) << 0;
     fMitGPTree.noiseCleaning_ |= int(fMitGPTree.jet1NHF_>0.7) << 1;
     fMitGPTree.noiseCleaning_ |= int(fMitGPTree.jet1NEMF_>0.7) << 2;
@@ -575,7 +575,7 @@ void MonoJetTreeWriter::Process()
   fMitGPTree.tree_->Fill();
 
   return;
-  }
+}
 
 //--------------------------------------------------------------------------------------------------
 void MonoJetTreeWriter::SlaveBegin()

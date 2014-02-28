@@ -8,6 +8,7 @@
 #ifndef MITMONOJET_MODS_BoostedVTreeWriter_H
 #define MITMONOJET_MODS_BoostedVTreeWriter_H
 
+#include <TFile.h>
 #include <TH1.h>
 
 #include "fastjet/JetDefinition.hh"
@@ -32,38 +33,53 @@ namespace mithep
     BoostedVTreeWriter(const char *name  = "BoostedVTreeWriter",
 		       const char *title = "Vector Boson Tagging module");
 
-    void                          SetTriggerObjsName(const char *n) { fTriggerObjsName = n;   }
-    void                          SetHistNPtBins(Int_t n)           { fHistNPtBins = n;       }
-    void                          SetHistNEtaBins(Int_t n)          { fHistNEtaBins = n;      }
-    void                          SetHistMinPt(Double_t b)          { fHistMinPt = b;         }
-    void                          SetHistMaxPt(Double_t b)          { fHistMaxPt = b;         }
-    void                          SetHistMinEta(Double_t b)         { fHistMinEta = b;        }
-    void                          SetHistMaxEta(Double_t b)         { fHistMaxEta = b;        }
-    void                          SetHistTau1Bins(Int_t n)          { fHistTau1Bins = n;      }
-    void                          SetHistTau2Bins(Int_t n)          { fHistTau2Bins = n;      }
-    void                          SetHistTau3Bins(Int_t n)          { fHistTau3Bins = n;      }
-    void                          SetHistT2ovrT1Bins(Double_t b)    { fHistT2ovrT1Bins = b;   }
-    void                          SetHistT3ovrT2Bins(Double_t b)    { fHistT3ovrT2Bins = b;   }
-    void                          SetHistMinTau1(Double_t b)        { fHistMinTau1 = b;       }
-    void                          SetHistMinTau2(Double_t b)        { fHistMinTau2 = b;       }
-    void                          SetHistMinTau3(Double_t b)        { fHistMinTau3 = b;       }
-    void                          SetHistMinT2ovrT1(Double_t b)     { fHistMinT2ovrT1 = b;    }
-    void                          SetHistMinT3ovrT2(Double_t b)     { fHistMinT3ovrT2 = b;    }
-    void                          SetHistMaxTau1(Double_t b)        { fHistMaxTau1 = b;       }
-    void                          SetHistMaxTau2(Double_t b)        { fHistMaxTau2 = b;       }
-    void                          SetHistMaxTau3(Double_t b)        { fHistMaxTau3 = b;       }
-    void                          SetHistMaxT2ovrT1(Double_t b)     { fHistMaxT2ovrT1 = b;    }
-    void                          SetHistMaxT3ovrT2(Double_t b)     { fHistMaxT3ovrT2 = b;    }
+    ~BoostedVTreeWriter();
+
+
+    void                          SetTriggerObjsName(const char *n) { fTriggerObjsName = n; }
+    void                          SetJetsName(const char *n)        { fJetsName = n; }
+    void                          SetJetsFromBranch(bool b)         { fJetsFromBranch = b; }
+    void                          SetPFCandidatesName(const char *n){ fPFCandidatesName = n; }
+    void                          SetPFCandidatesFromBranch(bool b) { fPFCandidatesFromBranch = b; }
+
+    void                          SetHistNPtBins(Int_t n)           { fHistNPtBins = n; }
+    void                          SetHistNEtaBins(Int_t n)          { fHistNEtaBins = n; }
+    void                          SetHistMinPt(Double_t b)          { fHistMinPt = b; }
+    void                          SetHistMaxPt(Double_t b)          { fHistMaxPt = b; }
+    void                          SetHistMinEta(Double_t b)         { fHistMinEta = b; }
+    void                          SetHistMaxEta(Double_t b)         { fHistMaxEta = b; }
+    void                          SetHistTau1Bins(Int_t n)          { fHistTau1Bins = n; }
+    void                          SetHistTau2Bins(Int_t n)          { fHistTau2Bins = n; }
+    void                          SetHistTau3Bins(Int_t n)          { fHistTau3Bins = n; }
+    void                          SetHistT2ovrT1Bins(Double_t b)    { fHistT2ovrT1Bins = b; }
+    void                          SetHistT3ovrT2Bins(Double_t b)    { fHistT3ovrT2Bins = b; }
+    void                          SetHistMinTau1(Double_t b)        { fHistMinTau1 = b; }
+    void                          SetHistMinTau2(Double_t b)        { fHistMinTau2 = b; }
+    void                          SetHistMinTau3(Double_t b)        { fHistMinTau3 = b; }
+    void                          SetHistMinT2ovrT1(Double_t b)     { fHistMinT2ovrT1 = b; }
+    void                          SetHistMinT3ovrT2(Double_t b)     { fHistMinT3ovrT2 = b; }
+    void                          SetHistMaxTau1(Double_t b)        { fHistMaxTau1 = b; }
+    void                          SetHistMaxTau2(Double_t b)        { fHistMaxTau2 = b; }
+    void                          SetHistMaxTau3(Double_t b)        { fHistMaxTau3 = b; }
+    void                          SetHistMaxT2ovrT1(Double_t b)     { fHistMaxT2ovrT1 = b; }
+    void                          SetHistMaxT3ovrT2(Double_t b)     { fHistMaxT3ovrT2 = b; }
+
+  protected:
+    void                          Process();
+    void                          SlaveBegin();
+    void                          SlaveTerminate();
 
   private:
     float                         GetTau(fastjet::PseudoJet &iJet,int iN, float iKappa);
 
-    TString                       fTriggerObjsName;       //(i) name of trigger objects
-    const TriggerObjectCol       *fTrigObjs;              //trigger objects coll handle
-    TString                       fJetsName;              //(i) name of jets used to make trigger
-    const JetCol                 *fJets;                  //jets used to make the trigger
-    TString                       fPFCandidatesName;      //(i) name of PF candidates coll
-    const PFCandidateCol         *fPFCandidates;          //particle flow candidates coll handle
+    TString                       fTriggerObjsName;        //(i) name of trigger objects
+    const TriggerObjectCol       *fTrigObjs;               //trigger objects coll handle
+    TString                       fJetsName;               //(i) name of jets used to make trigger
+    Bool_t                        fJetsFromBranch;         //are jets from Branch?
+    const JetCol                 *fJets;                   //jets used to make the trigger
+    TString                       fPFCandidatesName;       //(i) name of PF candidates coll
+    Bool_t                        fPFCandidatesFromBranch; //are PF candidates from Branch?
+    const PFCandidateCol         *fPFCandidates;           //particle flow candidates coll handle
 
     // Objects from fastjet we want to use
     double                        fConeSize;
@@ -72,20 +88,18 @@ namespace mithep
     fastjet::GhostedAreaSpec     *fActiveArea;
     fastjet::AreaDefinition      *fAreaDefinition;
 
-  protected:
-    void                          Process();
-    void                          SlaveBegin();
-    void                          Terminate();
     // Output histograms
-    TH1D                         *fPFCandidatesPt;        //particle flow pt  distribution
-    TH1D                         *fPFCandidatesEta;       //particle flow eta distribution
-    TH1D                         *fCAJetPt;               //fastjet output pt distribution
-    TH1D                         *fCAJetEta;              //fastjet output eta distribution
-    TH1D                         *fCATau1;                //plot of Tau 1
-    TH1D                         *fCATau2;                //plot of Tau 2
-    TH1D                         *fCATau3;                //plot of Tau 3
-    TH1D                         *fCAT2ovrT1;             //plot of Tau 2 over Tau 1
-    TH1D                         *fCAT3ovrT2;             //plot of Tau 3 over Tau 2
+    TH1D                         *fPFCandidatesPt;         //particle flow pt  distribution
+    TH1D                         *fPFCandidatesEta;        //particle flow eta distribution
+    TH1D                         *fCAJetPt;                //fastjet output pt distribution
+    TH1D                         *fCAJetEta;               //fastjet output eta distribution
+    TH1D                         *fCATau1;                 //plot of Tau 1
+    TH1D                         *fCATau2;                 //plot of Tau 2
+    TH1D                         *fCATau3;                 //plot of Tau 3
+    TH1D                         *fCAT2ovrT1;              //plot of Tau 2 over Tau 1
+    TH1D                         *fCAT3ovrT2;              //plot of Tau 3 over Tau 2
+
+    Int_t                         fNAnalyzed;              //number of events analyzed
 
     Int_t                         fHistNPtBins;
     Int_t                         fHistNEtaBins;
@@ -110,6 +124,7 @@ namespace mithep
     Double_t                      fHistMaxT3ovrT2;
 
     // Output tree
+    TFile	                 *fOutputFile;
     MitGPBoostedVTree             fMitGPTree;
 
     ClassDef(BoostedVTreeWriter, 0) // Boosted Vector boson tree writer

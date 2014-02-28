@@ -10,53 +10,62 @@ ClassImp(mithep::BoostedVTreeWriter)
 
 //--------------------------------------------------------------------------------------------------
 BoostedVTreeWriter::BoostedVTreeWriter(const char *name, const char *title) : 
-  BaseMod          (name,title),
-  fTriggerObjsName ("HltObjsMonoJet"),
-  fTrigObjs        (0),
-  fJetsName        (Names::gkPFJetBrn),
-  fJets            (0),
-  fPFCandidatesName(Names::gkPFCandidatesBrn),
-  fPFCandidates    (0),
-  fConeSize        (0.8),
-  fHistNPtBins     (100),
-  fHistNEtaBins    (100),
-  fHistMinPt       (0.),
-  fHistMaxPt       (300.),
-  fHistMinEta      (-3.),
-  fHistMaxEta      (3.),
-  fHistTau1Bins    (100),
-  fHistTau2Bins    (100),
-  fHistTau3Bins    (100),
-  fHistT2ovrT1Bins (100),
-  fHistT3ovrT2Bins (100),
-  fHistMinTau1     (0.),
-  fHistMinTau2     (0.),
-  fHistMinTau3     (0.),
-  fHistMinT2ovrT1  (0.),
-  fHistMinT3ovrT2  (0.),
-  fHistMaxTau1     (3.),
-  fHistMaxTau2     (3.),
-  fHistMaxTau3     (3.),
-  fHistMaxT2ovrT1  (3.),
-  fHistMaxT3ovrT2  (3.)
+  BaseMod                (name,title),
+  fTriggerObjsName       ("HltObjsMonoJet"),
+  fTrigObjs              (0),
+  fJetsName              (Names::gkPFJetBrn),
+  fJetsFromBranch        (kTRUE),
+  fJets                  (0),
+  fPFCandidatesName      (Names::gkPFCandidatesBrn),
+  fPFCandidatesFromBranch(kTRUE),
+  fPFCandidates          (0),
+  fConeSize              (0.8),
+  fNAnalyzed             (0),
+  fHistNPtBins           (100),
+  fHistNEtaBins          (100),
+  fHistMinPt             (0.),
+  fHistMaxPt             (300.),
+  fHistMinEta            (-3.),
+  fHistMaxEta            (3.),
+  fHistTau1Bins          (100),
+  fHistTau2Bins          (100),
+  fHistTau3Bins          (100),
+  fHistT2ovrT1Bins       (100),
+  fHistT3ovrT2Bins       (100),
+  fHistMinTau1           (0.),
+  fHistMinTau2           (0.),
+  fHistMinTau3           (0.),
+  fHistMinT2ovrT1        (0.),
+  fHistMinT3ovrT2        (0.),
+  fHistMaxTau1           (3.),
+  fHistMaxTau2           (3.),
+  fHistMaxTau3           (3.),
+  fHistMaxT2ovrT1        (3.),
+  fHistMaxT3ovrT2        (3.),
+  fOutputFile            (0)
 {
   // Constructor.
+}
+
+BoostedVTreeWriter::~BoostedVTreeWriter()
+{
+  // Destructor
+  fOutputFile->Close();
 }
 
 //--------------------------------------------------------------------------------------------------
 void BoostedVTreeWriter::Process()
 {
   // Load the branches we want to work with
-  LoadBranch(fJetsName);
-  LoadBranch(fPFCandidatesName);
-
-  // Do not even continue if particle flow candidates are not there
-  assert(fJets);
-  assert(fPFCandidates);
+  LoadEventObject(fJetsName,fJets,fJetsFromBranch);
+  LoadEventObject(fPFCandidatesName,fPFCandidates,fPFCandidatesFromBranch);
 
   // Initializes all variables
   fMitGPTree.InitVariables();
  
+  // Keep track of events analyzed
+  fNAnalyzed++;
+
   // Loop over jets and perform Nsubjettiness analysis (for now just stick with the first jet)
   std::vector<fastjet::PseudoJet> lFJParts;
   for (UInt_t i=0; i<fJets->GetEntries(); ++i) {      
@@ -69,7 +78,7 @@ void BoostedVTreeWriter::Process()
     // Figure out whether the jet is matched with one of the triggers
     fTrigObjs = GetHLTObjects(fTriggerObjsName);
     if (! fTrigObjs)
-      printf("MonoJetTreeWriter::TriggerObjectCol not found\n");
+      printf(" BoostedVTreeWriter::Process() - ERROR - TriggerObjectCol not found\n");
     else {
       // loop through the stored trigger objects and find corresponding trigger name
       for (UInt_t j=0; j<fTrigObjs->GetEntries();++j) {
@@ -176,8 +185,8 @@ void BoostedVTreeWriter::SlaveBegin()
   // Run startup code on the computer (slave) doing the actual analysis. Here, we just request the
   // particle flow collection branch.
 
-  ReqBranch(fJetsName,         fJets);
-  ReqBranch(fPFCandidatesName, fPFCandidates);
+  ReqEventObject(fJetsName,fJets,fJetsFromBranch);
+  ReqEventObject(fPFCandidatesName,fPFCandidates,fPFCandidatesFromBranch);
 
   // Default pruning parameters
   fPruner          = new fastjet::Pruner( fastjet::cambridge_algorithm, 0.1, 0.5); // CMS Default      
@@ -203,14 +212,22 @@ void BoostedVTreeWriter::SlaveBegin()
   fCAT2ovrT1       = new TH1D("hCAT2ovrT1","Tau 2 over Tau 1"   ,fHistT2ovrT1Bins,fHistMinT2ovrT1,fHistMaxT2ovrT1);
   fCAT3ovrT2       = new TH1D("hCAT3ovrT2","Tau 3 over Tau 2"   ,fHistT3ovrT2Bins,fHistMinT3ovrT2,fHistMaxT3ovrT2);
 
-  // Create Smurf Ntuple Tree
+  // Create Ntuple Tree
+  fOutputFile = TFile::Open(TString::Format("%s_tmp.root",GetName()),"RECREATE");
+  fMitGPTree.CreateTree();
+  fMitGPTree.tree_->SetAutoSave(300e9);
+  fMitGPTree.tree_->SetDirectory(fOutputFile);
+  AddOutput(fMitGPTree.tree_);
   fMitGPTree.CreateTree(0);
   AddOutput(fMitGPTree.tree_);
 }
 
 //--------------------------------------------------------------------------------------------------
-void BoostedVTreeWriter::Terminate()
+void BoostedVTreeWriter::SlaveTerminate()
 {
+  // Say how many events were analyzed
+  printf("\n BoostedVTreeWriter::Terminate - Events analyzed: %d\n\n",fNAnalyzed);
+
   // Save Histograms 
   AddOutput(fPFCandidatesPt);
   AddOutput(fPFCandidatesEta);
@@ -221,6 +238,9 @@ void BoostedVTreeWriter::Terminate()
   AddOutput(fCATau3);
   AddOutput(fCAT2ovrT1);
   AddOutput(fCAT3ovrT2);
+
+  // Save the ntuple file
+  fOutputFile->WriteTObject(fMitGPTree.tree_,fMitGPTree.tree_->GetName());
 }
 
 //--------------------------------------------------------------------------------------------------
