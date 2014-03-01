@@ -3,6 +3,7 @@
 //
 // This module writes a tree about jets corresponding to Vector bosons. See documentation here:
 //
+//
 // Authors: C.Paus
 //--------------------------------------------------------------------------------------------------
 #ifndef MITMONOJET_MODS_BoostedVTreeWriter_H
@@ -24,7 +25,6 @@
 #include "MitAna/DataTree/interface/PFCandidateCol.h"
 #include "MitMonoJet/Core/MitGPBoostedVTree.h"
 
-
 namespace mithep
 {
   class BoostedVTreeWriter : public BaseMod
@@ -35,12 +35,12 @@ namespace mithep
 
     ~BoostedVTreeWriter();
 
-
     void                          SetTriggerObjsName(const char *n) { fTriggerObjsName = n; }
     void                          SetJetsName(const char *n)        { fJetsName = n; }
     void                          SetJetsFromBranch(bool b)         { fJetsFromBranch = b; }
     void                          SetPFCandidatesName(const char *n){ fPFCandidatesName = n; }
     void                          SetPFCandidatesFromBranch(bool b) { fPFCandidatesFromBranch = b; }
+    void                          SetOutputName(const char *n)      { fOutputName = n; }
 
     void                          SetHistNPtBins(Int_t n)           { fHistNPtBins = n; }
     void                          SetHistNEtaBins(Int_t n)          { fHistNEtaBins = n; }
@@ -124,6 +124,7 @@ namespace mithep
     Double_t                      fHistMaxT3ovrT2;
 
     // Output tree
+    TString                       fOutputName;             //(o) name of ntuple output
     TFile	                 *fOutputFile;
     MitGPBoostedVTree             fMitGPTree;
 

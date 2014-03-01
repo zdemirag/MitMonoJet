@@ -42,6 +42,7 @@ BoostedVTreeWriter::BoostedVTreeWriter(const char *name, const char *title) :
   fHistMaxTau3           (3.),
   fHistMaxT2ovrT1        (3.),
   fHistMaxT3ovrT2        (3.),
+  fOutputName            ("BoostedVNtuple.root"),
   fOutputFile            (0)
 {
   // Constructor.
@@ -189,7 +190,7 @@ void BoostedVTreeWriter::SlaveBegin()
   ReqEventObject(fPFCandidatesName,fPFCandidates,fPFCandidatesFromBranch);
 
   // Default pruning parameters
-  fPruner          = new fastjet::Pruner( fastjet::cambridge_algorithm, 0.1, 0.5); // CMS Default      
+  fPruner          = new fastjet::Pruner(fastjet::cambridge_algorithm, 0.1, 0.5);    // CMS Default
   
   // CA constructor (fConeSize = 0.8 for CA8)
   fCAJetDef       = new fastjet::JetDefinition(fastjet::cambridge_algorithm, fConeSize);
@@ -213,7 +214,7 @@ void BoostedVTreeWriter::SlaveBegin()
   fCAT3ovrT2       = new TH1D("hCAT3ovrT2","Tau 3 over Tau 2"   ,fHistT3ovrT2Bins,fHistMinT3ovrT2,fHistMaxT3ovrT2);
 
   // Create Ntuple Tree
-  fOutputFile = TFile::Open(TString::Format("%s_tmp.root",GetName()),"RECREATE");
+  fOutputFile = TFile::Open(fOutputName,"RECREATE");
   fMitGPTree.CreateTree();
   fMitGPTree.tree_->SetAutoSave(300e9);
   fMitGPTree.tree_->SetDirectory(fOutputFile);
