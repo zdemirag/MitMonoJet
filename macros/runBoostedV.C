@@ -98,6 +98,17 @@ void runBoostedV(const char *fileset    = "0000",
   printf("\n Run lumi worked. \n\n");
 
   //------------------------------------------------------------------------------------------------
+  // setup analysis
+  //------------------------------------------------------------------------------------------------
+  Analysis *ana = new Analysis;
+  ana->SetUseHLT(kTRUE);
+  ana->SetKeepHierarchy(kTRUE);
+  ana->SetSuperModule(runLumiSel);
+  ana->SetPrintScale(100);
+  if (nEvents >= 0)
+    ana->SetProcessNEvents(nEvents);
+
+  //------------------------------------------------------------------------------------------------
   // organize input
   //------------------------------------------------------------------------------------------------
   Catalog *c = new Catalog(catalogDir);
@@ -110,17 +121,6 @@ void runBoostedV(const char *fileset    = "0000",
     d = c->FindDataset(bookstr,skimdataset.Data(),fileset,true);
   ana->AddDataset(d);
   //ana->AddFile("/mnt/hadoop/cms/store/user/paus/filefi/032/s12-wjets-ptw100-v7a/FCEC7DAE-A367-E211-A486-0024E87687BE.root");
-
-  //------------------------------------------------------------------------------------------------
-  // setup analysis
-  //------------------------------------------------------------------------------------------------
-  Analysis *ana = new Analysis;
-  ana->SetUseHLT(kTRUE);
-  ana->SetKeepHierarchy(kTRUE);
-  ana->SetSuperModule(runLumiSel);
-  ana->SetPrintScale(100);
-  if (nEvents >= 0)
-    ana->SetProcessNEvents(nEvents);
 
   //------------------------------------------------------------------------------------------------
   // organize output
@@ -379,7 +379,7 @@ void runBoostedV(const char *fileset    = "0000",
   boostedVMod->SetHistMinEta(-5.);
   boostedVMod->SetHistMaxEta(5.);
 
-  >>>> finish implementation >>>>  boostedVMod->SetOutputName(ntupleFile.Data());
+  boostedVMod->SetOutputName(ntupleFile.Data());
 
   //------------------------------------------------------------------------------------------------
   // making analysis chain
