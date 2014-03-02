@@ -6,7 +6,7 @@
 t2mit/filefi/032 s12-ttj-v1-v7a                  noskim         ~                               136.3       1.0    -1.0    ~
 t2mit/filefi/032 s12-ttj-v2-v7a                  noskim         ~                               136.3       1.0    -1.0    ~
 t2mit/filefi/032 s12-ww-v7a                      noskim         ~                               33.61       1.0    -1.0    ~
-t2mit/filefi/032 s12-wjets-ptw100-v7a            noskim         W->lnu                          221.3       1.0    -1.0    ~
+t2mit/filefi/032 s12-wjets-ptw100-v7c            noskim         W->lnu                          221.3       1.0    -1.0    ~
 t2mit/filefi/032 s12-qcdht100-250-v7a            noskim         QCD~                            1.036E7     1.0    -1.0    ~
 t2mit/filefi/032 s12-qcdht250-500-v7a            noskim         ~                               276000.0    1.0    -1.0    ~
 t2mit/filefi/032 s12-qcdht500-1000-v7a           noskim         ~                               8426.0      1.0    -1.0    ~

@@ -10,8 +10,9 @@
 #include "MitAna/PhysicsMod/interface/PublisherMod.h"
 #include "MitAna/DataTree/interface/JetCol.h"
 #include "MitAna/DataTree/interface/PFJetCol.h"
-#include "MitPhysics/Init/interface/ModNames.h"
 #include "MitAna/DataTree/interface/Names.h"
+#include "MitPhysics/Init/interface/ModNames.h"
+#include "MitPhysics/Utils/interface/RhoUtilities.h"
 #include "MitPhysics/Mods/interface/GeneratorMod.h"
 #include "MitPhysics/Mods/interface/GoodPVFilterMod.h"
 #include "MitPhysics/Mods/interface/MuonIDMod.h"
@@ -36,7 +37,7 @@
 //--------------------------------------------------------------------------------------------------
 void runBoostedV(const char *fileset    = "0000",
 		 const char *skim       = "noskim",
-		 const char *dataset    = "r12a-met-j22-v1", 
+		 const char *dataset    = "s12-ww-v7a", 
 		 const char *book       = "t2mit/filefi/032",
 		 const char *catalogDir = "/home/cmsprod/catalog",
 		 const char *outputName = "vtag",
@@ -71,7 +72,7 @@ void runBoostedV(const char *fileset    = "0000",
     return;
   } 
 
-  printf("\n Initialization worked. \n\n");
+  printf("\n Initialization worked. Data?: %d\n\n",isData);
 
   //------------------------------------------------------------------------------------------------
   // some global setups
@@ -369,6 +370,7 @@ void runBoostedV(const char *fileset    = "0000",
   // select events with a given jet substructure
   //------------------------------------------------------------------------------------------------
   BoostedVTreeWriter *boostedVMod = new BoostedVTreeWriter;
+  boostedVMod->SetIsData(isData);
   boostedVMod->SetTriggerObjsName(hltModP->GetOutputName());
   boostedVMod->SetJetsName(jetCleaning->GetOutputName());
   boostedVMod->SetJetsFromBranch(kFALSE);
@@ -378,7 +380,6 @@ void runBoostedV(const char *fileset    = "0000",
   boostedVMod->SetHistMaxPt(100.);
   boostedVMod->SetHistMinEta(-5.);
   boostedVMod->SetHistMaxEta(5.);
-
   boostedVMod->SetOutputName(ntupleFile.Data());
 
   //------------------------------------------------------------------------------------------------

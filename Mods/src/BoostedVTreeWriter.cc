@@ -1,6 +1,8 @@
 #include "fastjet/PseudoJet.hh"
 #include "fastjet/contrib/Njettiness.hh"
 #include "fastjet/contrib/Nsubjettiness.hh"
+#include "MitCommon/MathTools/interface/MathUtils.h"
+#include "MitAna/DataTree/interface/MCParticleFwd.h"
 #include "MitPhysics/Init/interface/ModNames.h"
 #include "MitMonoJet/Mods/interface/BoostedVTreeWriter.h"
 
@@ -11,6 +13,9 @@ ClassImp(mithep::BoostedVTreeWriter)
 //--------------------------------------------------------------------------------------------------
 BoostedVTreeWriter::BoostedVTreeWriter(const char *name, const char *title) : 
   BaseMod                (name,title),
+  fIsData                (kTRUE),
+  fMcPartsName           (Names::gkMCPartBrn),
+  fMcParts               (0),
   fTriggerObjsName       ("HltObjsMonoJet"),
   fTrigObjs              (0),
   fJetsName              (Names::gkPFJetBrn),
@@ -19,6 +24,7 @@ BoostedVTreeWriter::BoostedVTreeWriter(const char *name, const char *title) :
   fPFCandidatesName      (Names::gkPFCandidatesBrn),
   fPFCandidatesFromBranch(kTRUE),
   fPFCandidates          (0),
+  fJetTriggerObjs        (0),
   fConeSize              (0.8),
   fNAnalyzed             (0),
   fHistNPtBins           (100),
@@ -60,15 +66,21 @@ void BoostedVTreeWriter::Process()
   // Load the branches we want to work with
   LoadEventObject(fJetsName,fJets,fJetsFromBranch);
   LoadEventObject(fPFCandidatesName,fPFCandidates,fPFCandidatesFromBranch);
+  // Extract the jet trigger objects from all trigger objects
+  GetJetTriggerObjs();
 
   // Initializes all variables
   fMitGPTree.InitVariables();
+
+  // After tree is initialized we can start with MC if applicable
+  if (! fIsData)
+    ProcessMc();
  
   // Keep track of events analyzed
   fNAnalyzed++;
 
   // Loop over jets and perform Nsubjettiness analysis (for now just stick with the first jet)
-  std::vector<fastjet::PseudoJet> lFJParts;
+  std::vector<fastjet::PseudoJet> lFjParts;
   for (UInt_t i=0; i<fJets->GetEntries(); ++i) {      
     const PFJet *jet = dynamic_cast<const PFJet*>(fJets->At(i));
     if (! jet) {
@@ -88,7 +100,7 @@ void BoostedVTreeWriter::Process()
     	// default MonoJet
     	if (trName.Contains("MonoCentralPFJet80_PFMETnoMu"))
     	  fMitGPTree.trigger_ |= 1 << 0;
-    	if (trName.Contains("HLT_MET120_HBHENoiseCleaned_v") )
+	if (trName.Contains("HLT_MET120_HBHENoiseCleaned_v"))
     	  fMitGPTree.trigger_ |= 1 << 1;
       }
     }
@@ -96,86 +108,89 @@ void BoostedVTreeWriter::Process()
     // Push all particle flow candidates into fastjet particle collection
     for (UInt_t j=0; j<jet->NPFCands(); ++j) {      
       const PFCandidate *pfCand = jet->PFCand(j);
-      lFJParts.push_back(fastjet::PseudoJet(pfCand->Px(),pfCand->Py(),pfCand->Pz(),pfCand->E()));
-      lFJParts.back().set_user_index(j);
+      lFjParts.push_back(fastjet::PseudoJet(pfCand->Px(),pfCand->Py(),pfCand->Pz(),pfCand->E()));
+      lFjParts.back().set_user_index(j);
       
       // Fill the PFCand histograms
       fPFCandidatesPt ->Fill(pfCand->Pt());
       fPFCandidatesEta->Fill(pfCand->Eta());
-      if (i==0) {
-    	fMitGPTree.eta_ = pfCand->Eta();
-    	fMitGPTree.phi_ = pfCand->Phi();
-    	fMitGPTree.pt_ =  pfCand->Pt();
-      } 
+      if (j==0) {
+	fMitGPTree.eta_ = pfCand->Eta();
+	fMitGPTree.phi_ = pfCand->Phi();
+	fMitGPTree.pt_ =  pfCand->Pt();
+      }
     }	
     break; // this is for now just considering the first jet (consider all in the future)
   }
 
+  // ---- Fastjet is ready ----
+
   // Setup the cluster for fastjet
   fastjet::ClusterSequenceArea *lClustering =
-    new fastjet::ClusterSequenceArea(lFJParts,*fCAJetDef,*fAreaDefinition);
+    new fastjet::ClusterSequenceArea(lFjParts,*fCAJetDef,*fAreaDefinition);
 
   // Produce a new set of jets based on the fastjet particle collection and the defined clustering
   std::vector<fastjet::PseudoJet> lOutJets = sorted_by_pt(lClustering->inclusive_jets(0.0));
+ 
+  // Access the 2 hardest jets as applicable
+  fastjet::PseudoJet lJet1, lJet2;
+  if (lOutJets.size() > 0)
+    lJet1 = (*fPruner)(lOutJets[0]);
+  if (lOutJets.size() > 1)
+    lJet2 = (*fPruner)(lOutJets[1]);
 
-  // You get a 4-vector (PseudoJet)
-  fastjet::PseudoJet lJet1;
-  fastjet::PseudoJet lJet2;
-  
+  // ---- Fastjet is already done ----
+
+  // Things to monitor before cuts
+  fMitGPTree.nParts_ = fPFCandidates->GetEntries();
+  fMitGPTree.numJets_ = lOutJets.size();
+
   // Skip event if no jets are found
   if (lOutJets.size() == 0) {
     if (lClustering)
       delete lClustering;
     return;
   }
- 
-  if (lOutJets.size() > 1) {
-    lJet1 = (*fPruner)(lOutJets[0]);
-    lJet2 = (*fPruner)(lOutJets[1]);
     
-    // Fill the CA jets histograms
-    fCAJetPt ->Fill(lJet1.pt());
-    fCAJetEta->Fill(lJet1.eta());
-  }
-  else {
+  // Fill the CA jet 1 histograms
+  fCAJetPt ->Fill(lJet1.pt());
+  fCAJetEta->Fill(lJet1.eta());
+
+  // Remove events where hardest jet is lower than 100 GeV
+  if (lJet1.pt() < 100) {
     if (lClustering)
       delete lClustering;
     return;
   }
-
-  if (lJet1.pt() < 100) {
-    delete lClustering;
-    return;
-  }
   
   // Fill up the tree
-
-  fMitGPTree.nPFCandidates_ = fPFCandidates->GetEntries();
-  fMitGPTree.numJets_ = lOutJets.size();
   fMitGPTree.jet1_.SetPxPyPzE( lJet1.px(), lJet1.py(), lJet1.pz(), lJet1.e() );
-  fMitGPTree.jet2_.SetPxPyPzE( lJet2.px(), lJet2.py(), lJet2.pz(), lJet2.e() );
-  
+  fMitGPTree.jet1Pt_ = lJet1.pt();
+  fMitGPTree.jet1Eta_ = lJet1.eta();
+  fMitGPTree.jet1Phi_ = lJet1.phi();
+  fMitGPTree.jet1M_ = lJet1.m();
   fMitGPTree.jet1Tau1_ = GetTau(lJet1,1,1);
   fMitGPTree.jet1Tau2_ = GetTau(lJet1,2,1);
   fMitGPTree.jet1Tau3_ = GetTau(lJet1,3,1);
-  fMitGPTree.jet2Tau1_ = GetTau(lJet2,1,1);
-  fMitGPTree.jet2Tau2_ = GetTau(lJet2,2,1);
-  fMitGPTree.jet2Tau3_ = GetTau(lJet2,3,1);
+  fMitGPTree.jet1MinTrigDr_ = MinTriggerDeltaR(fMitGPTree.jet1_);
+
+  // Only if there is a second jet
+  if (lOutJets.size() > 1) {
+    fMitGPTree.jet2_.SetPxPyPzE(lJet2.px(),lJet2.py(),lJet2.pz(),lJet2.e());
+    fMitGPTree.jet2Pt_ = lJet2.pt();
+    fMitGPTree.jet2Eta_ = lJet2.eta();
+    fMitGPTree.jet2Phi_ = lJet2.phi();
+    fMitGPTree.jet2M_ = lJet2.m();
+    fMitGPTree.jet2Tau1_ = GetTau(lJet2,1,1);
+    fMitGPTree.jet2Tau2_ = GetTau(lJet2,2,1);
+    fMitGPTree.jet2Tau3_ = GetTau(lJet2,3,1);
+    fMitGPTree.jet2MinTrigDr_ = MinTriggerDeltaR(fMitGPTree.jet2_);
+  }
   
-  fMitGPTree.jet1Pt_=lJet1.pt();
-  fMitGPTree.jet2Pt_=lJet2.pt();
-  
-  fMitGPTree.jet1Eta_=lJet1.eta();
-  fMitGPTree.jet2Eta_=lJet2.eta();
-  
-  fMitGPTree.jet1Phi_=lJet1.phi();
-  fMitGPTree.jet2Phi_=lJet2.phi();
-  
-  fMitGPTree.jet1M_=lJet1.m();
-  fMitGPTree.jet2M_=lJet2.m();
-  
+  // Called once when all is done
   fMitGPTree.tree_->Fill();
 
+  // Always cleanup
   if (lClustering)
     delete lClustering;
 }
@@ -186,6 +201,9 @@ void BoostedVTreeWriter::SlaveBegin()
   // Run startup code on the computer (slave) doing the actual analysis. Here, we just request the
   // particle flow collection branch.
 
+  if (! fIsData) {
+    ReqEventObject(fMcPartsName,fMcParts,kTRUE);
+  }
   ReqEventObject(fJetsName,fJets,fJetsFromBranch);
   ReqEventObject(fPFCandidatesName,fPFCandidates,fPFCandidatesFromBranch);
 
@@ -252,4 +270,135 @@ float BoostedVTreeWriter::GetTau(fastjet::PseudoJet &iJet,int iN, float iKappa)
 					  iKappa,fConeSize,fConeSize);
   
   return nSubNKT(iJet);
+}
+
+//--------------------------------------------------------------------------------------------------
+void BoostedVTreeWriter::ProcessMc()
+{
+  // We only get here for MC, so no more checking - we will perfrom the analysis on generator level
+  // and take car of filling the tree
+
+  //printf(" BoostedVTreeWriter::ProcessMc() - entered\n");
+
+  LoadEventObject(fMcPartsName,fMcParts);
+
+  // Fill Fastjet with the MC particles (no pileup included here)
+
+  int nParts = 0;
+  std::vector<fastjet::PseudoJet> lFjParts;
+  for (UInt_t i=0; i<fMcParts->GetEntries(); ++i) {
+    const MCParticle *p = fMcParts->At(i);
+    
+    if (p->Status() == 1) { // just the particles that go to the detector
+      nParts++;
+      // Push all particles that make detector entries into fastjet particle collection
+      lFjParts.push_back(fastjet::PseudoJet(p->Px(),p->Py(),p->Pz(),p->E()));
+      lFjParts.back().set_user_index(i);
+    }
+  }
+
+  //printf(" BoostedVTreeWriter::ProcessMc() - found particles: %d\n",nParts);
+
+  // ---- Fastjet is ready ----
+
+  // Setup the cluster for fastjet
+  fastjet::ClusterSequenceArea *lClustering =
+    new fastjet::ClusterSequenceArea(lFjParts,*fCAJetDef,*fAreaDefinition);
+
+  // Produce a new set of jets based on the fastjet particle collection and the defined clustering
+  std::vector<fastjet::PseudoJet> lOutJets = sorted_by_pt(lClustering->inclusive_jets(0.0));
+ 
+  // Attach jets 1 and 2
+  fastjet::PseudoJet lJet1, lJet2;
+  if (lOutJets.size() > 0)
+    lJet1 = (*fPruner)(lOutJets[0]);
+  if (lOutJets.size() > 1)
+    lJet2 = (*fPruner)(lOutJets[1]);
+
+  // ---- Fastjet is already done ----
+
+  // Things to store before cuts
+  fMitGPTree.nGenParts_ = nParts;
+  fMitGPTree.numGenJets_ = lOutJets.size();
+
+  // Skip event if no jets are found
+  if (lOutJets.size() == 0) {
+    if (lClustering)
+      delete lClustering;
+    return;
+  }
+
+  // Basic cut on the first jet
+  if (lJet1.pt() < 100) {
+    if (lClustering)
+      delete lClustering;
+    return;
+  }
+  
+  // Fill up the tree
+  fMitGPTree.genJet1_.SetPxPyPzE(lJet1.px(),lJet1.py(),lJet1.pz(),lJet1.e());
+  fMitGPTree.genJet1Pt_=lJet1.pt();
+  fMitGPTree.genJet1Eta_=lJet1.eta();
+  fMitGPTree.genJet1Phi_=lJet1.phi();
+  fMitGPTree.genJet1M_=lJet1.m();
+  fMitGPTree.genJet1Tau1_ = GetTau(lJet1,1,1);
+  fMitGPTree.genJet1Tau2_ = GetTau(lJet1,2,1);
+  fMitGPTree.genJet1Tau3_ = GetTau(lJet1,3,1);
+  fMitGPTree.genJet1MinTrigDr_ = MinTriggerDeltaR(fMitGPTree.genJet1_);
+
+  if (lOutJets.size() > 1) {
+    fMitGPTree.genJet2_.SetPxPyPzE(lJet2.px(),lJet2.py(),lJet2.pz(),lJet2.e());
+    fMitGPTree.genJet2Pt_=lJet2.pt();
+    fMitGPTree.genJet2Eta_=lJet2.eta();
+    fMitGPTree.genJet2Phi_=lJet2.phi();
+    fMitGPTree.genJet2M_=lJet2.m();
+    fMitGPTree.genJet2Tau1_ = GetTau(lJet2,1,1);
+    fMitGPTree.genJet2Tau2_ = GetTau(lJet2,2,1);
+    fMitGPTree.genJet2Tau3_ = GetTau(lJet2,3,1);
+    fMitGPTree.genJet2MinTrigDr_ = MinTriggerDeltaR(fMitGPTree.genJet2_);
+  }
+
+  if (lClustering)
+    delete lClustering;
+
+  return;
+}
+
+//--------------------------------------------------------------------------------------------------
+void BoostedVTreeWriter::GetJetTriggerObjs()
+{
+  // Pick only the jet trigger objects out of all our trigger objects
+
+  // Make sure to initialize
+  fJetTriggerObjs.clear();
+
+  // Prepare loop
+  fTrigObjs = GetHLTObjects(fTriggerObjsName);
+  if (! fTrigObjs)
+    printf(" BoostedVTreeWriter::Process() - ERROR - TriggerObjectCol not found\n");
+  else {
+    // loop through the stored trigger objects and find corresponding trigger name
+    for (UInt_t j=0; j<fTrigObjs->GetEntries();++j) {
+      const TriggerObject *to = fTrigObjs->At(j);
+      TString trName = to->TrigName();
+      // default MonoJet
+      if (trName.Contains("MonoCentralPFJet80_PFMETnoMu"))
+	fJetTriggerObjs.push_back(to);
+    }
+  }
+
+  return;
+}
+
+//--------------------------------------------------------------------------------------------------
+Double_t BoostedVTreeWriter::MinTriggerDeltaR(LorentzVector jet)
+{
+  Double_t dR = 999;
+  for (UInt_t i=0; i<fJetTriggerObjs.size(); i++) {
+    Double_t dRTest = MathUtils::DeltaR(jet,*fJetTriggerObjs[i]);
+    if (dRTest<dR)
+      dR = dRTest;
+  }
+
+  return dR;
 }

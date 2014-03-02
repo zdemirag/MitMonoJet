@@ -27,14 +27,19 @@
 
 namespace mithep
 {
+
   class BoostedVTreeWriter : public BaseMod
   {
   public:
+    typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LorentzVector;
+
     BoostedVTreeWriter(const char *name  = "BoostedVTreeWriter",
 		       const char *title = "Vector Boson Tagging module");
 
     ~BoostedVTreeWriter();
 
+    void                          SetIsData(Bool_t b)               { fIsData = b; }
+    void                          SetMcPartsName(const char *n)     { fMcPartsName = n; }
     void                          SetTriggerObjsName(const char *n) { fTriggerObjsName = n; }
     void                          SetJetsName(const char *n)        { fJetsName = n; }
     void                          SetJetsFromBranch(bool b)         { fJetsFromBranch = b; }
@@ -70,8 +75,14 @@ namespace mithep
     void                          SlaveTerminate();
 
   private:
+    void                          ProcessMc();             // Deals with the MC separately
+    void                          GetJetTriggerObjs();     // Fills the jet trigger objs
+    Double_t                      MinTriggerDeltaR(LorentzVector jet);
     float                         GetTau(fastjet::PseudoJet &iJet,int iN, float iKappa);
 
+    Bool_t                        fIsData;                 //is this data or MC?
+    TString                       fMcPartsName;            //(i) name of MC particles
+    const MCParticleCol          *fMcParts;	           //MC particle coll
     TString                       fTriggerObjsName;        //(i) name of trigger objects
     const TriggerObjectCol       *fTrigObjs;               //trigger objects coll handle
     TString                       fJetsName;               //(i) name of jets used to make trigger
@@ -80,6 +91,9 @@ namespace mithep
     TString                       fPFCandidatesName;       //(i) name of PF candidates coll
     Bool_t                        fPFCandidatesFromBranch; //are PF candidates from Branch?
     const PFCandidateCol         *fPFCandidates;           //particle flow candidates coll handle
+
+    std::vector<const TriggerObject *>
+                                  fJetTriggerObjs;         //jet trigger objects
 
     // Objects from fastjet we want to use
     double                        fConeSize;
