@@ -31,8 +31,8 @@ public:
   // variables
   unsigned int           nGenParts_;
   int                    numGenJets_;
-  LorentzVector          genJet1_;
 
+  LorentzVector          genJet1_;
   float                  genJet1Eta_;
   float                  genJet1Phi_;
   float                  genJet1Pt_;
@@ -80,10 +80,6 @@ public:
   float                  jet2M_;
   float                  jet2MinTrigDr_;
 
-  float                  eta_;
-  float                  phi_;
-  float                  pt_;
-
   // this is the main element
   TTree                 *tree_;
   TFile                 *file_;
@@ -100,8 +96,8 @@ public:
   /// initialize varibles and fill list of available variables
   void InitVariables();
 
-  /// load a MitGPBoostedVTree
-  void LoadTree(const char* file, int type = -1){
+  // load a MitGPBoostedVTree
+  void LoadTree(const char* file, int type = -1) {
     // to load three different ntuples in the same job DMTree0/1
     // type == 0/1 if all variables was added
     // type = -1 (default) if a minimum set of variables was added with tree as name
@@ -192,10 +188,6 @@ public:
     tree_->Branch("jet2Tau2"        , &jet2Tau2_,        "jet2Tau2/F");
     tree_->Branch("jet2Tau3"        , &jet2Tau3_,        "jet2Tau3/F");
     tree_->Branch("jet2MinTrigDr"   , &jet2MinTrigDr_,   "jet2MinTrigDr/F");
-
-    tree_->Branch("Eta"             , &eta_,             "Eta/F");
-    tree_->Branch("Phi"             , &phi_,             "Phi/F");
-    tree_->Branch("Pt"              , &pt_,              "Pt/F");
   }
 
   // initialze a MitGPBoostedVTree
@@ -264,10 +256,6 @@ public:
     tree_->SetBranchAddress("jet2Tau3"        , &jet2Tau3_);
     tree_->SetBranchAddress("jet2MinTrigDr"   , &jet2MinTrigDr_);
 
-    tree_->SetBranchAddress("Eta"             , &eta_);
-    tree_->SetBranchAddress("Phi"             , &phi_);
-    tree_->SetBranchAddress("Pt"              , &pt_);
-
     gErrorIgnoreLevel = currentState;
   }
 
@@ -333,10 +321,6 @@ MitGPBoostedVTree::InitVariables()
   jet2R_            = 0;
   jet2M_            = 0;
   jet2MinTrigDr_    = 999;
-
-  pt_               = 0;
-  eta_              = 0;
-  phi_              = 0;
 }
 
 #endif
