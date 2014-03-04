@@ -48,7 +48,9 @@ void runBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   char json[1024], overlap[1024];
   float overlapCut = -1;
-  TString mitData = TString(gSystem->Getenv("CMSSW_BASE")) + TString("/src/MitPhysics/data");
+  TString mitData = TString("/scratch/paus/cms/cmssw/033/CMSSW_5_3_14_patch2") +
+                    TString("/src/MitPhysics/data");
+  //TString mitData = TString(gSystem->Getenv("CMSSW_BASE")) + TString("/src/MitPhysics/data");
   
   if (gSystem->Getenv("MIT_PROD_JSON"))
     sprintf(json,   "%s",gSystem->Getenv("MIT_PROD_JSON"));
