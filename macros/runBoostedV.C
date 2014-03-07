@@ -49,19 +49,19 @@ void runBoostedV(const char *fileset    = "0000",
   char json[1024], overlap[1024];
   float overlapCut = -1;
   TString mitData;
-  TString cataDir(catalogDir);
+  TString cataDir("./catalog");
   Long_t *id=0,*size=0,*flags=0,*mt=0;
 
-  printf(" Try explicit catalog first: %s\n",cataDir.Data());
+  printf(" Try local catalog first: %s\n",cataDir.Data());
   if (gSystem->GetPathInfo(cataDir.Data(),id,size,flags,mt) != 0) {
-    cataDir = TString("./catalog");
+    cataDir = TString(catalogDir);
     if (gSystem->GetPathInfo(cataDir.Data(),id,size,flags,mt) != 0) {
-      printf(" Requested catalog and alternative (./catalog) does not exist. EXIT!\n");
+      printf(" Requested local (./catalog) and specified catalog do not exist. EXIT!\n");
       return;
     }
-  } 
+  }
   else {
-    printf(" Catalog exists: %s using this one.\n",cataDir.Data()); 
+    printf(" Local catalog exists: %s using this one.\n",cataDir.Data()); 
   }
   if (gSystem->Getenv("MIT_DATA"))
     mitData = gSystem->Getenv("MIT_DATA");
