@@ -231,7 +231,24 @@ void runMonoJet(const char *fileset    = "0000",
   muonIdWW->SetPtMin(10.);
   muonIdWW->SetEtaCut(2.4);
 
-  MuonIDMod *muonId = muonIdWW;
+  MuonIDMod *muonIdPOG = new MuonIDMod;
+  muonIdPOG->SetOutputName("POGMuons");
+  muonIdPOG->SetClassType("GlobalTracker");
+  //muonIdPOG->SetIDType("muonPOG2012CutBasedIDTight");
+  muonIdPOG->SetIDType("NoId");
+  muonIdPOG->SetApplyD0Cut(true);
+  muonIdPOG->SetD0Cut(0.2);
+  muonIdPOG->SetApplyDZCut(true);
+  muonIdPOG->SetDZCut(0.5);
+  //muonIdPOG->SetIsoType("PFIsoBetaPUCorrected");
+  //muonIdPOG->SetPFNoPileUpName("pfnopileupcands");
+  //muonIdPOG->SetPFPileUpName("pfpileupcands");
+  //muonIdPOG->SetIsoType("IsoRingsV0_BDTG_Iso");
+  muonIdPOG->SetIsoType("NoIso");
+  muonIdPOG->SetPtMin(10.);
+  muonIdPOG->SetEtaCut(2.4);
+  
+  MuonIDMod *muonId = muonIdPOG;
   //MuonIDMod *muonId = muonIdGammaGamma;
 
   ElectronCleaningMod *electronCleaning = new ElectronCleaningMod;
@@ -555,9 +572,9 @@ void runMonoJet(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   TString skimdataset = TString(dataset)+TString("/") +TString(skim);
   TString bookstr = book;
-  bool    cachingOn = kTRUE;
   Catalog *c = new Catalog(catalogDir);
   Dataset *d = NULL;
+  bool    cachingOn = true;
   if (TString(skim).CompareTo("noskim") == 0)
     d = c->FindDataset(bookstr,dataset,fileset,cachingOn); // chaching on
   else
