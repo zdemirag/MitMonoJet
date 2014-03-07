@@ -114,11 +114,6 @@ void BoostedVTreeWriter::Process()
       // Fill the PFCand histograms
       fPFCandidatesPt ->Fill(pfCand->Pt());
       fPFCandidatesEta->Fill(pfCand->Eta());
-      if (j==0) {
-	fMitGPTree.eta_ = pfCand->Eta();
-	fMitGPTree.phi_ = pfCand->Phi();
-	fMitGPTree.pt_ =  pfCand->Pt();
-      }
     }	
     break; // this is for now just considering the first jet (consider all in the future)
   }
@@ -393,6 +388,9 @@ void BoostedVTreeWriter::GetJetTriggerObjs()
 //--------------------------------------------------------------------------------------------------
 Double_t BoostedVTreeWriter::MinTriggerDeltaR(LorentzVector jet)
 {
+  // Determine the minimum delta R between the given provided jet and the jet trigger objects. This
+  // will allow us to perfrom a trigger matching analysis.
+
   Double_t dR = 999;
   for (UInt_t i=0; i<fJetTriggerObjs.size(); i++) {
     Double_t dRTest = MathUtils::DeltaR(jet,*fJetTriggerObjs[i]);
