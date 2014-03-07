@@ -40,7 +40,7 @@ void runBoostedV(const char *fileset    = "0000",
 		 const char *dataset    = "s12-ww-v7a", 
 		 const char *book       = "t2mit/filefi/032",
 		 const char *catalogDir = "/home/cmsprod/catalog",
-		 const char *outputName = "vtag",
+		 const char *outputName = "boostedv",
 		 int         nEvents    = 100)
 {
   //------------------------------------------------------------------------------------------------
@@ -48,17 +48,33 @@ void runBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   char json[1024], overlap[1024];
   float overlapCut = -1;
-  TString mitData = TString("/scratch/paus/cms/cmssw/033/CMSSW_5_3_14_patch2") +
-                    TString("/src/MitPhysics/data");
-  //TString mitData = TString(gSystem->Getenv("CMSSW_BASE")) + TString("/src/MitPhysics/data");
-  
+  TString mitData;
+  TString cataDir(catalogDir);
+  Long_t *id=0,*size=0,*flags=0,*mt=0;
+
+  printf(" Try explicit catalog first: %s\n",cataDir.Data());
+  if (gSystem->GetPathInfo(cataDir.Data(),id,size,flags,mt) != 0) {
+    cataDir = TString("./catalog");
+    if (gSystem->GetPathInfo(cataDir.Data(),id,size,flags,mt) != 0) {
+      printf(" Requested catalog and alternative (./catalog) does not exist. EXIT!\n");
+      return;
+    }
+  } 
+  else {
+    printf(" Catalog exists: %s using this one.\n",cataDir.Data()); 
+  }
+  if (gSystem->Getenv("MIT_DATA"))
+    mitData = gSystem->Getenv("MIT_DATA");
+  else {
+    printf(" MIT_DATA was not properly defined. EXIT!\n");
+    return;
+  } 
   if (gSystem->Getenv("MIT_PROD_JSON"))
     sprintf(json,   "%s",gSystem->Getenv("MIT_PROD_JSON"));
   else {
     printf(" JSON file was not properly defined. EXIT!\n");
     return;
-  } 
-  
+  }
   TString jsonFile = TString("/home/cmsprod/cms/json/") + TString(json);
   Bool_t  isData   = ((jsonFile.CompareTo("/home/cmsprod/cms/json/~") != 0));
   
@@ -114,7 +130,7 @@ void runBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   // organize input
   //------------------------------------------------------------------------------------------------
-  Catalog *c = new Catalog(catalogDir);
+  Catalog *c = new Catalog(cataDir.Data());
   TString skimdataset = TString(dataset)+TString("/") +TString(skim);
   Dataset *d = NULL;
   TString bookstr = book;
@@ -411,7 +427,7 @@ void runBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   printf("\n==== PARAMETER SUMMARY FOR THIS JOB ====\n");
   printf("\n JSON file: %s\n  and overlap cut: %f (%s)\n",jsonFile.Data(),overlapCut,overlap);
-  printf("\n Rely on Catalog: %s\n",catalogDir);
+  printf("\n Rely on Catalog: %s\n",cataDir.Data());
   printf("  -> Book: %s  Dataset: %s  Skim: %s  Fileset: %s <-\n",book,dataset,skim,fileset);
   printf("\n Root output:   %s\n",rootFile.Data());  
   printf("\n Ntuple output: %s\n\n",ntupleFile.Data());  
