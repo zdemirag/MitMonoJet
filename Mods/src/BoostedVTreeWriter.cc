@@ -273,8 +273,6 @@ void BoostedVTreeWriter::ProcessMc()
   // We only get here for MC, so no more checking - we will perfrom the analysis on generator level
   // and take car of filling the tree
 
-  //printf(" BoostedVTreeWriter::ProcessMc() - entered\n");
-
   LoadEventObject(fMcPartsName,fMcParts);
 
   // Fill Fastjet with the MC particles (no pileup included here)
@@ -291,8 +289,6 @@ void BoostedVTreeWriter::ProcessMc()
       lFjParts.back().set_user_index(i);
     }
   }
-
-  //printf(" BoostedVTreeWriter::ProcessMc() - found particles: %d\n",nParts);
 
   // ---- Fastjet is ready ----
 
