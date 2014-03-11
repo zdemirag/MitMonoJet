@@ -38,6 +38,7 @@ do
 
   # skip merging if there are still some jobs running
   job_counter=`condor_q mzanetti -w | grep -c $DATASET`; 
+  #job_counter=0 # FIXME!!
   if [ $job_counter -gt 1 ] ; then
       echo "$job_counter jobs still running for $DATASET, quitting"
       continue

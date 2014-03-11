@@ -75,13 +75,19 @@ class MitGPTree {
   float          metSig_;
   DataType       dstype_;
 
+  LorentzVector  genZ_;
+
   unsigned int   nlep_;
   LorentzVector  lep1_;
   int            lid1_;
   int		 lep1IsTightMuon_;
+  int		 lep1IsIsolated_;
+  float          lep1PtErr_;
   LorentzVector  lep2_;
   int            lid2_;
   int		 lep2IsTightMuon_;
+  int		 lep2IsIsolated_;
+  float          lep2PtErr_;
   LorentzVector  lep3_;
   int            lid3_;
   int		 lep3IsTightMuon_;
@@ -154,6 +160,7 @@ class MitGPTree {
 
   /// default constructor  
   MitGPTree():
+    genZPtr_(&genZ_),
     lepPtr1_(&lep1_),lepPtr2_(&lep2_),lepPtr3_(&lep3_),
     tauPtr1_(&tau1_),tauPtr2_(&tau2_),
     phoPtr1_(&pho1_),//phoPtr2_(&pho2_),phoPtr3_(&pho3_),phoPtr4_(&pho4_),
@@ -235,13 +242,19 @@ class MitGPTree {
     tree_->Branch("metSig"       , &metSig_       ,   "metSig/F");
     tree_->Branch("dstype"       , &dstype_       ,   "dstype/I");
 
+    tree_->Branch("genZ"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genZPtr_);
+
     tree_->Branch("nlep"         , &nlep_         ,   "nlep/i");
     tree_->Branch("lep1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &lepPtr1_);
     tree_->Branch("lid1"         , &lid1_         ,   "lid1/I");
     tree_->Branch("lep1IsTightMuon"         , &lep1IsTightMuon_         ,   "lep1IsTightMuon/I");
+    tree_->Branch("lep1IsIsolated"         , &lep1IsIsolated_         ,   "lep1IsIsolated/I");
+    tree_->Branch("lep1PtErr"         , &lep1PtErr_         ,   "lep1PtErr/F");
     tree_->Branch("lep2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &lepPtr2_);
     tree_->Branch("lid2"         , &lid2_         ,   "lid2/I");
     tree_->Branch("lep2IsTightMuon"         , &lep2IsTightMuon_         ,   "lep2IsTightMuon/I");
+    tree_->Branch("lep2IsIsolated"         , &lep2IsIsolated_         ,   "lep2IsIsolated/I");
+    tree_->Branch("lep2PtErr"         , &lep2PtErr_         ,   "lep2PtErr/F");
     tree_->Branch("lep3"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &lepPtr3_);
     tree_->Branch("lid3"         , &lid3_         ,   "lid3/I");
     tree_->Branch("lep3IsTightMuon"         , &lep3IsTightMuon_         ,   "lep3IsTightMuon/I");
@@ -352,13 +365,19 @@ class MitGPTree {
     tree_->SetBranchAddress("metSig",        &metSig_);
     tree_->SetBranchAddress("dstype",        &dstype_);
 
+    tree_->SetBranchAddress("genZ",          &genZPtr_);
+
     tree_->SetBranchAddress("nlep",          &nlep_);
     tree_->SetBranchAddress("lep1",          &lepPtr1_);
     tree_->SetBranchAddress("lid1",          &lid1_);
     tree_->SetBranchAddress("lep1IsTightMuon",&lep1IsTightMuon_);
+    tree_->SetBranchAddress("lep1IsIsolated",&lep1IsIsolated_);
+    tree_->SetBranchAddress("lep1PtErr",     &lep1PtErr_);
     tree_->SetBranchAddress("lep2",          &lepPtr2_);
     tree_->SetBranchAddress("lid2",          &lid2_);
     tree_->SetBranchAddress("lep2IsTightMuon",&lep2IsTightMuon_);
+    tree_->SetBranchAddress("lep2IsIsolated",&lep2IsIsolated_);
+    tree_->SetBranchAddress("lep2PtErr",     &lep2PtErr_);
     tree_->SetBranchAddress("lep3",          &lepPtr3_);
     tree_->SetBranchAddress("lid3",          &lid3_);
     tree_->SetBranchAddress("lep3IsTightMuon",&lep3IsTightMuon_);
@@ -427,6 +446,7 @@ class MitGPTree {
 
   private:
 
+  LorentzVector* genZPtr_;
   LorentzVector* lepPtr1_;
   LorentzVector* lepPtr2_;
   LorentzVector* lepPtr3_;
@@ -482,13 +502,19 @@ MitGPTree::InitVariables(){
   metSig_        = -999.;
   dstype_        = data;
 
+  genZ_       	 = LorentzVector();
+
   nlep_          = 0;
   lep1_       	 = LorentzVector();
   lid1_          = 0;
   lep1IsTightMuon_ = 0;
+  lep1IsIsolated_ = 0;
+  lep1PtErr_     = 999.;
   lep2_       	 = LorentzVector();
   lid2_          = 0;
   lep2IsTightMuon_ = 0;
+  lep2IsIsolated_ = 0;
+  lep2PtErr_     = 999.;
   lep3_       	 = LorentzVector();
   lid3_          = 0;
   lep3IsTightMuon_ = 0;

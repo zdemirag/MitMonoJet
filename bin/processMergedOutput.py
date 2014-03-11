@@ -29,7 +29,7 @@ for line in open(os.environ['MIT_MONOJET_DIR']+'/config/'+configuration+'.txt'):
     # skip data
     if line.strip().split()[-1]!='~': continue
     xsecs[line.strip().split()[1]] = float(line.strip().split()[4])
-    
+
 # process the datasets
 for d in glob.glob(merged_dir+'*.root'):
     dataset = d.replace(merged_dir,'').replace(configuration+'_','').replace('_noskim.root','')
@@ -59,8 +59,9 @@ for d in glob.glob(merged_dir+'*.root'):
     # target file
     new_file_name = output_dir+dataset+'.root'
     if os.path.exists(new_file_name):
+        #continue ## FIXME
         if raw_input(new_file_name+' exists, recreate it? [Y/n]')=='n': continue
-
+        
     new_file = TFile(new_file_name,'RECREATE') 
     
     # process the trees

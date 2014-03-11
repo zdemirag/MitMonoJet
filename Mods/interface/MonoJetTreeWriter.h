@@ -28,6 +28,7 @@
 #include "MitAna/DataTree/interface/DecayParticleCol.h"
 #include "MitAna/DataTree/interface/ElectronCol.h"
 #include "MitAna/DataTree/interface/MuonCol.h"
+#include "MitPhysics/Utils/interface/IsolationTools.h"
 #include "MitAna/DataTree/interface/PFTauCol.h"
 #include "MitAna/DataTree/interface/DecayParticleCol.h"
 #include "MitAna/DataTree/interface/SuperClusterCol.h"
@@ -90,6 +91,10 @@ namespace mithep
 
     void                SetProcessID(Int_t n)             { fDecay = n;                  }
     void                SetFillNtupleType(Int_t d)        { fFillNtupleType= d;          }
+    
+    void               SetPFNoPileUpName(const char *n)   { fPFNoPileUpName  = n;        } 
+    void               SetPFPileUpName(const char *n)     { fPFPileUpName  = n;          }
+
 
   protected:
     void                Process();
@@ -124,6 +129,8 @@ namespace mithep
     TString                        fMCEvInfoName;
     TString                        fMCPartName;
     TString                        fTriggerObjectsName;
+    TString                        fPFNoPileUpName;
+    TString                        fPFPileUpName;
 			           
     Bool_t                         fIsData;
     Bool_t                         fMetFromBranch;

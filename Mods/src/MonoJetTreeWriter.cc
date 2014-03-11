@@ -53,6 +53,8 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fMCEvInfoName           (Names::gkMCEvtInfoBrn),
   fMCPartName             (Names::gkMCPartBrn),
   fTriggerObjectsName     ("MyHltPhotObjs"),
+  fPFNoPileUpName         ("pfnopileupcands"),
+  fPFPileUpName           ("pfpileupcands"),
   fIsData                 (false),
   fMetFromBranch          (kTRUE),
   fPhotonsFromBranch      (kTRUE),
@@ -143,6 +145,10 @@ void MonoJetTreeWriter::Process()
   ParticleOArr    *leptons  = GetObjThisEvt<ParticleOArr>(ModNames::gkMergedLeptonsName);
   const VertexCol *vertices = GetObjThisEvt<VertexOArr>(fVertexName);
 
+  const PFCandidateCol *fPFNoPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFNoPileUpName);    
+  const PFCandidateCol *fPFPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFPileUpName);
+
+
   fNEventsSelected++;
 
   // initialize the tree variables
@@ -167,7 +173,13 @@ void MonoJetTreeWriter::Process()
     x2        = fMCEventInfo->X2();
     pdf2      = fMCEventInfo->Pdf2();
     processId = fMCEventInfo->ProcessId();
+
+    for (UInt_t i=0; i<fParticles->GetEntries(); ++i) {
+      if (fParticles->At(i)->Status()==3 and fParticles->At(i)->Is(MCParticle::kZ))
+	fMitGPTree.genZ_ = fParticles->At(i)->Mom();
+    }
   }
+
   fMitGPTree.Q_ = Q;
   fMitGPTree.id1_ = id1;
   fMitGPTree.x1_ = x1;
@@ -264,11 +276,15 @@ void MonoJetTreeWriter::Process()
   fMitGPTree.nlep_ = leptons->GetEntries();
   if (leptons->GetEntries() >= 1) {         // loop over all leptons
     const Particle *lep = leptons->At(0);
-
+    
     fMitGPTree.lep1_ = lep->Mom();
     if      (lep->ObjType() == kMuon) {
       fMitGPTree.lid1_ = 13;
-      fMitGPTree.lep1IsTightMuon_ = IsTightMuon(dynamic_cast<const Muon*>(leptons->At(0)));
+      const Muon* mu = dynamic_cast<const Muon*>(lep);
+      fMitGPTree.lep1IsTightMuon_ = IsTightMuon(mu);
+      fMitGPTree.lep1PtErr_ = mu->BestTrk()->PtErr()/mu->BestTrk()->Pt();
+      double totalIso =  IsolationTools::BetaMwithPUCorrection(fPFNoPileUpCands, fPFPileUpCands, mu, 0.4);
+      fMitGPTree.lep1IsIsolated_ = totalIso < (mu->Pt()*0.2);
     }
     else if (lep->ObjType() == kElectron)
       fMitGPTree.lid1_ = 11;
@@ -279,7 +295,7 @@ void MonoJetTreeWriter::Process()
       fMitGPTree.lid1_ = -1 * fMitGPTree.lid1_;
 
     // If the event contains at least 1 lepton correct the MET using the highest pt one
-    CorrectMet(fMitGPTree.met_,    fMitGPTree.metPhi_,   leptons->At(0),0,
+    CorrectMet(fMitGPTree.met_,    fMitGPTree.metPhi_,leptons->At(0),0,
 	       fMitGPTree.metCorW_,fMitGPTree.metCorWPhi_);
     CorrectMet(fMitGPTree.metRaw_, fMitGPTree.metRawPhi_,leptons->At(0),0,
 	       fMitGPTree.metRawCorW_,fMitGPTree.metRawCorWPhi_);
@@ -291,7 +307,11 @@ void MonoJetTreeWriter::Process()
     fMitGPTree.lep2_ = lep->Mom();
     if     (lep->ObjType() == kMuon) {
       fMitGPTree.lid2_ = 13;
-      fMitGPTree.lep1IsTightMuon_ = IsTightMuon(dynamic_cast<const Muon*>(leptons->At(1)));
+      const Muon* mu = dynamic_cast<const Muon*>(lep);
+      fMitGPTree.lep2IsTightMuon_ = IsTightMuon(mu);
+      fMitGPTree.lep2PtErr_ = mu->BestTrk()->PtErr()/mu->BestTrk()->Pt();
+      double totalIso =  IsolationTools::BetaMwithPUCorrection(fPFNoPileUpCands, fPFPileUpCands, mu, 0.4);
+      fMitGPTree.lep2IsIsolated_ = totalIso < (mu->Pt()*0.2);
     }
     else if (lep->ObjType() == kElectron)
       fMitGPTree.lid2_ = 11;
@@ -302,7 +322,7 @@ void MonoJetTreeWriter::Process()
       fMitGPTree.lid2_ = -1 * fMitGPTree.lid2_;
 
     // If the event contains at least 2 leptons correct the MET using the 2 highest pt ones
-    CorrectMet(fMitGPTree.met_,   fMitGPTree.metPhi_,   leptons->At(0),leptons->At(1),
+    CorrectMet(fMitGPTree.met_,   fMitGPTree.metPhi_,leptons->At(0),leptons->At(1),
 	       fMitGPTree.metCorZ_,fMitGPTree.metCorZPhi_);
     CorrectMet(fMitGPTree.metRaw_,fMitGPTree.metRawPhi_,leptons->At(0),leptons->At(1),
 	       fMitGPTree.metRawCorZ_,fMitGPTree.metRawCorZPhi_);
@@ -314,7 +334,7 @@ void MonoJetTreeWriter::Process()
     fMitGPTree.lep3_ = lep->Mom();
     if      (lep->ObjType() == kMuon) {
       fMitGPTree.lid3_ = 13;
-      fMitGPTree.lep1IsTightMuon_ = IsTightMuon(dynamic_cast<const Muon*>(leptons->At(2)));
+      fMitGPTree.lep3IsTightMuon_ = IsTightMuon(dynamic_cast<const Muon*>(leptons->At(2)));
     }
     else if (lep->ObjType() == kElectron)
       fMitGPTree.lid3_ = 11;
