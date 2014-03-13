@@ -24,7 +24,7 @@ void simplePlots(double lumi = 4500.0)
   printf("\n Looking at tree (%s)\n   plotting variable (%s)\n   with cuts: (%s)\n\n",
 	 nTuple.Data(),variable.Data(),cut.Data());
 
-  plot(nTuple.Data(),"genTau2OverTau1","#tau_{2}/#tau_{1}",0,.0,1.0,0.,0.,1,lumi,variable,cut,100);
+  plot(nTuple.Data(),"genTau2OverTau1","#tau_{2}/#tau_{1}",0,0.07,1.0,0.,0.,1,lumi,variable,cut,93);
 
   return;
 }

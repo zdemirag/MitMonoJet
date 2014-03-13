@@ -27,11 +27,11 @@ ClassImp(mithep::MonoJetAnalysisMod)
     BaseMod(name,title),
     //define all the Branches to load
     fMetBranchName         ("PFMet"),
+    fJetsName              (Names::gkPFJetBrn),
     fElectronsName         (Names::gkElectronBrn),
     fMuonsName             (Names::gkMuonBrn),
     fTausName              (Names::gkPFTauBrn),
     fLeptonsName           (ModNames::gkMergedLeptonsName),
-    fJetsName              (Names::gkPFJetBrn),
     fPFCandidatesName      (Names::gkPFCandidatesBrn),
     fMetFromBranch         (kTRUE),
     fJetsFromBranch        (kTRUE),

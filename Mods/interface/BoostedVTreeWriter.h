@@ -6,8 +6,8 @@
 //
 // Authors: C.Paus
 //--------------------------------------------------------------------------------------------------
-#ifndef MITMONOJET_MODS_BoostedVTreeWriter_H
-#define MITMONOJET_MODS_BoostedVTreeWriter_H
+#ifndef MITMONOJET_MODS_BOOSTEDVTREEWRITER_H
+#define MITMONOJET_MODS_BOOSTEDVTREEWRITER_H
 
 #include <TFile.h>
 #include <TH1.h>
@@ -22,6 +22,7 @@
 #include "MitAna/DataTree/interface/TriggerObjectCol.h"
 #include "MitAna/DataTree/interface/JetCol.h"
 #include "MitAna/DataTree/interface/PFJetCol.h"
+#include "MitAna/DataTree/interface/PFTauCol.h"
 #include "MitAna/DataTree/interface/PFCandidateCol.h"
 #include "MitMonoJet/Core/MitGPBoostedVTree.h"
 
@@ -45,7 +46,15 @@ namespace mithep
     void                          SetJetsFromBranch(bool b)         { fJetsFromBranch = b; }
     void                          SetPFCandidatesName(const char *n){ fPFCandidatesName = n; }
     void                          SetPFCandidatesFromBranch(bool b) { fPFCandidatesFromBranch = b; }
+    void                          SetPhotonsName(const char *n)     { fPhotonsName= n; }
+    void                          SetPhotonsFromBranch(bool b)      { fPhotonsFromBranch = b; }
+    void                          SetPFTausName(const char *n)      { fPFTausName = n; }
+    void                          SetPFTausFromBranch(bool b)       { fPFTausFromBranch = b; }
+    void                          SetLeptonsName(const char *n)     { fLeptonsName  = n; } 
+    void                          SetPFNoPileUpName(const char *n)  { fPFNoPileUpName  = n; } 
+    void                          SetPFPileUpName(const char *n)    { fPFPileUpName  = n; }
     void                          SetOutputName(const char *n)      { fOutputName = n; }
+    void                          SetPruning(Int_t n)               { fPrune = n; }
 
     void                          SetHistNPtBins(Int_t n)           { fHistNPtBins = n; }
     void                          SetHistNEtaBins(Int_t n)          { fHistNEtaBins = n; }
@@ -73,12 +82,12 @@ namespace mithep
     void                          Process();
     void                          SlaveBegin();
     void                          SlaveTerminate();
-
   private:
     void                          ProcessMc();             // Deals with the MC separately
     void                          GetJetTriggerObjs();     // Fills the jet trigger objs
     Double_t                      MinTriggerDeltaR(LorentzVector jet);
     float                         GetTau(fastjet::PseudoJet &iJet,int iN, float iKappa);
+    bool                          IsTightMuon(const Muon *muon);
 
     Bool_t                        fIsData;                 //is this data or MC?
     TString                       fMcPartsName;            //(i) name of MC particles
@@ -91,12 +100,23 @@ namespace mithep
     TString                       fPFCandidatesName;       //(i) name of PF candidates coll
     Bool_t                        fPFCandidatesFromBranch; //are PF candidates from Branch?
     const PFCandidateCol         *fPFCandidates;           //particle flow candidates coll handle
+    TString                       fPhotonsName;            //(i) name of photon coll
+    Bool_t                        fPhotonsFromBranch;      //are photons from Branch?
+    const PhotonCol              *fPhotons;                //photon coll handle
+    TString                       fPFTausName;             //(i) name of PF tau coll
+    Bool_t                        fPFTausFromBranch;       //are PF taus from Branch?
+    const PFTauCol               *fPFTaus;                 //PF tau coll handle
+
+    TString                       fLeptonsName;            //(i) name of the merged leptons
+    TString                       fPFNoPileUpName;         //(i) name for PF no pileup candidates
+    TString                       fPFPileUpName;           //(i) name for PF pileup candidates
 
     std::vector<const TriggerObject *>
                                   fJetTriggerObjs;         //jet trigger objects
 
     // Objects from fastjet we want to use
     double                        fConeSize;
+    int                           fPrune;                  //apply pruning: 0-no, 1-standard CMS
     fastjet::Pruner              *fPruner;
     fastjet::JetDefinition       *fCAJetDef;
     fastjet::GhostedAreaSpec     *fActiveArea;

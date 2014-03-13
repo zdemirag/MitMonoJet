@@ -392,6 +392,12 @@ void runBoostedV(const char *fileset    = "0000",
   boostedVMod->SetTriggerObjsName(hltModP->GetOutputName());
   boostedVMod->SetJetsName(jetCleaning->GetOutputName());
   boostedVMod->SetJetsFromBranch(kFALSE);
+  boostedVMod->SetPhotonsName(photonCleaningMod->GetOutputName());
+  boostedVMod->SetPhotonsFromBranch(kFALSE);
+  boostedVMod->SetPFTausName(pftauCleaningMod->GetOutputName());
+  boostedVMod->SetPFTausFromBranch(kFALSE);
+  boostedVMod->SetLeptonsName(merger->GetOutputName());
+  boostedVMod->SetPruning(0);
   boostedVMod->SetHistNPtBins(100);
   boostedVMod->SetHistNEtaBins(100);
   boostedVMod->SetHistMinPt(0.);
