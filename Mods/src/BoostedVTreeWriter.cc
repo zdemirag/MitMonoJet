@@ -195,7 +195,7 @@ void BoostedVTreeWriter::Process()
   
   // Fill up the tree
   fMitGPTree.jet1_.SetPxPyPzE( lJet1.px(), lJet1.py(), lJet1.pz(), lJet1.e() );
-  fMitGPTree.jet1NParts_ = lJet1.constitutents().size();
+  fMitGPTree.jet1NParts_ = lJet1.constituents().size();
   fMitGPTree.jet1Pt_ = lJet1.pt();
   fMitGPTree.jet1Eta_ = lJet1.eta();
   fMitGPTree.jet1Phi_ = lJet1.phi();
@@ -208,6 +208,7 @@ void BoostedVTreeWriter::Process()
   // Only if there is a second jet
   if (lOutJets.size() > 1) {
     fMitGPTree.jet2_.SetPxPyPzE(lJet2.px(),lJet2.py(),lJet2.pz(),lJet2.e());
+    fMitGPTree.jet2NParts_ = lJet2.constituents().size();
     fMitGPTree.jet2Pt_ = lJet2.pt();
     fMitGPTree.jet2Eta_ = lJet2.eta();
     fMitGPTree.jet2Phi_ = lJet2.phi();
@@ -231,7 +232,8 @@ void BoostedVTreeWriter::Process()
       const Muon* mu = dynamic_cast<const Muon*>(lep);
       fMitGPTree.lep1IsTightMuon_ = IsTightMuon(mu);
       fMitGPTree.lep1PtErr_ = mu->BestTrk()->PtErr()/mu->BestTrk()->Pt();
-      double totalIso =  IsolationTools::BetaMwithPUCorrection(lPFNoPileUpCands,lPFPileUpCands,mu,0.4);
+      double totalIso =
+	IsolationTools::BetaMwithPUCorrection(lPFNoPileUpCands,lPFPileUpCands,mu,0.4);
       fMitGPTree.lep1IsIsolated_ = totalIso < (mu->Pt()*0.2);
     }
     else if (lep->ObjType() == kElectron)
@@ -252,7 +254,8 @@ void BoostedVTreeWriter::Process()
       const Muon* mu = dynamic_cast<const Muon*>(lep);
       fMitGPTree.lep2IsTightMuon_ = IsTightMuon(mu);
       fMitGPTree.lep2PtErr_ = mu->BestTrk()->PtErr()/mu->BestTrk()->Pt();
-      double totalIso =  IsolationTools::BetaMwithPUCorrection(lPFNoPileUpCands,lPFPileUpCands,mu,0.4);
+      double totalIso =
+	IsolationTools::BetaMwithPUCorrection(lPFNoPileUpCands,lPFPileUpCands,mu,0.4);
       fMitGPTree.lep2IsIsolated_ = totalIso < (mu->Pt()*0.2);
     }
     else if (lep->ObjType() == kElectron)
@@ -465,6 +468,7 @@ void BoostedVTreeWriter::ProcessMc()
   
   // Fill up the tree
   fMitGPTree.genJet1_.SetPxPyPzE(lJet1.px(),lJet1.py(),lJet1.pz(),lJet1.e());
+  fMitGPTree.genJet1NParts_ = lJet1.constituents().size();
   fMitGPTree.genJet1Pt_ = lJet1.pt();
   fMitGPTree.genJet1Eta_ = lJet1.eta();
   fMitGPTree.genJet1Phi_ = lJet1.phi();
@@ -476,6 +480,7 @@ void BoostedVTreeWriter::ProcessMc()
 
   if (lOutJets.size() > 1) {
     fMitGPTree.genJet2_.SetPxPyPzE(lJet2.px(),lJet2.py(),lJet2.pz(),lJet2.e());
+    fMitGPTree.genJet2NParts_ = lJet2.constituents().size();
     fMitGPTree.genJet2Pt_ = lJet2.pt();
     fMitGPTree.genJet2Eta_ = lJet2.eta();
     fMitGPTree.genJet2Phi_ = lJet2.phi();
