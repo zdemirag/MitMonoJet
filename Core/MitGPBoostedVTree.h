@@ -74,6 +74,7 @@ public:
   float                  jet1R_;
   float                  jet1M_;
   float                  jet1MinTrigDr_;
+  float                  jet1QGTag_;
 
   LorentzVector          jet2_;
   float                  jet2NParts_;
@@ -86,6 +87,7 @@ public:
   float                  jet2R_;
   float                  jet2M_;
   float                  jet2MinTrigDr_;
+  float                  jet2QGTag_;
 
   unsigned int           nlep_;
   LorentzVector          lep1_;
@@ -218,6 +220,7 @@ public:
     tree_->Branch("jet1Tau2"        , &jet1Tau2_,        "jet1Tau2/F");
     tree_->Branch("jet1Tau3"        , &jet1Tau3_,        "jet1Tau3/F");
     tree_->Branch("jet1MinTrigDr"   , &jet1MinTrigDr_,   "jet1MinTrigDr/F");
+    tree_->Branch("jet1QGTag"       , &jet1QGTag_,       "jet1QGTag/F");
 
     tree_->Branch("jet2"            , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr2_);
     tree_->Branch("jet2NParts"      , &jet2NParts_,      "jet2NParts/I");
@@ -230,6 +233,7 @@ public:
     tree_->Branch("jet2Tau2"        , &jet2Tau2_,        "jet2Tau2/F");
     tree_->Branch("jet2Tau3"        , &jet2Tau3_,        "jet2Tau3/F");
     tree_->Branch("jet2MinTrigDr"   , &jet2MinTrigDr_,   "jet2MinTrigDr/F");
+    tree_->Branch("jet2QGTag"       , &jet2QGTag_,       "jet2QGTag/F");
 
     tree_->Branch("nlep"            , &nlep_,            "nlep/i");
     tree_->Branch("lep1"            , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &lepPtr1_);
@@ -314,6 +318,7 @@ public:
     tree_->SetBranchAddress("jet1Tau2"        , &jet1Tau2_);
     tree_->SetBranchAddress("jet1Tau3"        , &jet1Tau3_);
     tree_->SetBranchAddress("jet1MinTrigDr"   , &jet1MinTrigDr_);
+    tree_->SetBranchAddress("jet1QGTag"       , &jet1QGTag_);
 
     tree_->SetBranchAddress("jet2"            , &jetPtr2_);
     tree_->SetBranchAddress("jet2NParts"      , &jet2NParts_);
@@ -326,6 +331,7 @@ public:
     tree_->SetBranchAddress("jet2Tau2"        , &jet2Tau2_);
     tree_->SetBranchAddress("jet2Tau3"        , &jet2Tau3_);
     tree_->SetBranchAddress("jet2MinTrigDr"   , &jet2MinTrigDr_);
+    tree_->SetBranchAddress("jet2QGTag"       , &jet2QGTag_);
 
     tree_->SetBranchAddress("nlep"            , &nlep_);
     tree_->SetBranchAddress("lep1"            , &lepPtr1_);
@@ -415,6 +421,7 @@ MitGPBoostedVTree::InitVariables()
   jet1R_            = 0;
   jet1M_            = 0;
   jet1MinTrigDr_    = 999;
+  jet1QGTag_        = 0;
 
   jet2_             = LorentzVector();
   jet2NParts_       = 0;
@@ -427,6 +434,7 @@ MitGPBoostedVTree::InitVariables()
   jet2R_            = 0;
   jet2M_            = 0;
   jet2MinTrigDr_    = 999;
+  jet2QGTag_        = 0;
 
   nlep_             = 0;
   lep1_       	    = LorentzVector();

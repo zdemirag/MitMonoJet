@@ -25,6 +25,7 @@
 #include "MitAna/DataTree/interface/PFTauCol.h"
 #include "MitAna/DataTree/interface/PFCandidateCol.h"
 #include "MitMonoJet/Core/MitGPBoostedVTree.h"
+#include "MitPhysics/Utils/interface/QGTagger.h"
 
 namespace mithep
 {
@@ -53,6 +54,7 @@ namespace mithep
     void                          SetLeptonsName(const char *n)     { fLeptonsName  = n; } 
     void                          SetPFNoPileUpName(const char *n)  { fPFNoPileUpName  = n; } 
     void                          SetPFPileUpName(const char *n)    { fPFPileUpName  = n; }
+    void                          SetQGTaggerCHS(bool b)            { fQGTaggerCHS = b; }
     void                          SetOutputName(const char *n)      { fOutputName = n; }
     void                          SetPruning(Int_t n)               { fPrune = n; }
 
@@ -111,6 +113,12 @@ namespace mithep
     TString                       fLeptonsName;            //(i) name of the merged leptons
     TString                       fPFNoPileUpName;         //(i) name for PF no pileup candidates
     TString                       fPFPileUpName;           //(i) name for PF pileup candidates
+
+    QGTagger                     *qgTagger;                //object used to compute jets Q/G discrimination
+    Bool_t                        fQGTaggerCHS;            //are the input jets CHS?
+    TString                       fPileUpDenName;          //(i) name for PF pileup energy density
+    const PileupEnergyDensityCol *fPileUpDen;              //PU energy density handle             
+    TString                       fVertexesName;           //(i) name for the good vertexes
 
     std::vector<const TriggerObject *>
                                   fJetTriggerObjs;         //jet trigger objects

@@ -37,6 +37,10 @@ BoostedVTreeWriter::BoostedVTreeWriter(const char *name, const char *title) :
   fLeptonsName           (ModNames::gkMergedLeptonsName),
   fPFNoPileUpName        ("pfnopileupcands"),
   fPFPileUpName          ("pfpileupcands"),
+  fQGTaggerCHS           (kTRUE),
+  fPileUpDenName         (Names::gkPileupEnergyDensityBrn),
+  fPileUpDen             (0),
+  fVertexesName          (ModNames::gkGoodVertexesName),
   fJetTriggerObjs        (0),
   fConeSize              (0.6),
   fPrune                 (1.),
@@ -65,6 +69,9 @@ BoostedVTreeWriter::BoostedVTreeWriter(const char *name, const char *title) :
   fOutputName            ("BoostedVNtuple.root"),
   fOutputFile            (0)
 {
+  // WARNING, defining the object here invalidates the call of the setter for the CHS flag
+  qgTagger = new QGTagger(fQGTaggerCHS);
+
   // Constructor.
 }
 
@@ -82,12 +89,16 @@ void BoostedVTreeWriter::Process()
   LoadEventObject(fPFCandidatesName,fPFCandidates,fPFCandidatesFromBranch);
   LoadEventObject(fPhotonsName,fPhotons,fPhotonsFromBranch);
   LoadEventObject(fPFTausName,fPFTaus,fPFTausFromBranch);
-
+  LoadEventObject(fPFTausName,fPFTaus,fPFTausFromBranch);
+  LoadEventObject(fPileUpDenName,fPileUpDen,kTRUE);
   ParticleOArr *leptons = GetObjThisEvt<ParticleOArr>(ModNames::gkMergedLeptonsName);
 
   // Careful the are not booked and just local (needed only for isolation)
   const PFCandidateCol *lPFNoPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFNoPileUpName);    
   const PFCandidateCol *lPFPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFPileUpName);
+
+  // Also these are not booked and just local (needed only for QG discriminant)
+  const VertexCol *lVertexes = GetObjThisEvt<VertexOArr>(fVertexesName);
 
   // Extract the jet trigger objects from all trigger objects
   GetJetTriggerObjs();
@@ -105,7 +116,12 @@ void BoostedVTreeWriter::Process()
   fMitGPTree.run_ = GetEventHeader()->RunNum();
   fMitGPTree.event_ = GetEventHeader()->EvtNum();
   fMitGPTree.lumi_ = GetEventHeader()->LumiSec();
-
+  
+  // Tell to the QG tagger what is the PU energy density
+  qgTagger->SetRhoIso(fPileUpDen->At(0)->RhoRandomLowEta());
+  float jet1QGTag = 0;
+  float jet2QGTag = 0;
+  
   // Loop over jets and perform Nsubjettiness analysis (for now just stick with the first jet)
   std::vector<fastjet::PseudoJet> lFjParts;
   for (UInt_t i=0; i<fJets->GetEntries(); ++i) {      
@@ -131,6 +147,13 @@ void BoostedVTreeWriter::Process()
     	  fMitGPTree.trigger_ |= 1 << 1;
       }
     }
+
+    // Compute the QG discrimination varaible for this jet and assign it
+    qgTagger->CalculateVariables(jet, lVertexes);
+    if (i==0)
+      jet1QGTag = qgTagger->QGValue();
+    if (i==1)
+      jet2QGTag = qgTagger->QGValue();    
     
     // Push all particle flow candidates into fastjet particle collection
     for (UInt_t j=0; j<jet->NPFCands(); ++j) {      
@@ -204,6 +227,7 @@ void BoostedVTreeWriter::Process()
   fMitGPTree.jet1Tau2_ = GetTau(lJet1,2,1);
   fMitGPTree.jet1Tau3_ = GetTau(lJet1,3,1);
   fMitGPTree.jet1MinTrigDr_ = MinTriggerDeltaR(fMitGPTree.jet1_);
+  fMitGPTree.jet1QGTag_ = jet1QGTag;
 
   // Only if there is a second jet
   if (lOutJets.size() > 1) {
@@ -217,6 +241,7 @@ void BoostedVTreeWriter::Process()
     fMitGPTree.jet2Tau2_ = GetTau(lJet2,2,1);
     fMitGPTree.jet2Tau3_ = GetTau(lJet2,3,1);
     fMitGPTree.jet2MinTrigDr_ = MinTriggerDeltaR(fMitGPTree.jet2_);
+    fMitGPTree.jet2QGTag_ = jet2QGTag;
   }
 
 
@@ -328,6 +353,7 @@ void BoostedVTreeWriter::SlaveBegin()
   ReqEventObject(fPFCandidatesName,fPFCandidates,fPFCandidatesFromBranch);
   ReqEventObject(fPhotonsName,fPhotons,fPhotonsFromBranch);
   ReqEventObject(fPFTausName,fPFTaus,fPFTausFromBranch);
+  ReqEventObject(fPileUpDenName, fPileUpDen, kTRUE);
 
   // Default pruning parameters
   fPruner          = new fastjet::Pruner(fastjet::cambridge_algorithm,0.1,0.5);      // CMS Default
