@@ -139,7 +139,6 @@ void runBoostedV(const char *fileset    = "0000",
   else 
     d = c->FindDataset(bookstr,skimdataset.Data(),fileset,true);
   ana->AddDataset(d);
-  //ana->AddFile("/mnt/hadoop/cms/store/user/paus/filefi/032/s12-wjets-ptw100-v7a/FCEC7DAE-A367-E211-A486-0024E87687BE.root");
 
   //------------------------------------------------------------------------------------------------
   // organize output
@@ -148,7 +147,7 @@ void runBoostedV(const char *fileset    = "0000",
   rootFile += TString("_") + TString(dataset) + TString("_") + TString(skim);
   if (TString(fileset) != TString(""))
     rootFile += TString("_") + TString(fileset);
-  //TString ntupleFile = rootFile + TString("_ntuple.root");
+  TString ntupleFile = rootFile + TString("_ntuple.root");
   rootFile += TString(".root");
   ana->SetOutputName(rootFile.Data());
   ana->SetCacheSize(0);
@@ -204,9 +203,12 @@ void runBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   // object id and cleaning sequence
   //------------------------------------------------------------------------------------------------
+
   //-----------------------------------
   // Lepton Selection
   //-----------------------------------
+  printf(" Make Photons.\n");
+
   ElectronIDMod* eleIdMod = new ElectronIDMod;
   eleIdMod->SetPtMin(10.);
   eleIdMod->SetEtaMax(2.5);
@@ -269,6 +271,8 @@ void runBoostedV(const char *fileset    = "0000",
   //-----------------------------------
   // Photon Regression + ID
   //-----------------------------------
+  printf(" Make Photons.\n");
+
   PhotonMvaMod *photonReg = new PhotonMvaMod;
   photonReg->SetRegressionVersion(3);
   photonReg->SetRegressionWeights((mitData+TString("/gbrv3ph_52x.root")).Data());
@@ -324,18 +328,22 @@ void runBoostedV(const char *fileset    = "0000",
   photonIdMod->SetShowerShapeType("2012ShowerShape");
   photonIdMod->Set2012HCP(kTRUE);
 
-  PFTauIDMod *pftauIdMod = new PFTauIDMod;
-  pftauIdMod->SetPFTausName("HPSTaus");
-  pftauIdMod->SetIsLooseId(kFALSE);
-
   PhotonCleaningMod *photonCleaningMod = new PhotonCleaningMod;
   photonCleaningMod->SetCleanElectronsName(electronCleaning->GetOutputName());
   photonCleaningMod->SetGoodPhotonsName(photonIdMod->GetOutputName());
   photonCleaningMod->SetCleanPhotonsName("CleanPhotons");
 
+  printf(" Make Taus.\n");
+
+  PFTauIDMod *pftauIdMod = new PFTauIDMod;
+  pftauIdMod->SetPFTausName("HPSTaus");
+  pftauIdMod->SetIsLooseId(kFALSE);
+
   PFTauCleaningMod *pftauCleaningMod = new PFTauCleaningMod;
   pftauCleaningMod->SetGoodPFTausName(pftauIdMod->GetGoodPFTausName());
   pftauCleaningMod->SetCleanMuonsName(muonId->GetOutputName());
+
+  printf(" Make Jets.\n");
 
   PublisherMod<PFJet,Jet> *pubJet = new PublisherMod<PFJet,Jet>("JetPub");
   pubJet->SetInputName("AKt5PFJets");
@@ -383,26 +391,32 @@ void runBoostedV(const char *fileset    = "0000",
   jetCleaning->SetApplyPhotonRemoval(kTRUE);
   jetCleaning->SetGoodJetsName(jetId->GetOutputName());
   jetCleaning->SetCleanJetsName("CleanJets");
+
+
+  printf(" Define Boosted.\n");
  
   //------------------------------------------------------------------------------------------------
   // select events with a given jet substructure
   //------------------------------------------------------------------------------------------------
   BoostedVTreeWriter *boostedVMod = new BoostedVTreeWriter;
-  boostedVMod->SetIsData(isData);
-  boostedVMod->SetTriggerObjsName(hltModP->GetOutputName());
-  boostedVMod->SetJetsName(jetCleaning->GetOutputName());
-  boostedVMod->SetJetsFromBranch(kFALSE);
-  boostedVMod->SetPhotonsName(photonCleaningMod->GetOutputName());
-  boostedVMod->SetPhotonsFromBranch(kFALSE);
-  boostedVMod->SetPFTausName(pftauCleaningMod->GetOutputName());
-  boostedVMod->SetPFTausFromBranch(kFALSE);
-  boostedVMod->SetLeptonsName(merger->GetOutputName());
-  boostedVMod->SetPruning(1);
-  //boostedVMod->SetOutputName(ntupleFile.Data());
+  printf(" Define Boosted 1.\n");boostedVMod->SetIsData(isData);
+  printf(" Define Boosted 2.\n");boostedVMod->SetTriggerObjsName(hltModP->GetOutputName());
+  printf(" Define Boosted 3.\n");boostedVMod->SetJetsName(jetCleaning->GetOutputName());
+  printf(" Define Boosted 4.\n");boostedVMod->SetJetsFromBranch(kFALSE);
+  printf(" Define Boosted 5.\n");boostedVMod->SetPhotonsName(photonCleaningMod->GetOutputName());
+  printf(" Define Boosted 6.\n");boostedVMod->SetPhotonsFromBranch(kFALSE);
+  printf(" Define Boosted 7.\n");boostedVMod->SetPFTausName(pftauCleaningMod->GetOutputName());
+  printf(" Define Boosted 8.\n");boostedVMod->SetPFTausFromBranch(kFALSE);
+  printf(" Define Boosted 9.\n");boostedVMod->SetLeptonsName(merger->GetOutputName());
+  printf(" Define Boosted 0.\n");boostedVMod->SetPruning(1);
+  boostedVMod->SetOutputName(ntupleFile.Data());
 
   //------------------------------------------------------------------------------------------------
   // making analysis chain
   //------------------------------------------------------------------------------------------------
+
+  printf(" Analysis Chain.\n");
+
   runLumiSel       ->Add(goodPVFilterMod);
   goodPVFilterMod  ->Add(hltModP);
   hltModP          ->Add(photonReg);
@@ -430,7 +444,7 @@ void runBoostedV(const char *fileset    = "0000",
   printf("\n Rely on Catalog: %s\n",cataDir.Data());
   printf("  -> Book: %s  Dataset: %s  Skim: %s  Fileset: %s <-\n",book,dataset,skim,fileset);
   printf("\n Root output:   %s\n",rootFile.Data());  
-  //printf("\n Ntuple output: %s\n\n",ntupleFile.Data());  
+  printf("\n Ntuple output: %s\n\n",ntupleFile.Data());  
   printf("\n========================================\n");
 
   //------------------------------------------------------------------------------------------------

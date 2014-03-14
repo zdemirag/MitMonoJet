@@ -54,7 +54,7 @@ namespace mithep
     void                          SetPFNoPileUpName(const char *n)  { fPfNoPileUpName  = n; } 
     void                          SetPFPileUpName(const char *n)    { fPfPileUpName  = n; }
     void                          SetQgTaggerCHS(bool b)            { fQgTaggerCHS = b; }
-    //void                          SetOutputName(const char *n)      { fOutputName = n; }
+    void                          SetOutputName(const char *n)      { fOutputName = n; }
     void                          SetPruning(Int_t n)               { fPrune = n; }
 
   protected:
@@ -113,8 +113,8 @@ namespace mithep
     Int_t                         fNAnalyzed;              //number of events analyzed
 
     // Output tree
-    //TString                       fOutputName;             //(o) name of ntuple output
-    //TFile	                 *fOutputFile;
+    TString                       fOutputName;             //(o) name of ntuple output
+    TFile	                 *fOutputFile;
     MitGPBoostedVTree             fMitGPTree;
 
     ClassDef(BoostedVTreeWriter, 0) // Boosted Vector boson tree writer

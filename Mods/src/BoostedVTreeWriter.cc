@@ -44,20 +44,20 @@ BoostedVTreeWriter::BoostedVTreeWriter(const char *name, const char *title) :
   fJetTriggerObjs        (0),
   fConeSize              (0.6),
   fPrune                 (1.),
-  fNAnalyzed             (0)
-				      //fOutputName            ("BoostedVNtuple.root"),
-				      //fOutputFile            (0)
+  fNAnalyzed             (0),
+  fOutputName            ("BoostedVNtuple.root"),
+  fOutputFile            (0)
 {
+  // Constructor.
+
   // WARNING, defining the object here invalidates the call of the setter for the CHS flag
   fQgTagger = new QGTagger(fQgTaggerCHS);
-
-  // Constructor.
 }
 
 BoostedVTreeWriter::~BoostedVTreeWriter()
 {
   // Destructor
-  //fOutputFile->Close();
+  fOutputFile->Close();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -215,7 +215,6 @@ void BoostedVTreeWriter::Process()
     fMitGPTree.jet2QgTag_ = jet2QgTag;
   }
 
-
   // LEPTONS (MUONS/ELECTRONS)
 
   fMitGPTree.nLep_ = leptons->GetEntries();
@@ -343,11 +342,12 @@ void BoostedVTreeWriter::SlaveBegin()
   fAreaDefinition  = new fastjet::AreaDefinition(fastjet::active_area_explicit_ghosts,*fActiveArea);
 
   // Create Ntuple Tree
-  //fOutputFile = TFile::Open(fOutputName,"RECREATE");
-  //fMitGPTree.CreateTree();
-  //fMitGPTree.tree_->SetAutoSave(300e9);
-  //fMitGPTree.tree_->SetDirectory(fOutputFile);
-  //AddOutput(fMitGPTree.tree_);
+
+  fOutputFile = TFile::Open(fOutputName,"RECREATE");
+  fMitGPTree.CreateTree();
+  fMitGPTree.tree_->SetAutoSave(300e9);
+  fMitGPTree.tree_->SetDirectory(fOutputFile);
+  AddOutput(fMitGPTree.tree_);
 
   // to the output module
   fMitGPTree.CreateTree(0);
@@ -361,8 +361,8 @@ void BoostedVTreeWriter::SlaveTerminate()
   // Say how many events were analyzed
   printf("\n BoostedVTreeWriter::Terminate - Events analyzed: %d\n\n",fNAnalyzed);
 
-  //// Save the ntuple file
-  //fOutputFile->WriteTObject(fMitGPTree.tree_,fMitGPTree.tree_->GetName());
+  // Save the ntuple file
+  fOutputFile->WriteTObject(fMitGPTree.tree_,fMitGPTree.tree_->GetName());
 }
 
 //--------------------------------------------------------------------------------------------------
