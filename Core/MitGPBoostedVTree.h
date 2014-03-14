@@ -56,6 +56,11 @@ public:
   float                  genJet2M_;
   float                  genJet2MinTrigDr_;
 
+  LorentzVector          genLep1_;
+  int                    genLep1Pid_;
+  LorentzVector          genLep2_;
+  int                    genLep2Pid_;
+
   unsigned int           event_;
   unsigned int           run_;
   unsigned int           lumi_;
@@ -74,7 +79,7 @@ public:
   float                  jet1R_;
   float                  jet1M_;
   float                  jet1MinTrigDr_;
-  float                  jet1QGTag_;
+  float                  jet1QgTag_;
 
   LorentzVector          jet2_;
   float                  jet2NParts_;
@@ -87,28 +92,28 @@ public:
   float                  jet2R_;
   float                  jet2M_;
   float                  jet2MinTrigDr_;
-  float                  jet2QGTag_;
+  float                  jet2QgTag_;
 
-  unsigned int           nlep_;
+  unsigned int           nLep_;
   LorentzVector          lep1_;
-  int                    lid1_;
+  int                    lepId1_;
   int		         lep1IsTightMuon_;
   int		         lep1IsIsolated_;
   float                  lep1PtErr_;
   LorentzVector          lep2_;
-  int                    lid2_;
+  int                    lepId2_;
   int		         lep2IsTightMuon_;
   int		         lep2IsIsolated_;
   float                  lep2PtErr_;
   LorentzVector          lep3_;
-  int                    lid3_;
+  int                    lepId3_;
   int		         lep3IsTightMuon_;
 		         
-  unsigned int           ntaus_;
+  unsigned int           nTaus_;
   LorentzVector          tau1_;
   LorentzVector          tau2_;
 		         
-  unsigned int           nphotons_;
+  unsigned int           nPhotons_;
   LorentzVector          pho1_;
 
   // this is the main element
@@ -122,9 +127,10 @@ public:
   MitGPBoostedVTree() :
     jetPtr1_(&jet1_), jetPtr2_(&jet2_),
     genJetPtr1_(&genJet1_), genJetPtr2_(&genJet2_),
+    genLepPtr1_(&genLep1_),genLepPtr2_(&genLep2_),
     lepPtr1_(&lep1_), lepPtr2_(&lep2_), lepPtr3_(&lep3_),
     tauPtr1_(&tau1_), tauPtr2_(&tau2_),
-    phoPtr1_(&pho1_)
+    phoPtr1_(&pho1_)    
   {}
 
   // default destructor
@@ -206,6 +212,11 @@ public:
     tree_->Branch("genJet2Tau3"     , &genJet2Tau3_,     "genJet2Tau3/F");
     tree_->Branch("genJet2MinTrigDr", &genJet2MinTrigDr_,"genJet2MinTrigDr/F");
 
+    tree_->Branch("genLep1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genLepPtr1_);
+    tree_->Branch("genLep1Pid"      , &genLep1Pid_,      "genLep1Pid/I");
+    tree_->Branch("genLep2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genLepPtr2_);
+    tree_->Branch("genLep2Pid"      , &genLep2Pid_,      "genLep2Pid/I");
+
     tree_->Branch("nParts"          , &nParts_,          "nParts/i");
     tree_->Branch("numJets"         , &numJets_,         "numJets/i");
 
@@ -220,7 +231,7 @@ public:
     tree_->Branch("jet1Tau2"        , &jet1Tau2_,        "jet1Tau2/F");
     tree_->Branch("jet1Tau3"        , &jet1Tau3_,        "jet1Tau3/F");
     tree_->Branch("jet1MinTrigDr"   , &jet1MinTrigDr_,   "jet1MinTrigDr/F");
-    tree_->Branch("jet1QGTag"       , &jet1QGTag_,       "jet1QGTag/F");
+    tree_->Branch("jet1QgTag"       , &jet1QgTag_,       "jet1QgTag/F");
 
     tree_->Branch("jet2"            , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr2_);
     tree_->Branch("jet2NParts"      , &jet2NParts_,      "jet2NParts/I");
@@ -233,28 +244,28 @@ public:
     tree_->Branch("jet2Tau2"        , &jet2Tau2_,        "jet2Tau2/F");
     tree_->Branch("jet2Tau3"        , &jet2Tau3_,        "jet2Tau3/F");
     tree_->Branch("jet2MinTrigDr"   , &jet2MinTrigDr_,   "jet2MinTrigDr/F");
-    tree_->Branch("jet2QGTag"       , &jet2QGTag_,       "jet2QGTag/F");
+    tree_->Branch("jet2QgTag"       , &jet2QgTag_,       "jet2QgTag/F");
 
-    tree_->Branch("nlep"            , &nlep_,            "nlep/i");
+    tree_->Branch("nLep"            , &nLep_,            "nLep/i");
     tree_->Branch("lep1"            , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &lepPtr1_);
-    tree_->Branch("lid1"            , &lid1_,            "lid1/I");
+    tree_->Branch("lepId1"          , &lepId1_,          "lepId1/I");
     tree_->Branch("lep1IsTightMuon" , &lep1IsTightMuon_, "lep1IsTightMuon/I");
     tree_->Branch("lep1IsIsolated"  , &lep1IsIsolated_,  "lep1IsIsolated/I");
     tree_->Branch("lep1PtErr"       , &lep1PtErr_,       "lep1PtErr/F");
     tree_->Branch("lep2"            , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &lepPtr2_);
-    tree_->Branch("lid2"            , &lid2_,            "lid2/I");
+    tree_->Branch("lepId2"          , &lepId2_,          "lepId2/I");
     tree_->Branch("lep2IsTightMuon" , &lep2IsTightMuon_, "lep2IsTightMuon/I");
     tree_->Branch("lep2IsIsolated"  , &lep2IsIsolated_,  "lep2IsIsolated/I");
     tree_->Branch("lep2PtErr"       , &lep2PtErr_,       "lep2PtErr/F");
     tree_->Branch("lep3"            , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &lepPtr3_);
-    tree_->Branch("lid3"            , &lid3_,            "lid3/I");
+    tree_->Branch("lepId3"          , &lepId3_,          "lepId3/I");
     tree_->Branch("lep3IsTightMuon" , &lep3IsTightMuon_, "lep3IsTightMuon/I");
 
-    tree_->Branch("ntaus"           , &ntaus_,           "ntaus/i");
+    tree_->Branch("nTaus"           , &nTaus_,           "nTaus/i");
     tree_->Branch("tau1"            , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &tauPtr1_);
     tree_->Branch("tau2"            , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &tauPtr2_);
 
-    tree_->Branch("nphotons"        , &nphotons_,        "nphotons/i");
+    tree_->Branch("nPhotons"        , &nPhotons_,        "nPhotons/i");
     tree_->Branch("pho1"            , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr1_);
   }
 
@@ -304,6 +315,11 @@ public:
     tree_->SetBranchAddress("genJet2Tau3"     , &genJet2Tau3_);
     tree_->SetBranchAddress("genJet2MinTrigDr", &genJet2MinTrigDr_);
 
+    tree_->SetBranchAddress("genLep1"         , &genLepPtr1_);
+    tree_->SetBranchAddress("genLep1Pid"      , &genLep1Pid_);
+    tree_->SetBranchAddress("genLep2"         , &genLepPtr2_);
+    tree_->SetBranchAddress("genLep2Pid"      , &genLep2Pid_);
+
     tree_->SetBranchAddress("nParts"          , &nParts_);
     tree_->SetBranchAddress("numJets"         , &numJets_);
 
@@ -318,7 +334,7 @@ public:
     tree_->SetBranchAddress("jet1Tau2"        , &jet1Tau2_);
     tree_->SetBranchAddress("jet1Tau3"        , &jet1Tau3_);
     tree_->SetBranchAddress("jet1MinTrigDr"   , &jet1MinTrigDr_);
-    tree_->SetBranchAddress("jet1QGTag"       , &jet1QGTag_);
+    tree_->SetBranchAddress("jet1QgTag"       , &jet1QgTag_);
 
     tree_->SetBranchAddress("jet2"            , &jetPtr2_);
     tree_->SetBranchAddress("jet2NParts"      , &jet2NParts_);
@@ -331,28 +347,28 @@ public:
     tree_->SetBranchAddress("jet2Tau2"        , &jet2Tau2_);
     tree_->SetBranchAddress("jet2Tau3"        , &jet2Tau3_);
     tree_->SetBranchAddress("jet2MinTrigDr"   , &jet2MinTrigDr_);
-    tree_->SetBranchAddress("jet2QGTag"       , &jet2QGTag_);
+    tree_->SetBranchAddress("jet2QgTag"       , &jet2QgTag_);
 
-    tree_->SetBranchAddress("nlep"            , &nlep_);
+    tree_->SetBranchAddress("nLep"            , &nLep_);
     tree_->SetBranchAddress("lep1"            , &lepPtr1_);
-    tree_->SetBranchAddress("lid1"            , &lid1_);
+    tree_->SetBranchAddress("lepId1"          , &lepId1_);
     tree_->SetBranchAddress("lep1IsTightMuon" , &lep1IsTightMuon_);
     tree_->SetBranchAddress("lep1IsIsolated"  , &lep1IsIsolated_);
     tree_->SetBranchAddress("lep1PtErr"       , &lep1PtErr_);
     tree_->SetBranchAddress("lep2"            , &lepPtr2_);
-    tree_->SetBranchAddress("lid2"            , &lid2_);
+    tree_->SetBranchAddress("lepId2"          , &lepId2_);
     tree_->SetBranchAddress("lep2IsTightMuon" , &lep2IsTightMuon_);
     tree_->SetBranchAddress("lep2IsIsolated"  , &lep2IsIsolated_);
     tree_->SetBranchAddress("lep2PtErr"       , &lep2PtErr_);
     tree_->SetBranchAddress("lep3"            , &lepPtr3_);
-    tree_->SetBranchAddress("lid3"            , &lid3_);
+    tree_->SetBranchAddress("lepId3"          , &lepId3_);
     tree_->SetBranchAddress("lep3IsTightMuon" , &lep3IsTightMuon_);
 
-    tree_->SetBranchAddress("ntaus"           , &ntaus_);
+    tree_->SetBranchAddress("nTaus"           , &nTaus_);
     tree_->SetBranchAddress("tau1"            , &tauPtr1_);
     tree_->SetBranchAddress("tau2"            , &tauPtr2_);
 
-    tree_->SetBranchAddress("nphotons"        , &nphotons_);
+    tree_->SetBranchAddress("nPhotons"        , &nPhotons_);
     tree_->SetBranchAddress("pho1"            , &phoPtr1_);
 
     gErrorIgnoreLevel = currentState;
@@ -363,6 +379,8 @@ private:
   LorentzVector* jetPtr2_;
   LorentzVector* genJetPtr1_;
   LorentzVector* genJetPtr2_;
+  LorentzVector* genLepPtr1_;
+  LorentzVector* genLepPtr2_;
   LorentzVector* lepPtr1_;
   LorentzVector* lepPtr2_;
   LorentzVector* lepPtr3_;
@@ -407,6 +425,11 @@ MitGPBoostedVTree::InitVariables()
   genJet2M_         = 0;
   genJet2MinTrigDr_ = 999;
 
+  genLep1_          = LorentzVector();
+  genLep1Pid_       = 0;
+  genLep2_          = LorentzVector();
+  genLep2Pid_       = 0;
+
   nParts_           = 0;
   numJets_          = 0;
 
@@ -421,7 +444,7 @@ MitGPBoostedVTree::InitVariables()
   jet1R_            = 0;
   jet1M_            = 0;
   jet1MinTrigDr_    = 999;
-  jet1QGTag_        = 0;
+  jet1QgTag_        = 0;
 
   jet2_             = LorentzVector();
   jet2NParts_       = 0;
@@ -434,28 +457,28 @@ MitGPBoostedVTree::InitVariables()
   jet2R_            = 0;
   jet2M_            = 0;
   jet2MinTrigDr_    = 999;
-  jet2QGTag_        = 0;
+  jet2QgTag_        = 0;
 
-  nlep_             = 0;
+  nLep_             = 0;
   lep1_       	    = LorentzVector();
-  lid1_             = 0;
+  lepId1_           = 0;
   lep1IsTightMuon_  = 0;
   lep1IsIsolated_   = 0;
   lep1PtErr_        = 999;
   lep2_       	    = LorentzVector();
-  lid2_             = 0;
+  lepId2_           = 0;
   lep2IsTightMuon_  = 0;
   lep2IsIsolated_   = 0;
   lep2PtErr_        = 999;
   lep3_       	    = LorentzVector();
-  lid3_             = 0;
+  lepId3_           = 0;
   lep3IsTightMuon_  = 0;
 
-  ntaus_            = 0;
+  nTaus_            = 0;
   tau1_       	    = LorentzVector();
   tau2_       	    = LorentzVector();
 
-  nphotons_         = 0;
+  nPhotons_         = 0;
   pho1_       	    = LorentzVector();
 }
 

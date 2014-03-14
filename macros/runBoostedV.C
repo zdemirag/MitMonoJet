@@ -41,7 +41,7 @@ void runBoostedV(const char *fileset    = "0000",
 		 const char *book       = "t2mit/filefi/032",
 		 const char *catalogDir = "/home/cmsprod/catalog",
 		 const char *outputName = "boostedv",
-		 int         nEvents    = 100)
+		 int         nEvents    = 1000)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -148,7 +148,7 @@ void runBoostedV(const char *fileset    = "0000",
   rootFile += TString("_") + TString(dataset) + TString("_") + TString(skim);
   if (TString(fileset) != TString(""))
     rootFile += TString("_") + TString(fileset);
-  TString ntupleFile = rootFile + TString("_ntuple.root");
+  //TString ntupleFile = rootFile + TString("_ntuple.root");
   rootFile += TString(".root");
   ana->SetOutputName(rootFile.Data());
   ana->SetCacheSize(0);
@@ -397,14 +397,8 @@ void runBoostedV(const char *fileset    = "0000",
   boostedVMod->SetPFTausName(pftauCleaningMod->GetOutputName());
   boostedVMod->SetPFTausFromBranch(kFALSE);
   boostedVMod->SetLeptonsName(merger->GetOutputName());
-  boostedVMod->SetPruning(0);
-  boostedVMod->SetHistNPtBins(100);
-  boostedVMod->SetHistNEtaBins(100);
-  boostedVMod->SetHistMinPt(0.);
-  boostedVMod->SetHistMaxPt(100.);
-  boostedVMod->SetHistMinEta(-5.);
-  boostedVMod->SetHistMaxEta(5.);
-  boostedVMod->SetOutputName(ntupleFile.Data());
+  boostedVMod->SetPruning(1);
+  //boostedVMod->SetOutputName(ntupleFile.Data());
 
   //------------------------------------------------------------------------------------------------
   // making analysis chain
@@ -436,7 +430,7 @@ void runBoostedV(const char *fileset    = "0000",
   printf("\n Rely on Catalog: %s\n",cataDir.Data());
   printf("  -> Book: %s  Dataset: %s  Skim: %s  Fileset: %s <-\n",book,dataset,skim,fileset);
   printf("\n Root output:   %s\n",rootFile.Data());  
-  printf("\n Ntuple output: %s\n\n",ntupleFile.Data());  
+  //printf("\n Ntuple output: %s\n\n",ntupleFile.Data());  
   printf("\n========================================\n");
 
   //------------------------------------------------------------------------------------------------

@@ -25,52 +25,31 @@ BoostedVTreeWriter::BoostedVTreeWriter(const char *name, const char *title) :
   fJetsName              (Names::gkPFJetBrn),
   fJetsFromBranch        (kTRUE),
   fJets                  (0),
-  fPFCandidatesName      (Names::gkPFCandidatesBrn),
-  fPFCandidatesFromBranch(kTRUE),
-  fPFCandidates          (0),
+  fPfCandidatesName      (Names::gkPFCandidatesBrn),
+  fPfCandidatesFromBranch(kTRUE),
+  fPfCandidates          (0),
   fPhotonsName           (Names::gkPhotonBrn),
   fPhotonsFromBranch     (kTRUE),
   fPhotons               (0),
-  fPFTausName            (Names::gkPFTauBrn),
-  fPFTausFromBranch      (kTRUE),
-  fPFTaus                (0),
+  fPfTausName            (Names::gkPFTauBrn),
+  fPfTausFromBranch      (kTRUE),
+  fPfTaus                (0),
   fLeptonsName           (ModNames::gkMergedLeptonsName),
-  fPFNoPileUpName        ("pfnopileupcands"),
-  fPFPileUpName          ("pfpileupcands"),
-  fQGTaggerCHS           (kTRUE),
+  fPfNoPileUpName        ("pfnopileupcands"),
+  fPfPileUpName          ("pfpileupcands"),
+  fQgTaggerCHS           (kTRUE),
   fPileUpDenName         (Names::gkPileupEnergyDensityBrn),
   fPileUpDen             (0),
   fVertexesName          (ModNames::gkGoodVertexesName),
   fJetTriggerObjs        (0),
   fConeSize              (0.6),
   fPrune                 (1.),
-  fNAnalyzed             (0),
-  fHistNPtBins           (100),
-  fHistNEtaBins          (100),
-  fHistMinPt             (0.),
-  fHistMaxPt             (300.),
-  fHistMinEta            (-3.),
-  fHistMaxEta            (3.),
-  fHistTau1Bins          (100),
-  fHistTau2Bins          (100),
-  fHistTau3Bins          (100),
-  fHistT2ovrT1Bins       (100),
-  fHistT3ovrT2Bins       (100),
-  fHistMinTau1           (0.),
-  fHistMinTau2           (0.),
-  fHistMinTau3           (0.),
-  fHistMinT2ovrT1        (0.),
-  fHistMinT3ovrT2        (0.),
-  fHistMaxTau1           (3.),
-  fHistMaxTau2           (3.),
-  fHistMaxTau3           (3.),
-  fHistMaxT2ovrT1        (3.),
-  fHistMaxT3ovrT2        (3.),
-  fOutputName            ("BoostedVNtuple.root"),
-  fOutputFile            (0)
+  fNAnalyzed             (0)
+				      //fOutputName            ("BoostedVNtuple.root"),
+				      //fOutputFile            (0)
 {
   // WARNING, defining the object here invalidates the call of the setter for the CHS flag
-  qgTagger = new QGTagger(fQGTaggerCHS);
+  fQgTagger = new QGTagger(fQgTaggerCHS);
 
   // Constructor.
 }
@@ -78,7 +57,7 @@ BoostedVTreeWriter::BoostedVTreeWriter(const char *name, const char *title) :
 BoostedVTreeWriter::~BoostedVTreeWriter()
 {
   // Destructor
-  fOutputFile->Close();
+  //fOutputFile->Close();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -86,16 +65,16 @@ void BoostedVTreeWriter::Process()
 {
   // Load the branches we want to work with
   LoadEventObject(fJetsName,fJets,fJetsFromBranch);
-  LoadEventObject(fPFCandidatesName,fPFCandidates,fPFCandidatesFromBranch);
+  LoadEventObject(fPfCandidatesName,fPfCandidates,fPfCandidatesFromBranch);
   LoadEventObject(fPhotonsName,fPhotons,fPhotonsFromBranch);
-  LoadEventObject(fPFTausName,fPFTaus,fPFTausFromBranch);
-  LoadEventObject(fPFTausName,fPFTaus,fPFTausFromBranch);
+  LoadEventObject(fPfTausName,fPfTaus,fPfTausFromBranch);
+  LoadEventObject(fPfTausName,fPfTaus,fPfTausFromBranch);
   LoadEventObject(fPileUpDenName,fPileUpDen,kTRUE);
   ParticleOArr *leptons = GetObjThisEvt<ParticleOArr>(ModNames::gkMergedLeptonsName);
 
   // Careful the are not booked and just local (needed only for isolation)
-  const PFCandidateCol *lPFNoPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFNoPileUpName);    
-  const PFCandidateCol *lPFPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFPileUpName);
+  const PFCandidateCol *lPFNoPileUpCands = GetObjThisEvt<PFCandidateCol>(fPfNoPileUpName);    
+  const PFCandidateCol *lPFPileUpCands = GetObjThisEvt<PFCandidateCol>(fPfPileUpName);
 
   // Also these are not booked and just local (needed only for QG discriminant)
   const VertexCol *lVertexes = GetObjThisEvt<VertexOArr>(fVertexesName);
@@ -118,9 +97,9 @@ void BoostedVTreeWriter::Process()
   fMitGPTree.lumi_ = GetEventHeader()->LumiSec();
   
   // Tell to the QG tagger what is the PU energy density
-  qgTagger->SetRhoIso(fPileUpDen->At(0)->RhoRandomLowEta());
-  float jet1QGTag = 0;
-  float jet2QGTag = 0;
+  fQgTagger->SetRhoIso(fPileUpDen->At(0)->RhoRandomLowEta());
+  float jet1QgTag = 0;
+  float jet2QgTag = 0;
   
   // Loop over jets and perform Nsubjettiness analysis (for now just stick with the first jet)
   std::vector<fastjet::PseudoJet> lFjParts;
@@ -149,21 +128,17 @@ void BoostedVTreeWriter::Process()
     }
 
     // Compute the QG discrimination varaible for this jet and assign it
-    qgTagger->CalculateVariables(jet, lVertexes);
-    if (i==0)
-      jet1QGTag = qgTagger->QGValue();
-    if (i==1)
-      jet2QGTag = qgTagger->QGValue();    
+    fQgTagger->CalculateVariables(jet, lVertexes);
+    if       (i == 0)
+      jet1QgTag = fQgTagger->QGValue();
+    else if (i == 1)
+      jet2QgTag = fQgTagger->QGValue();    
     
     // Push all particle flow candidates into fastjet particle collection
     for (UInt_t j=0; j<jet->NPFCands(); ++j) {      
       const PFCandidate *pfCand = jet->PFCand(j);
       lFjParts.push_back(fastjet::PseudoJet(pfCand->Px(),pfCand->Py(),pfCand->Pz(),pfCand->E()));
       lFjParts.back().set_user_index(j);
-      
-      // Fill the PFCand histograms
-      fPFCandidatesPt ->Fill(pfCand->Pt());
-      fPFCandidatesEta->Fill(pfCand->Eta());
     }	
     break; // this is for now just considering the first jet (consider all in the future)
   }
@@ -195,7 +170,7 @@ void BoostedVTreeWriter::Process()
   // ---- Fastjet is already done ----
 
   // Things to monitor before cuts
-  fMitGPTree.nParts_ = fPFCandidates->GetEntries();
+  fMitGPTree.nParts_ = fPfCandidates->GetEntries();
   fMitGPTree.numJets_ = lOutJets.size();
 
   // Skip event if no jets are found
@@ -205,10 +180,6 @@ void BoostedVTreeWriter::Process()
     return;
   }
     
-  // Fill the CA jet 1 histograms
-  fCAJetPt ->Fill(lJet1.pt());
-  fCAJetEta->Fill(lJet1.eta());
-
   // Remove events where hardest jet is lower than 100 GeV
   if (lJet1.pt() < 100) {
     if (lClustering)
@@ -227,7 +198,7 @@ void BoostedVTreeWriter::Process()
   fMitGPTree.jet1Tau2_ = GetTau(lJet1,2,1);
   fMitGPTree.jet1Tau3_ = GetTau(lJet1,3,1);
   fMitGPTree.jet1MinTrigDr_ = MinTriggerDeltaR(fMitGPTree.jet1_);
-  fMitGPTree.jet1QGTag_ = jet1QGTag;
+  fMitGPTree.jet1QgTag_ = jet1QgTag;
 
   // Only if there is a second jet
   if (lOutJets.size() > 1) {
@@ -241,19 +212,19 @@ void BoostedVTreeWriter::Process()
     fMitGPTree.jet2Tau2_ = GetTau(lJet2,2,1);
     fMitGPTree.jet2Tau3_ = GetTau(lJet2,3,1);
     fMitGPTree.jet2MinTrigDr_ = MinTriggerDeltaR(fMitGPTree.jet2_);
-    fMitGPTree.jet2QGTag_ = jet2QGTag;
+    fMitGPTree.jet2QgTag_ = jet2QgTag;
   }
 
 
   // LEPTONS (MUONS/ELECTRONS)
 
-  fMitGPTree.nlep_ = leptons->GetEntries();
+  fMitGPTree.nLep_ = leptons->GetEntries();
   if (leptons->GetEntries() >= 1) {         // loop over all leptons
     const Particle *lep = leptons->At(0);
     
     fMitGPTree.lep1_ = lep->Mom();
     if      (lep->ObjType() == kMuon) {
-      fMitGPTree.lid1_ = 13;
+      fMitGPTree.lepId1_ = 13;
       const Muon* mu = dynamic_cast<const Muon*>(lep);
       fMitGPTree.lep1IsTightMuon_ = IsTightMuon(mu);
       fMitGPTree.lep1PtErr_ = mu->BestTrk()->PtErr()/mu->BestTrk()->Pt();
@@ -262,12 +233,12 @@ void BoostedVTreeWriter::Process()
       fMitGPTree.lep1IsIsolated_ = totalIso < (mu->Pt()*0.2);
     }
     else if (lep->ObjType() == kElectron)
-      fMitGPTree.lid1_ = 11;
+      fMitGPTree.lepId1_ = 11;
     else
       assert(0);  // cannot happen: leptons are only muons and electrons
 
     if (lep->Charge() < 0)
-      fMitGPTree.lid1_ = -1 * fMitGPTree.lid1_;
+      fMitGPTree.lepId1_ = -1 * fMitGPTree.lepId1_;
   }
 
   if (leptons->GetEntries() >= 2) {
@@ -275,7 +246,7 @@ void BoostedVTreeWriter::Process()
 
     fMitGPTree.lep2_ = lep->Mom();
     if     (lep->ObjType() == kMuon) {
-      fMitGPTree.lid2_ = 13;
+      fMitGPTree.lepId2_ = 13;
       const Muon* mu = dynamic_cast<const Muon*>(lep);
       fMitGPTree.lep2IsTightMuon_ = IsTightMuon(mu);
       fMitGPTree.lep2PtErr_ = mu->BestTrk()->PtErr()/mu->BestTrk()->Pt();
@@ -284,12 +255,12 @@ void BoostedVTreeWriter::Process()
       fMitGPTree.lep2IsIsolated_ = totalIso < (mu->Pt()*0.2);
     }
     else if (lep->ObjType() == kElectron)
-      fMitGPTree.lid2_ = 11;
+      fMitGPTree.lepId2_ = 11;
     else
       assert(0);
 
     if (lep->Charge() < 0)
-      fMitGPTree.lid2_ = -1 * fMitGPTree.lid2_;
+      fMitGPTree.lepId2_ = -1 * fMitGPTree.lepId2_;
   }
 
   if (leptons->GetEntries() >= 3) {
@@ -297,16 +268,16 @@ void BoostedVTreeWriter::Process()
 
     fMitGPTree.lep3_ = lep->Mom();
     if      (lep->ObjType() == kMuon) {
-      fMitGPTree.lid3_ = 13;
+      fMitGPTree.lepId3_ = 13;
       fMitGPTree.lep3IsTightMuon_ = IsTightMuon(dynamic_cast<const Muon*>(leptons->At(2)));
     }
     else if (lep->ObjType() == kElectron)
-      fMitGPTree.lid3_ = 11;
+      fMitGPTree.lepId3_ = 11;
     else
       assert(0);
 
     if (lep->Charge() < 0)
-      fMitGPTree.lid3_ = -1 * fMitGPTree.lid3_;
+      fMitGPTree.lepId3_ = -1 * fMitGPTree.lepId3_;
 
     // If the event contains more than 2 we have no further assumption ( or should we? WZ ;-) )
 
@@ -314,7 +285,7 @@ void BoostedVTreeWriter::Process()
 
   // PHOTON(S)
 
-  fMitGPTree.nphotons_ = fPhotons->GetEntries();
+  fMitGPTree.nPhotons_ = fPhotons->GetEntries();
   if (fPhotons->GetEntries() >= 1) {
     const Photon *photon = fPhotons->At(0);
     fMitGPTree.pho1_ = photon->Mom();
@@ -322,12 +293,12 @@ void BoostedVTreeWriter::Process()
 
   // TAUS
 
-  fMitGPTree.ntaus_ = fPFTaus->GetEntries();
-  if (fPFTaus->GetEntries() >= 1) {
-    const PFTau *tau = fPFTaus->At(0);
+  fMitGPTree.nTaus_ = fPfTaus->GetEntries();
+  if (fPfTaus->GetEntries() >= 1) {
+    const PFTau *tau = fPfTaus->At(0);
     fMitGPTree.tau1_ = tau->Mom();
-    if (fPFTaus->GetEntries() >= 2) {
-      tau = fPFTaus->At(1);
+    if (fPfTaus->GetEntries() >= 2) {
+      tau = fPfTaus->At(1);
       fMitGPTree.tau2_ = tau->Mom();
     }
   }
@@ -350,10 +321,10 @@ void BoostedVTreeWriter::SlaveBegin()
     ReqEventObject(fMcPartsName,fMcParts,kTRUE);
   }
   ReqEventObject(fJetsName,fJets,fJetsFromBranch);
-  ReqEventObject(fPFCandidatesName,fPFCandidates,fPFCandidatesFromBranch);
+  ReqEventObject(fPfCandidatesName,fPfCandidates,fPfCandidatesFromBranch);
   ReqEventObject(fPhotonsName,fPhotons,fPhotonsFromBranch);
-  ReqEventObject(fPFTausName,fPFTaus,fPFTausFromBranch);
-  ReqEventObject(fPileUpDenName, fPileUpDen, kTRUE);
+  ReqEventObject(fPfTausName,fPfTaus,fPfTausFromBranch);
+  ReqEventObject(fPileUpDenName,fPileUpDen,kTRUE);
 
   // Default pruning parameters
   fPruner          = new fastjet::Pruner(fastjet::cambridge_algorithm,0.1,0.5);      // CMS Default
@@ -371,24 +342,16 @@ void BoostedVTreeWriter::SlaveBegin()
   fActiveArea      = new fastjet::GhostedAreaSpec(ghostEtaMax,activeAreaRepeats,ghostArea);
   fAreaDefinition  = new fastjet::AreaDefinition(fastjet::active_area_explicit_ghosts,*fActiveArea);
 
-  // Histograms definitions
-  fPFCandidatesPt  = new TH1D("hPFCandPt" ,"Hist of pf Pt"      ,fHistNPtBins ,   fHistMinPt     ,fHistMaxPt);
-  fPFCandidatesEta = new TH1D("hPFCandEta","Hist of pf Eta"     ,fHistNEtaBins,   fHistMinEta    ,fHistMaxEta);
-  fCAJetPt         = new TH1D("hCAJetPt"  ,"Hist of CA jets Pt" ,fHistNPtBins ,   fHistMinPt     ,fHistMaxPt);
-  fCAJetEta        = new TH1D("hCAJetEta" ,"Hist of CA jets Eta",fHistNEtaBins,   fHistMinEta    ,fHistMaxEta);
-  fCATau1          = new TH1D("hCATau1"   ,"Tau 1"              ,fHistTau1Bins,   fHistMinTau1   ,fHistMaxTau1);
-  fCATau2          = new TH1D("hCATau2"   ,"Tau 2"              ,fHistTau2Bins,   fHistMinTau2   ,fHistMaxTau2);
-  fCATau3          = new TH1D("hCATau3"   ,"Tau 3"              ,fHistTau3Bins,   fHistMinTau3   ,fHistMaxTau3);
-  fCAT2ovrT1       = new TH1D("hCAT2ovrT1","Tau 2 over Tau 1"   ,fHistT2ovrT1Bins,fHistMinT2ovrT1,fHistMaxT2ovrT1);
-  fCAT3ovrT2       = new TH1D("hCAT3ovrT2","Tau 3 over Tau 2"   ,fHistT3ovrT2Bins,fHistMinT3ovrT2,fHistMaxT3ovrT2);
-
   // Create Ntuple Tree
-  fOutputFile = TFile::Open(fOutputName,"RECREATE");
-  fMitGPTree.CreateTree();
-  fMitGPTree.tree_->SetAutoSave(300e9);
-  fMitGPTree.tree_->SetDirectory(fOutputFile);
-  AddOutput(fMitGPTree.tree_);
+  //fOutputFile = TFile::Open(fOutputName,"RECREATE");
+  //fMitGPTree.CreateTree();
+  //fMitGPTree.tree_->SetAutoSave(300e9);
+  //fMitGPTree.tree_->SetDirectory(fOutputFile);
+  //AddOutput(fMitGPTree.tree_);
+
+  // to the output module
   fMitGPTree.CreateTree(0);
+  fMitGPTree.tree_->SetAutoSave(300e9);
   AddOutput(fMitGPTree.tree_);
 }
 
@@ -398,19 +361,8 @@ void BoostedVTreeWriter::SlaveTerminate()
   // Say how many events were analyzed
   printf("\n BoostedVTreeWriter::Terminate - Events analyzed: %d\n\n",fNAnalyzed);
 
-  // Save Histograms 
-  AddOutput(fPFCandidatesPt);
-  AddOutput(fPFCandidatesEta);
-  AddOutput(fCAJetPt);
-  AddOutput(fCAJetEta);
-  AddOutput(fCATau1);
-  AddOutput(fCATau2);
-  AddOutput(fCATau3);
-  AddOutput(fCAT2ovrT1);
-  AddOutput(fCAT3ovrT2);
-
-  // Save the ntuple file
-  fOutputFile->WriteTObject(fMitGPTree.tree_,fMitGPTree.tree_->GetName());
+  //// Save the ntuple file
+  //fOutputFile->WriteTObject(fMitGPTree.tree_,fMitGPTree.tree_->GetName());
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -429,17 +381,32 @@ float BoostedVTreeWriter::GetTau(fastjet::PseudoJet &iJet,int iN, float iKappa)
 void BoostedVTreeWriter::ProcessMc()
 {
   // We only get here for MC, so no more checking - we will perfrom the analysis on generator level
-  // and take car of filling the tree
+  // and take care of filling the tree
 
   LoadEventObject(fMcPartsName,fMcParts);
 
   // Fill Fastjet with the MC particles (no pileup included here)
 
   int nParts = 0;
+  int nLeptons = 0;
   std::vector<fastjet::PseudoJet> lFjParts;
   for (UInt_t i=0; i<fMcParts->GetEntries(); ++i) {
     const MCParticle *p = fMcParts->At(i);
-    
+    // Grab out the first two leptons (el, mu, tau) that come from the W
+    if (p->Status() == 3 &&
+    	(p->Is(MCParticle::kEl) || p->Is(MCParticle::kMu) || p->Is(MCParticle::kTau)) &&
+	p->Mother()->Is(MCParticle::kW)) {
+      if      (nLeptons == 0) {
+    	fMitGPTree.genLep1_.SetPxPyPzE(p->Px(),p->Py(),p->Pz(),p->E());
+    	fMitGPTree.genLep1Pid_ = p->PdgId();
+      }
+      else if (nLeptons == 1) {
+    	fMitGPTree.genLep2_.SetPxPyPzE(p->Px(),p->Py(),p->Pz(),p->E());
+    	fMitGPTree.genLep2Pid_ = p->PdgId();
+      }
+      nLeptons++;
+    }
+    // Fill all particles into fastjet
     if (p->Status() == 1) { // just the particles that go to the detector
       nParts++;
       // Push all particles that make detector entries into fastjet particle collection
