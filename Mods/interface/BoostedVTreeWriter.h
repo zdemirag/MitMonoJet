@@ -82,6 +82,7 @@ namespace mithep
     void                          Process();
     void                          SlaveBegin();
     void                          SlaveTerminate();
+
   private:
     void                          ProcessMc();             // Deals with the MC separately
     void                          GetJetTriggerObjs();     // Fills the jet trigger objs
