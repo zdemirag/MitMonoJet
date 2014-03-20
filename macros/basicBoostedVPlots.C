@@ -31,6 +31,9 @@ void basicBoostedVPlots(double lumi = 4500.0)
   TString variable, cuts;
   PlotTask *plotTask = 0;
 
+  // set the folder containing the input ntuples properly
+  gSystem->Setenv("MIT_PROD_CFG","boostedv");
+  gSystem->Setenv("MIT_ANA_HIST","/home/paus/cms/hist/boostedv/merged");
 
   // set plot config properly
   gSystem->Setenv("MIT_ANA_CFG","boostedv-plots-w");
