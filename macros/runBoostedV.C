@@ -1,5 +1,6 @@
 #include <TSystem.h>
 #include <TProfile.h>
+#include "MitCommon/Utils/interface/Utils.h"
 #include "MitAna/DataUtil/interface/Debug.h"
 #include "MitAna/Catalog/interface/Catalog.h"
 #include "MitAna/TreeMod/interface/Analysis.h"
@@ -32,10 +33,13 @@
 #include "MitPhysics/Mods/interface/JetCleaningMod.h"
 #include "MitMonoJet/Mods/interface/BoostedVTreeWriter.h"
 
+TString getCatalogDir(const char* dir);
+TString getJsonFile(const char* dir);
+
 //--------------------------------------------------------------------------------------------------
 void runBoostedV(const char *fileset    = "0000",
 		 const char *skim       = "noskim",
-		 const char *dataset    = "s12-ww-v7a", 
+		 const char *dataset    = "r12b-dmu-j22-v1", 
 		 const char *book       = "t2mit/filefi/032",
 		 const char *catalogDir = "/home/cmsprod/catalog",
 		 const char *outputName = "boostedv",
@@ -44,50 +48,11 @@ void runBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
   //------------------------------------------------------------------------------------------------
-  char json[1024], overlap[1024];
-  float overlapCut = -1;
-  TString mitData;
-  TString cataDir("./catalog");
-  Long_t *id=0,*size=0,*flags=0,*mt=0;
-
-  printf(" Try local catalog first: %s\n",cataDir.Data());
-  if (gSystem->GetPathInfo(cataDir.Data(),id,size,flags,mt) != 0) {
-    cataDir = TString(catalogDir);
-    if (gSystem->GetPathInfo(cataDir.Data(),id,size,flags,mt) != 0) {
-      printf(" Requested local (./catalog) and specified catalog do not exist. EXIT!\n");
-      return;
-    }
-  }
-  else {
-    printf(" Local catalog exists: %s using this one.\n",cataDir.Data()); 
-  }
-  if (gSystem->Getenv("MIT_DATA"))
-    mitData = gSystem->Getenv("MIT_DATA");
-  else {
-    printf(" MIT_DATA was not properly defined. EXIT!\n");
-    return;
-  } 
-  if (gSystem->Getenv("MIT_PROD_JSON"))
-    sprintf(json,   "%s",gSystem->Getenv("MIT_PROD_JSON"));
-  else {
-    printf(" JSON file was not properly defined. EXIT!\n");
-    return;
-  }
-  TString jsonFile = TString("/home/cmsprod/cms/json/") + TString(json);
-  Bool_t  isData   = ((jsonFile.CompareTo("/home/cmsprod/cms/json/~") != 0));
-  
-  if (gSystem->Getenv("MIT_PROD_OVERLAP")) {
-    sprintf(overlap,"%s",gSystem->Getenv("MIT_PROD_OVERLAP"));
-    if (EOF == sscanf(overlap,"%f",&overlapCut)) {
-      printf(" Overlap was not properly defined. EXIT!\n");
-      return;
-    }
-  }
-  else {
-    printf(" OVERLAP file was not properly defined. EXIT!\n");
-    return;
-  } 
-
+  TString cataDir  = getCatalogDir(catalogDir);
+  TString mitData  = Utils::GetEnv("MIT_DATA");
+  TString json     = Utils::GetEnv("MIT_PROD_JSON");
+  TString jsonFile = getJsonFile("/home/cmsprod/cms/json");
+  Bool_t  isData   = (json.CompareTo("~") != 0);
   printf("\n Initialization worked. Data?: %d\n\n",isData);
 
   //------------------------------------------------------------------------------------------------
@@ -104,11 +69,10 @@ void runBoostedV(const char *fileset    = "0000",
   runLumiSel->SetAcceptMC(kTRUE);                          // Monte Carlo events are always accepted
   
   // only select on run- and lumisection numbers when valid json file present
-  if ((jsonFile.CompareTo("/home/cmsprod/cms/json/~") != 0) &&
-      (jsonFile.CompareTo("/home/cmsprod/cms/json/-") != 0)   ) {
+  if (json.CompareTo("~") != 0 && json.CompareTo("-") != 0) {
     runLumiSel->AddJSONFile(jsonFile.Data());
   }
-  if ((jsonFile.CompareTo("/home/cmsprod/cms/json/-") == 0)   ) {
+  if (json.CompareTo("-") == 0) {
     printf("\n WARNING -- Looking at data without JSON file: always accept.\n\n");
     runLumiSel->SetAbortIfNotAccepted(kFALSE);   // accept all events if there is no valid JSON file
   }
@@ -205,8 +169,6 @@ void runBoostedV(const char *fileset    = "0000",
   //-----------------------------------
   // Lepton Selection
   //-----------------------------------
-  printf(" Make Photons.\n");
-
   ElectronIDMod* eleIdMod = new ElectronIDMod;
   eleIdMod->SetPtMin(10.);
   eleIdMod->SetEtaMax(2.5);
@@ -269,8 +231,6 @@ void runBoostedV(const char *fileset    = "0000",
   //-----------------------------------
   // Photon Regression + ID
   //-----------------------------------
-  printf(" Make Photons.\n");
-
   PhotonMvaMod *photonReg = new PhotonMvaMod;
   photonReg->SetRegressionVersion(3);
   photonReg->SetRegressionWeights((mitData+TString("/gbrv3ph_52x.root")).Data());
@@ -331,8 +291,6 @@ void runBoostedV(const char *fileset    = "0000",
   photonCleaningMod->SetGoodPhotonsName(photonIdMod->GetOutputName());
   photonCleaningMod->SetCleanPhotonsName("CleanPhotons");
 
-  printf(" Make Taus.\n");
-
   PFTauIDMod *pftauIdMod = new PFTauIDMod;
   pftauIdMod->SetPFTausName("HPSTaus");
   pftauIdMod->SetIsLooseId(kFALSE);
@@ -340,8 +298,6 @@ void runBoostedV(const char *fileset    = "0000",
   PFTauCleaningMod *pftauCleaningMod = new PFTauCleaningMod;
   pftauCleaningMod->SetGoodPFTausName(pftauIdMod->GetGoodPFTausName());
   pftauCleaningMod->SetCleanMuonsName(muonId->GetOutputName());
-
-  printf(" Make Jets.\n");
 
   PublisherMod<PFJet,Jet> *pubJet = new PublisherMod<PFJet,Jet>("JetPub");
   pubJet->SetInputName("AKt5PFJets");
@@ -389,32 +345,26 @@ void runBoostedV(const char *fileset    = "0000",
   jetCleaning->SetApplyPhotonRemoval(kTRUE);
   jetCleaning->SetGoodJetsName(jetId->GetOutputName());
   jetCleaning->SetCleanJetsName("CleanJets");
-
-
-  printf(" Define Boosted.\n");
  
   //------------------------------------------------------------------------------------------------
   // select events with a given jet substructure
   //------------------------------------------------------------------------------------------------
   BoostedVTreeWriter *boostedVMod = new BoostedVTreeWriter;
-  printf(" Define Boosted 1.\n");boostedVMod->SetIsData(isData);
-  printf(" Define Boosted 2.\n");boostedVMod->SetTriggerObjsName(hltModP->GetOutputName());
-  printf(" Define Boosted 3.\n");boostedVMod->SetJetsName(jetCleaning->GetOutputName());
-  printf(" Define Boosted 4.\n");boostedVMod->SetJetsFromBranch(kFALSE);
-  printf(" Define Boosted 5.\n");boostedVMod->SetPhotonsName(photonCleaningMod->GetOutputName());
-  printf(" Define Boosted 6.\n");boostedVMod->SetPhotonsFromBranch(kFALSE);
-  printf(" Define Boosted 7.\n");boostedVMod->SetPFTausName(pftauCleaningMod->GetOutputName());
-  printf(" Define Boosted 8.\n");boostedVMod->SetPFTausFromBranch(kFALSE);
-  printf(" Define Boosted 9.\n");boostedVMod->SetLeptonsName(merger->GetOutputName());
-  printf(" Define Boosted 0.\n");boostedVMod->SetPruning(1);
+  boostedVMod->SetIsData(isData);
+  boostedVMod->SetTriggerObjsName(hltModP->GetOutputName());
+  boostedVMod->SetJetsName(jetCleaning->GetOutputName());
+  boostedVMod->SetJetsFromBranch(kFALSE);
+  boostedVMod->SetPhotonsName(photonCleaningMod->GetOutputName());
+  boostedVMod->SetPhotonsFromBranch(kFALSE);
+  boostedVMod->SetPFTausName(pftauCleaningMod->GetOutputName());
+  boostedVMod->SetPFTausFromBranch(kFALSE);
+  boostedVMod->SetLeptonsName(merger->GetOutputName());
+  boostedVMod->SetPruning(0);
   boostedVMod->SetOutputName(ntupleFile.Data());
 
   //------------------------------------------------------------------------------------------------
   // making analysis chain
   //------------------------------------------------------------------------------------------------
-
-  printf(" Analysis Chain.\n");
-
   runLumiSel       ->Add(goodPVFilterMod);
   goodPVFilterMod  ->Add(hltModP);
   hltModP          ->Add(photonReg);
@@ -438,7 +388,7 @@ void runBoostedV(const char *fileset    = "0000",
   // Say what we are doing
   //------------------------------------------------------------------------------------------------
   printf("\n==== PARAMETER SUMMARY FOR THIS JOB ====\n");
-  printf("\n JSON file: %s\n  and overlap cut: %f (%s)\n",jsonFile.Data(),overlapCut,overlap);
+  printf("\n JSON file: %s\n",jsonFile.Data());
   printf("\n Rely on Catalog: %s\n",cataDir.Data());
   printf("  -> Book: %s  Dataset: %s  Skim: %s  Fileset: %s <-\n",book,dataset,skim,fileset);
   printf("\n Root output:   %s\n",rootFile.Data());  
@@ -451,4 +401,47 @@ void runBoostedV(const char *fileset    = "0000",
   ana->Run(!gROOT->IsBatch());
 
   return;
+}
+
+//--------------------------------------------------------------------------------------------------
+TString getCatalogDir(const char* dir)
+{
+  TString cataDir = TString("./catalog");
+  Long_t *id=0,*size=0,*flags=0,*mt=0;
+
+  printf(" Try local catalog first: %s\n",cataDir.Data());
+  if (gSystem->GetPathInfo(cataDir.Data(),id,size,flags,mt) != 0) {
+    cataDir = TString(dir);
+    if (gSystem->GetPathInfo(cataDir.Data(),id,size,flags,mt) != 0) {
+      printf(" Requested local (./catalog) and specified catalog do not exist. EXIT!\n");
+      return TString("");
+    }
+  }
+  else {
+    printf(" Local catalog exists: %s using this one.\n",cataDir.Data()); 
+  }
+
+  return cataDir;
+}
+
+//--------------------------------------------------------------------------------------------------
+TString getJsonFile(const char* dir)
+{
+  TString jsonDir = TString("./json");
+  TString json    = Utils::GetEnv("MIT_PROD_JSON");
+  Long_t *id=0,*size=0,*flags=0,*mt=0;
+
+  printf(" Try local json first: %s\n",jsonDir.Data());
+  if (gSystem->GetPathInfo(jsonDir.Data(),id,size,flags,mt) != 0) {
+    jsonDir = TString(dir);
+    if (gSystem->GetPathInfo(jsonDir.Data(),id,size,flags,mt) != 0) {
+      printf(" Requested local (./json) and specified json directory do not exist. EXIT!\n");
+      return TString("");
+    }
+  }
+  else {
+    printf(" Local json directory exists: %s using this one.\n",jsonDir.Data()); 
+  }
+
+  return jsonDir+TString("/")+json;
 }
