@@ -11,6 +11,14 @@ using namespace mithep;
 //==================================================================================================
 void basicBoostedVPlots(double lumi = 4500.0)
 {
+  // Create the basic plots of the boosted V analysis to check the key N subjettiness variable
+
+
+  // set the folder containing the input ntuples properly
+  // here you can change the plot sources, these are the defaults
+  // gSystem->Setenv("MIT_PROD_CFG","boostedv");
+  // gSystem->Setenv("MIT_ANA_HIST","/home/$USER/cms/hist/boostedv/merged");
+
   // setup graphics stuff before starting
   MitStyle::Init();
 
@@ -31,32 +39,8 @@ void basicBoostedVPlots(double lumi = 4500.0)
   TString variable, cuts;
   PlotTask *plotTask = 0;
 
-  // set the folder containing the input ntuples properly
-  gSystem->Setenv("MIT_PROD_CFG","boostedv");
-  gSystem->Setenv("MIT_ANA_HIST","/home/paus/cms/hist/boostedv/merged");
-
   // set plot config properly
   gSystem->Setenv("MIT_ANA_CFG","boostedv-plots-w");
-
-  // // Tau2/Tau1 - basic cuts
-  // plotTask = new PlotTask(0,lumi);
-  // variable = "genJet1Tau2/genJet1Tau1";
-  // cuts     = basicCuts;
-  // plotTask->SetHistRanges(0.0,1.0,0.,0.);
-  // plotTask->SetAxisTitles("#tau_{2}/#tau_{1}","Number of Events");
-  // plotTask->SetPngFileName("t2OverT1-w.png");
-  // plotTask->Plot(Normalized,nTuple,variable,cuts);
-  // delete plotTask;
-  // 
-  // // Tau2/Tau1 - basic cuts and reco leptons rejected
-  // plotTask = new PlotTask(0,lumi);
-  // variable = "genJet1Tau2/genJet1Tau1";
-  // cuts     = basicCuts+andC+leptonCuts;
-  // plotTask->SetHistRanges(0.0,1.0,0.,0.);
-  // plotTask->SetAxisTitles("#tau_{2}/#tau_{1}","Number of Events");
-  // plotTask->SetPngFileName("t2OverT1Lep-w.png");
-  // plotTask->Plot(Normalized,nTuple,variable,cuts);
-  // delete plotTask;
 
   // Tau1 - basic cuts and MC leptons rejected
   plotTask = new PlotTask(0,lumi);
@@ -95,26 +79,6 @@ void basicBoostedVPlots(double lumi = 4500.0)
   basicCuts =
     TString("genJet1Pt>300 && genJet1M>145. && genJet1M<205. &&")+
     TString("genJet1Eta<1.3 && genJet1Eta>-1.3");
-
-  // // Tau3/Tau2 - basic cuts
-  // plotTask = new PlotTask(0,lumi);
-  // variable = "genJet1Tau3/genJet1Tau2";
-  // cuts     = basicCuts;
-  // plotTask->SetHistRanges(0.0,1.0,0.,0.);
-  // plotTask->SetAxisTitles("#tau_{3}/#tau_{2}","Number of Events");
-  // plotTask->SetPngFileName("t3OverT2-top.png");
-  // plotTask->Plot(Normalized,nTuple,variable,cuts);
-  // delete plotTask;
-  // 
-  // // Tau3/Tau2 - basic cuts and reco leptons rejected
-  // plotTask = new PlotTask(0,lumi);
-  // variable = "genJet1Tau3/genJet1Tau2";
-  // cuts     = basicCuts+andC+leptonCuts;
-  // plotTask->SetHistRanges(0.0,1.0,0.,0.);
-  // plotTask->SetAxisTitles("#tau_{3}/#tau_{2}","Number of Events");
-  // plotTask->SetPngFileName("t3OverT2Lep-top.png");
-  // plotTask->Plot(Normalized,nTuple,variable,cuts);
-  // delete plotTask;
 
   // Tau2 - basic cuts and MC leptons rejected
   plotTask = new PlotTask(0,lumi);
