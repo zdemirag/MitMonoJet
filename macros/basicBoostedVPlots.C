@@ -11,7 +11,7 @@ using namespace mithep;
 //==================================================================================================
 void basicBoostedVPlots(double lumi = 4500.0)
 {
-  // Create the basic plots of the boosted V analysis to check the key N subjettiness variable
+  // Create the basic plots of the boosted V analysis to check the key N subjettiness variables
 
 
   // set the folder containing the input ntuples properly

@@ -39,11 +39,11 @@ TString getJsonFile(const char* dir);
 //--------------------------------------------------------------------------------------------------
 void runBoostedV(const char *fileset    = "0000",
 		 const char *skim       = "noskim",
-		 const char *dataset    = "r12b-dmu-j22-v1", 
+		 const char *dataset    = "r12b-smu-j22-v1", 
 		 const char *book       = "t2mit/filefi/032",
 		 const char *catalogDir = "/home/cmsprod/catalog",
 		 const char *outputName = "boostedv",
-		 int         nEvents    = 1000)
+		 int         nEvents    = 100000)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -58,9 +58,15 @@ void runBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   // some global setups
   //------------------------------------------------------------------------------------------------
+  // debugging config
   using namespace mithep;
-  gDebugMask  = Debug::kGeneral;
+  gDebugMask  = (Debug::EDebugMask) (Debug::kGeneral | Debug::kTreeIO);
   gDebugLevel = 3;
+
+  // Caching and how
+  Int_t local = 1;   // 0 - as is, 1 - /mt/hadoop (MIT:SmartCache),
+                     // 2 - /mnt/hadoop (MIT:SmartCache/fs), 3 - ./ (xrdcp)
+  Int_t cacher = 1;  // 0 - no file by file caching, 1 - file by file caching on
 
   //------------------------------------------------------------------------------------------------
   // set up information for master module
@@ -82,6 +88,7 @@ void runBoostedV(const char *fileset    = "0000",
   // setup analysis
   //------------------------------------------------------------------------------------------------
   Analysis *ana = new Analysis;
+  ana->SetUseCacher(cacher);
   ana->SetUseHLT(kTRUE);
   ana->SetKeepHierarchy(kTRUE);
   ana->SetSuperModule(runLumiSel);
@@ -97,9 +104,9 @@ void runBoostedV(const char *fileset    = "0000",
   Dataset *d = NULL;
   TString bookstr = book;
   if (TString(skim).CompareTo("noskim") == 0)
-    d = c->FindDataset(bookstr,dataset,fileset,true);
+    d = c->FindDataset(bookstr,dataset,fileset,local);
   else 
-    d = c->FindDataset(bookstr,skimdataset.Data(),fileset,true);
+    d = c->FindDataset(bookstr,skimdataset.Data(),fileset,local);
   ana->AddDataset(d);
 
   //------------------------------------------------------------------------------------------------
