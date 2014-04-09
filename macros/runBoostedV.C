@@ -63,10 +63,16 @@ void runBoostedV(const char *fileset    = "0000",
   gDebugMask  = (Debug::EDebugMask) (Debug::kGeneral | Debug::kTreeIO);
   gDebugLevel = 3;
 
+
   // Caching and how
-  Int_t local = 1;   // 0 - as is, 1 - /mt/hadoop (MIT:SmartCache),
-                     // 2 - /mnt/hadoop (MIT:SmartCache/fs), 3 - ./ (xrdcp)
-  Int_t cacher = 1;  // 0 - no file by file caching, 1 - file by file caching on
+  Int_t local = 1, cacher = 1;
+
+  // local =   0 - as is,
+  //           1 - /mt/hadoop  (MIT:SmartCache - preload one-by-one)
+  //           2 - /mnt/hadoop (MIT:SmartCache - preload complete fileset)
+  //           3 - ./          (xrdcp          - preload one-by-one)
+  // cacher =  0 - no file by file caching
+  //           1 - file by file caching on
 
   //------------------------------------------------------------------------------------------------
   // set up information for master module
@@ -76,6 +82,7 @@ void runBoostedV(const char *fileset    = "0000",
   
   // only select on run- and lumisection numbers when valid json file present
   if (json.CompareTo("~") != 0 && json.CompareTo("-") != 0) {
+    printf(" runBoostedV() - adding jsonFile: %s\n",jsonFile.Data());
     runLumiSel->AddJSONFile(jsonFile.Data());
   }
   if (json.CompareTo("-") == 0) {
@@ -434,8 +441,8 @@ TString getCatalogDir(const char* dir)
 //--------------------------------------------------------------------------------------------------
 TString getJsonFile(const char* dir)
 {
-  TString jsonDir = TString("./json");
-  TString json    = Utils::GetEnv("MIT_PROD_JSON");
+  TString jsonDir  = TString("./json");
+  TString json     = Utils::GetEnv("MIT_PROD_JSON");
   Long_t *id=0,*size=0,*flags=0,*mt=0;
 
   printf(" Try local json first: %s\n",jsonDir.Data());
@@ -450,5 +457,15 @@ TString getJsonFile(const char* dir)
     printf(" Local json directory exists: %s using this one.\n",jsonDir.Data()); 
   }
 
-  return jsonDir+TString("/")+json;
+  // Construct the full file name
+  TString jsonFile = jsonDir + TString("/") + json;
+  if (gSystem->GetPathInfo(jsonFile.Data(),id,size,flags,mt) != 0) {
+    printf(" Requested jsonfile (%s) does not exist. EXIT!\n",jsonFile.Data());
+    return TString("");
+  }
+  else {
+    printf(" Requested jsonfile (%s) exist. Moving on now!\n",jsonFile.Data());
+  }
+
+  return jsonFile;
 }
