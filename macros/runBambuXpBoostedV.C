@@ -37,7 +37,7 @@
 //--------------------------------------------------------------------------------------------------
 void runBambuXpBoostedV(const char *fileset    = "0000",
 			const char *skim       = "noskim",
-			const char *dataset    = "r12b-smu-j22-v1", 
+			const char *dataset    = "r12b-smu-j22-v1",
 			const char *book       = "t2mit/filefi/032",
 			const char *catalogDir = "/home/cmsprod/catalog",
 			const char *outputName = "boostedv",
@@ -373,26 +373,33 @@ void runBambuXpBoostedV(const char *fileset    = "0000",
   skmElectrons->SetPublishArray(kTRUE);
 
   SkimMod<Muon> *skmMuons = new SkimMod<Muon>;
-  skmMuons->SetBranchName(muonId->GetOutputName());
-  skmMuons->SetColFromBranch(kFALSE);
-  skmMuons->SetColMarkFilter(kFALSE);
+  skmMuons->SetBranchName("Muons");
+  skmMuons->SetColFromBranch(kTRUE);
+  skmMuons->SetColMarkFilter(kTRUE);
   skmMuons->SetPublishArray(kTRUE);
 
-  SkimMod<Track> *skmTracks = new SkimMod<Track>;
-  skmTracks->SetBranchName("Tracks");
-  skmTracks->SetColFromBranch(kTRUE);
-  skmTracks->SetColMarkFilter(kTRUE);
-  skmTracks->SetPublishArray(kTRUE);
+  SkimMod<Track> *skmGlTracks = new SkimMod<Track>;
+  skmGlTracks->SetBranchName("GlobalMuonTracks");
+  skmGlTracks->SetColFromBranch(kTRUE);
+  skmGlTracks->SetColMarkFilter(kTRUE);
+  skmGlTracks->SetPublishArray(kTRUE);
 
   OutputMod *outMod = new OutputMod;
   outMod->Drop("*");
   outMod->Keep("PFMet");
+  outMod->Keep("GlobalMuonTracks");
+  outMod->Keep("StandaloneMuonTracks");
+  outMod->Keep("StandaloneMuonTracksWVtxConstraint");
+  outMod->Keep("Tracks");
+  outMod->Keep("GlobalCosmicMuonTracks");
+  outMod->Keep("StandaloneCosmicMuonTracks");
   outMod->AddNewBranch(TString("Skm") + jetCleaning->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + photonCleaningMod->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + pftauCleaningMod->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + electronCleaning->GetOutputName());
-  outMod->AddNewBranch(TString("Skm") + muonId->GetOutputName());
-  outMod->AddNewBranch(TString("SkmTracks"));
+  //outMod->AddNewBranch(TString("Skm") + muonId->GetOutputName());
+  outMod->AddNewBranch(TString("SkmMuons"));
+  outMod->AddNewBranch(TString("SkmGlobalMuonTracks"));
   outMod->SetFileName(rootFile);
 
   //------------------------------------------------------------------------------------------------
@@ -419,8 +426,11 @@ void runBambuXpBoostedV(const char *fileset    = "0000",
   skmPhotons       ->Add(skmTaus);
   skmTaus          ->Add(skmElectrons);
   skmElectrons     ->Add(skmMuons);
-  skmMuons         ->Add(skmTracks);
-  skmTracks        ->Add(outMod);
+
+  //skmMuons         ->Add(outMod);
+
+  skmMuons         ->Add(skmGlTracks);
+  skmGlTracks      ->Add(outMod);
   
   //------------------------------------------------------------------------------------------------
   // Say what we are doing
