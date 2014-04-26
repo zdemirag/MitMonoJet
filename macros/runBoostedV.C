@@ -33,9 +33,6 @@
 #include "MitPhysics/Mods/interface/JetCleaningMod.h"
 #include "MitMonoJet/Mods/interface/BoostedVTreeWriter.h"
 
-TString getCatalogDir(const char* dir);
-TString getJsonFile(const char* dir);
-
 //--------------------------------------------------------------------------------------------------
 void runBoostedV(const char *fileset    = "0000",
 		 const char *skim       = "noskim",
@@ -48,10 +45,10 @@ void runBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
   //------------------------------------------------------------------------------------------------
-  TString cataDir  = getCatalogDir(catalogDir);
+  TString cataDir  = Utils::GetCatalogDir(catalogDir);
   TString mitData  = Utils::GetEnv("MIT_DATA");
   TString json     = Utils::GetEnv("MIT_PROD_JSON");
-  TString jsonFile = getJsonFile("/home/cmsprod/cms/json");
+  TString jsonFile = Utils::GetJsonFile("/home/cmsprod/cms/json");
   Bool_t  isData   = (json.CompareTo("~") != 0);
   printf("\n Initialization worked. Data?: %d\n\n",isData);
 
@@ -415,57 +412,4 @@ void runBoostedV(const char *fileset    = "0000",
   ana->Run(!gROOT->IsBatch());
 
   return;
-}
-
-//--------------------------------------------------------------------------------------------------
-TString getCatalogDir(const char* dir)
-{
-  TString cataDir = TString("./catalog");
-  Long_t *id=0,*size=0,*flags=0,*mt=0;
-
-  printf(" Try local catalog first: %s\n",cataDir.Data());
-  if (gSystem->GetPathInfo(cataDir.Data(),id,size,flags,mt) != 0) {
-    cataDir = TString(dir);
-    if (gSystem->GetPathInfo(cataDir.Data(),id,size,flags,mt) != 0) {
-      printf(" Requested local (./catalog) and specified catalog do not exist. EXIT!\n");
-      return TString("");
-    }
-  }
-  else {
-    printf(" Local catalog exists: %s using this one.\n",cataDir.Data()); 
-  }
-
-  return cataDir;
-}
-
-//--------------------------------------------------------------------------------------------------
-TString getJsonFile(const char* dir)
-{
-  TString jsonDir  = TString("./json");
-  TString json     = Utils::GetEnv("MIT_PROD_JSON");
-  Long_t *id=0,*size=0,*flags=0,*mt=0;
-
-  printf(" Try local json first: %s\n",jsonDir.Data());
-  if (gSystem->GetPathInfo(jsonDir.Data(),id,size,flags,mt) != 0) {
-    jsonDir = TString(dir);
-    if (gSystem->GetPathInfo(jsonDir.Data(),id,size,flags,mt) != 0) {
-      printf(" Requested local (./json) and specified json directory do not exist. EXIT!\n");
-      return TString("");
-    }
-  }
-  else {
-    printf(" Local json directory exists: %s using this one.\n",jsonDir.Data()); 
-  }
-
-  // Construct the full file name
-  TString jsonFile = jsonDir + TString("/") + json;
-  if (gSystem->GetPathInfo(jsonFile.Data(),id,size,flags,mt) != 0) {
-    printf(" Requested jsonfile (%s) does not exist. EXIT!\n",jsonFile.Data());
-    return TString("");
-  }
-  else {
-    printf(" Requested jsonfile (%s) exist. Moving on now!\n",jsonFile.Data());
-  }
-
-  return jsonFile;
 }
