@@ -25,6 +25,7 @@
 #include "MitMonoJet/DataTree/interface/XlFatJetFwd.h"
 #include "MitMonoJet/DataTree/interface/XlFatJet.h"
 #include "MitMonoJet/DataTree/interface/XlSubJetFwd.h"
+#include "MitMonoJet/DataTree/interface/XlSubJet.h"
 
 #include "MitAna/TreeMod/interface/BaseMod.h"
 #include "MitAna/DataTree/interface/JetCol.h"
@@ -39,11 +40,14 @@ namespace mithep
                    const char *title = "XlJets Filler module");
       ~FillerXlJets();
 
+      void FillVSubJets(bool b)            { fFillVSubJets = b;   }
+      void FillTopSubJets(bool b)          { fFillTopSubJets = b; }
       void SetJetsName(const char *n)      { fJetsName = n;       }
       void SetJetsFromBranch(bool b)       { fJetsFromBranch = b; }
  
       void FillXlFatJets(std::vector<fastjet::PseudoJet> &fjFatJets);
-      void FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, XlFatJet *pFatJet);
+      void FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, XlFatJet *pFatJet,
+                         XlSubJet::ESubJetType t);
 
     protected:
       void Process();
@@ -52,6 +56,8 @@ namespace mithep
   
     private:
       Bool_t fIsData;                      //is this data or MC?
+      Bool_t fFillVSubJets;                //=true if V-subjets are stored (2-prom structure)
+      Bool_t fFillTopSubJets;              //=true if top-subjets are stored (3-prom structure)
       Bool_t fBTaggingActive;              //=true if BTagging info is filled
       Bool_t fQGTaggingActive;             //=true if QGTagging info is filled
       Bool_t fPublishOutput;               //=true if output collection are published

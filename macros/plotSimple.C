@@ -8,6 +8,12 @@ void plotSimple(){
   
   TCanvas *can = new TCanvas();
   inTree->Draw("XlFatJets->At(0)->SubJet(0)->Pt()","XlSubJets->GetEntries()>0");
+
+  TCanvas *can2 = new TCanvas();
+  inTree->Draw("XlFatJets->At(0)->SubJet(0)->SubJetType()","XlSubJets->GetEntries()>0");
+
+  TCanvas *can3 = new TCanvas();
+  inTree->Draw("XlFatJets->At(0)->SubJet(2)->SubJetType()","XlSubJets->GetEntries()>2");
   
   return;
 }

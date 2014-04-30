@@ -36,6 +36,7 @@ namespace mithep
       Double_t              Tau1()                          const { return fTau1;                  }
       Double_t              Tau2()                          const { return fTau2;                  }
       Double_t              Tau3()                          const { return fTau3;                  }
+      EObjType              ObjType()                       const { return kXlFatJet;              } 
       const XlSubJet       *SubJet(UInt_t i)                const { return fSubJets.At(i);         }
       void                  SetTau1(Double_t t)                   { fTau1     = t;                 }
       void                  SetTau2(Double_t t)                   { fTau2     = t;                 }

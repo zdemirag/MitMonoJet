@@ -15,6 +15,8 @@ ClassImp(mithep::FillerXlJets)
 FillerXlJets::FillerXlJets(const char *name, const char *title) :
   BaseMod (name,title),
   fIsData (kTRUE),
+  fFillVSubJets (kTRUE),
+  fFillTopSubJets (kFALSE),
   fBTaggingActive (kFALSE),
   fQGTaggingActive (kFALSE),
   fPublishOutput (kTRUE),
@@ -177,16 +179,23 @@ void FillerXlJets::FillXlFatJets(std::vector<fastjet::PseudoJet> &fjFatJets)
     fatJet->SetTau2(tau2);
     fatJet->SetTau3(tau3);
 
-    // Loop on the subjets and fill the subjet Xl collection - for now only considering 2-prom structure
-    std::vector<fastjet::PseudoJet> fjSubJets = nSub2.currentSubjets();
-    FillXlSubJets(fjSubJets,fatJet);
+    // Loop on the subjets and fill the subjet Xl collections - do it according to the user request
+    if (fFillVSubJets) {
+      std::vector<fastjet::PseudoJet> fjVSubJets = nSub2.currentSubjets();
+      FillXlSubJets(fjVSubJets,fatJet,XlSubJet::ESubJetType::eV);
+    } // End scope of V-subjets filling
+    if (fFillTopSubJets) {
+      std::vector<fastjet::PseudoJet> fjTopSubJets = nSub3.currentSubjets();
+      FillXlSubJets(fjTopSubJets,fatJet,XlSubJet::ESubJetType::eTop);
+    } // End scope of Top-subjets filling
   }
   
   return;
 }
 
 //--------------------------------------------------------------------------------------------------
-void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, XlFatJet *pFatJet)
+void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, XlFatJet *pFatJet,
+                                 XlSubJet::ESubJetType subJetType)
 {
   for (int iSJet=0; iSJet < (int) fjSubJets.size(); iSJet++) {
     XlSubJet *subJet = XlSubJets->Allocate();
@@ -195,6 +204,9 @@ void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, XlF
                           fjSubJets[iSJet].py(),
                           fjSubJets[iSJet].pz(),
                           fjSubJets[iSJet].e());
+
+    // Store the subjet type value 
+    subJet->SetSubJetType(subJetType);
                           
     // Add the subjet to the fatjet
     pFatJet->AddSubJet(subJet);

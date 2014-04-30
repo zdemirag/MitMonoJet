@@ -364,7 +364,8 @@ void runBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   // select events with a given jet substructure
   //------------------------------------------------------------------------------------------------
-  FillerXlJets *boostedJetsFiller = new FillerXlJets;
+  FillerXlJets *boostedJetsFiller = new FillerXlJets;  
+  boostedJetsFiller->FillTopSubJets(kTRUE);
   boostedJetsFiller->SetJetsName(jetCleaning->GetOutputName());
   boostedJetsFiller->SetJetsFromBranch(kFALSE);
 
