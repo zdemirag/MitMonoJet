@@ -5,6 +5,7 @@
 #include "MitAna/Catalog/interface/Catalog.h"
 #include "MitAna/TreeMod/interface/Analysis.h"
 #include "MitAna/TreeMod/interface/HLTMod.h"
+#include "MitAna/TreeMod/interface/OutputMod.h"
 #include "MitAna/PhysicsMod/interface/RunLumiSelectionMod.h"
 #include "MitAna/PhysicsMod/interface/MCProcessSelectionMod.h"
 #include "MitAna/PhysicsMod/interface/PublisherMod.h"
@@ -31,7 +32,10 @@
 #include "MitPhysics/Mods/interface/SeparatePileUpMod.h"
 #include "MitPhysics/Mods/interface/JetIDMod.h"
 #include "MitPhysics/Mods/interface/JetCleaningMod.h"
-#include "MitMonoJet/Mods/interface/BoostedVTreeWriter.h"
+#include "MitMonoJet/TreeFiller/interface/FillerXlJets.h"
+
+TString getCatalogDir(const char* dir);
+TString getJsonFile(const char* dir);
 
 //--------------------------------------------------------------------------------------------------
 void runBoostedV(const char *fileset    = "0000",
@@ -40,15 +44,15 @@ void runBoostedV(const char *fileset    = "0000",
 		 const char *book       = "t2mit/filefi/032",
 		 const char *catalogDir = "/home/cmsprod/catalog",
 		 const char *outputName = "boostedv",
-		 int         nEvents    = 100000)
+		 int         nEvents    = 100)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
   //------------------------------------------------------------------------------------------------
-  TString cataDir  = Utils::GetCatalogDir(catalogDir);
+  TString cataDir  = getCatalogDir(catalogDir);
   TString mitData  = Utils::GetEnv("MIT_DATA");
   TString json     = Utils::GetEnv("MIT_PROD_JSON");
-  TString jsonFile = Utils::GetJsonFile("/home/cmsprod/cms/json");
+  TString jsonFile = getJsonFile("/home/cmsprod/cms/json");
   Bool_t  isData   = (json.CompareTo("~") != 0);
   printf("\n Initialization worked. Data?: %d\n\n",isData);
 
@@ -360,18 +364,17 @@ void runBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   // select events with a given jet substructure
   //------------------------------------------------------------------------------------------------
-  BoostedVTreeWriter *boostedVMod = new BoostedVTreeWriter;
-  boostedVMod->SetIsData(isData);
-  boostedVMod->SetTriggerObjsName(hltModP->GetOutputName());
-  boostedVMod->SetJetsName(jetCleaning->GetOutputName());
-  boostedVMod->SetJetsFromBranch(kFALSE);
-  boostedVMod->SetPhotonsName(photonCleaningMod->GetOutputName());
-  boostedVMod->SetPhotonsFromBranch(kFALSE);
-  boostedVMod->SetPFTausName(pftauCleaningMod->GetOutputName());
-  boostedVMod->SetPFTausFromBranch(kFALSE);
-  boostedVMod->SetLeptonsName(merger->GetOutputName());
-  boostedVMod->SetPruning(0);
-  boostedVMod->SetOutputName(ntupleFile.Data());
+  FillerXlJets *boostedJetsFiller = new FillerXlJets;
+  boostedJetsFiller->SetJetsName(jetCleaning->GetOutputName());
+  boostedJetsFiller->SetJetsFromBranch(kFALSE);
+
+  //------------------------------------------------------------------------------------------------
+  // save all this in an output ntuple
+  //------------------------------------------------------------------------------------------------
+  OutputMod *outMod = new OutputMod;
+  outMod->Drop("*");
+  outMod->AddNewBranch("XlFatJets");
+  outMod->AddNewBranch("XlSubJets");
 
   //------------------------------------------------------------------------------------------------
   // making analysis chain
@@ -393,7 +396,8 @@ void runBoostedV(const char *fileset    = "0000",
   jetCorr          ->Add(metCorrT0T1Shift);
   metCorrT0T1Shift ->Add(jetId);
   jetId            ->Add(jetCleaning);
-  jetCleaning      ->Add(boostedVMod);
+  jetCleaning      ->Add(boostedJetsFiller);
+  boostedJetsFiller->Add(outMod);
   
   //------------------------------------------------------------------------------------------------
   // Say what we are doing
@@ -412,4 +416,57 @@ void runBoostedV(const char *fileset    = "0000",
   ana->Run(!gROOT->IsBatch());
 
   return;
+}
+
+//--------------------------------------------------------------------------------------------------
+TString getCatalogDir(const char* dir)
+{
+  TString cataDir = TString("./catalog");
+  Long_t *id=0,*size=0,*flags=0,*mt=0;
+
+  printf(" Try local catalog first: %s\n",cataDir.Data());
+  if (gSystem->GetPathInfo(cataDir.Data(),id,size,flags,mt) != 0) {
+    cataDir = TString(dir);
+    if (gSystem->GetPathInfo(cataDir.Data(),id,size,flags,mt) != 0) {
+      printf(" Requested local (./catalog) and specified catalog do not exist. EXIT!\n");
+      return TString("");
+    }
+  }
+  else {
+    printf(" Local catalog exists: %s using this one.\n",cataDir.Data()); 
+  }
+
+  return cataDir;
+}
+
+//--------------------------------------------------------------------------------------------------
+TString getJsonFile(const char* dir)
+{
+  TString jsonDir  = TString("./json");
+  TString json     = Utils::GetEnv("MIT_PROD_JSON");
+  Long_t *id=0,*size=0,*flags=0,*mt=0;
+
+  printf(" Try local json first: %s\n",jsonDir.Data());
+  if (gSystem->GetPathInfo(jsonDir.Data(),id,size,flags,mt) != 0) {
+    jsonDir = TString(dir);
+    if (gSystem->GetPathInfo(jsonDir.Data(),id,size,flags,mt) != 0) {
+      printf(" Requested local (./json) and specified json directory do not exist. EXIT!\n");
+      return TString("");
+    }
+  }
+  else {
+    printf(" Local json directory exists: %s using this one.\n",jsonDir.Data()); 
+  }
+
+  // Construct the full file name
+  TString jsonFile = jsonDir + TString("/") + json;
+  if (gSystem->GetPathInfo(jsonFile.Data(),id,size,flags,mt) != 0) {
+    printf(" Requested jsonfile (%s) does not exist. EXIT!\n",jsonFile.Data());
+    return TString("");
+  }
+  else {
+    printf(" Requested jsonfile (%s) exist. Moving on now!\n",jsonFile.Data());
+  }
+
+  return jsonFile;
 }
