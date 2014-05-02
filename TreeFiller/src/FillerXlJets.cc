@@ -20,18 +20,25 @@ FillerXlJets::FillerXlJets(const char *name, const char *title) :
   fBTaggingActive (kFALSE),
   fQGTaggingActive (kFALSE),
   fPublishOutput (kTRUE),
+  fProcessNJets (2),
   fJetsName (Names::gkPFJetBrn),
   fJetsFromBranch (kTRUE),
   fJets (0),
   fPfCandidatesName (Names::gkPFCandidatesBrn),
   fPfCandidatesFromBranch(kTRUE),
   fPfCandidates (0),
-  XlFatJetsName ("XlFatJets"),
-  XlFatJets (new XlFatJetArr(16,XlFatJetsName)),
-  XlSubJetsName ("XlSubJets"),
-  XlSubJets (new XlSubJetArr(16,XlSubJetsName)),
-  fConeSize (0.6),
-  fPrune (1.)
+  fXlFatJetsName ("XlFatJets"),
+  fXlSubJetsName ("XlSubJets"),
+  fPrune (kFALSE),         
+  fFilter (kFALSE),        
+  fTrim (kFALSE),          
+  fPruneZCut (0.1),     
+  fPruneDistCut (0.5),  
+  fFilterN (3),      
+  fFilterRad (0.2),     
+  fTrimRad (0.05),       
+  fTrimPtFrac (0.03),    
+  fConeSize (0.6)
 {
   // Constructor.
 }
@@ -39,18 +46,18 @@ FillerXlJets::FillerXlJets(const char *name, const char *title) :
 FillerXlJets::~FillerXlJets()
 {
   // Destructor
-  if (XlSubJets)
-    delete XlSubJets;
-  if (XlFatJets)
-    delete XlFatJets;
+  if (fXlSubJets)
+    delete fXlSubJets;
+  if (fXlFatJets)
+    delete fXlFatJets;
 }
 
 //--------------------------------------------------------------------------------------------------
 void FillerXlJets::Process()
 {
   // make sure the out collections are empty before starting
-  XlFatJets->Delete();  
-  XlSubJets->Delete();  
+  fXlFatJets->Delete();  
+  fXlSubJets->Delete();  
   
   // Load the branches we want to work with
   LoadEventObject(fJetsName,fJets,fJetsFromBranch);
@@ -58,6 +65,11 @@ void FillerXlJets::Process()
   // Loop over jets and perform Nsubjettiness analysis (for now just stick with the first two jets)
   std::vector<fastjet::PseudoJet> lFjParts;
   for (UInt_t i=0; i<fJets->GetEntries(); ++i) {
+
+    // consider only the first fProcessNJets jets
+    if (i >= fProcessNJets)
+      break; 
+      
     const PFJet *jet = dynamic_cast<const PFJet*>(fJets->At(i));
     if (! jet) {
       printf(" FillerXlJets::Process() - ERROR - jets provided are not PFJets.");
@@ -70,8 +82,6 @@ void FillerXlJets::Process()
       lFjParts.push_back(fastjet::PseudoJet(pfCand->Px(),pfCand->Py(),pfCand->Pz(),pfCand->E()));
       lFjParts.back().set_user_index(j);      
     }	
-    if (i > 0)
-      break; // this is for now just considering the first two jets (consider all in the future)
   }
 
   // ---- Fastjet is ready ----
@@ -81,38 +91,18 @@ void FillerXlJets::Process()
     new fastjet::ClusterSequenceArea(lFjParts,*fCAJetDef,*fAreaDefinition);
 
   // Produce a new set of jets based on the fastjet particle collection and the defined clustering
-  std::vector<fastjet::PseudoJet> lOutJets = sorted_by_pt(lClustering->inclusive_jets());
+  // Cut off fat jets with pt < 10 GeV
+  std::vector<fastjet::PseudoJet> lOutJets = sorted_by_pt(lClustering->inclusive_jets(10.)); 
   
   // Fill the new collections with the output of fastjet
-  FillXlFatJets(lOutJets); // this method will also fill the SubJet collection
+  FillfXlFatJets(lOutJets); // this method will also fill the SubJet collection
    
-  // Access the 2 hardest jets as applicable
-  fastjet::PseudoJet lJet1, lJet2;
-  if (fPrune) {
-    if (lOutJets.size() > 0)
-      lJet1 = (*fPruner)(lOutJets[0]);
-    if (lOutJets.size() > 1)
-      lJet2 = (*fPruner)(lOutJets[1]);
-  }
-  else {
-    if (lOutJets.size() > 0)
-      lJet1 = lOutJets[0];
-    if (lOutJets.size() > 1)
-      lJet2 = lOutJets[1];
-  }
-
-  // ---- Fastjet is already done ----
-
-  // Skip event if no jets are found
-  if (lOutJets.size() == 0) {
-    if (lClustering)
-      delete lClustering;
-    return;
-  }
+  // ---- Fastjet is done ----
       
   // Always cleanup
   if (lClustering)
     delete lClustering;
+    
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -123,9 +113,24 @@ void FillerXlJets::SlaveBegin()
   ReqEventObject(fJetsName,fJets,fJetsFromBranch);
   ReqEventObject(fPfCandidatesName,fPfCandidates,fPfCandidatesFromBranch);
 
-  // Default pruning parameters
-  fPruner = new fastjet::Pruner(fastjet::cambridge_algorithm,0.1,0.5); // CMS Default
-  
+  // Create the new output collection
+  fXlFatJets = new XlFatJetArr(16,fXlFatJetsName);
+  fXlSubJets = new XlSubJetArr(16,fXlSubJetsName);
+  // Publish collection for further usage in the analysis
+  if (fPublishOutput) {
+    PublishObj(fXlFatJets);
+    PublishObj(fXlSubJets);
+  }
+
+  // Prepare pruner
+  fPruner = new fastjet::Pruner(fastjet::cambridge_algorithm,fPruneZCut,fPruneDistCut);
+  // Prepare filterer
+  fFilterer = new fastjet::Filter(fastjet::JetDefinition(fastjet::cambridge_algorithm,fFilterRad), 
+                                  fastjet::SelectorNHardest(fFilterN));
+  // Prepare trimmer
+  fTrimmer = new fastjet::Filter(fastjet::Filter(fastjet::JetDefinition(fastjet::kt_algorithm,fTrimRad),
+                                 fastjet::SelectorPtFractionMin(fTrimPtFrac)));
+    
   // CA constructor (fConeSize = 0.6 for antiKt) - reproducing paper 1: http://arxiv.org/abs/1011.2268
   fCAJetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm, fConeSize);
   
@@ -136,12 +141,6 @@ void FillerXlJets::SlaveBegin()
   fActiveArea = new fastjet::GhostedAreaSpec(ghostEtaMax,activeAreaRepeats,ghostArea);
   fAreaDefinition = new fastjet::AreaDefinition(fastjet::active_area_explicit_ghosts,*fActiveArea);
   
-  // Publish collection for further usage in the analysis
-  if (fPublishOutput) {
-    PublishObj(XlFatJets);
-    PublishObj(XlSubJets);
-  }
-
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -150,18 +149,29 @@ void FillerXlJets::SlaveTerminate()
 }
 
 //--------------------------------------------------------------------------------------------------
-void FillerXlJets::FillXlFatJets(std::vector<fastjet::PseudoJet> &fjFatJets)
+void FillerXlJets::FillfXlFatJets(std::vector<fastjet::PseudoJet> &fjFatJets)
 {
   for (int iJet=0; iJet < (int) fjFatJets.size(); iJet++) {
     // Skip very soft jets produced by fastjet clustering 
     if (fjFatJets[iJet].perp() < 10) continue;
 
+    // If required by the user apply grooming algorithm on the jet
+    fastjet::PseudoJet pJet;
+    if (fPrune)
+      pJet = (*fPruner)(fjFatJets[iJet]);
+    else if (fFilter)
+      pJet = (*fFilterer)(fjFatJets[iJet]);
+    else if (fTrim)
+      pJet = (*fTrimmer)(fjFatJets[iJet]);
+    else 
+      pJet = fjFatJets[iJet];
+      
     // Prepare and store in an array a new FatJet 
-    XlFatJet *fatJet = XlFatJets->Allocate();
-    new (fatJet) XlFatJet(fjFatJets[iJet].px(),
-                          fjFatJets[iJet].py(),
-                          fjFatJets[iJet].pz(),
-                          fjFatJets[iJet].e());
+    XlFatJet *fatJet = fXlFatJets->Allocate();
+    new (fatJet) XlFatJet(pJet.px(),
+                          pJet.py(),
+                          pJet.pz(),
+                          pJet.e());
     
     // Compute the subjettiness
     fastjet::contrib::Njettiness::AxesMode axisMode = fastjet::contrib::Njettiness::onepass_wta_kt_axes;
@@ -170,9 +180,9 @@ void FillerXlJets::FillXlFatJets(std::vector<fastjet::PseudoJet> &fjFatJets)
     fastjet::contrib::Nsubjettiness  nSub1(1,axisMode,measureMode,beta);
     fastjet::contrib::Nsubjettiness  nSub2(2,axisMode,measureMode,beta);
     fastjet::contrib::Nsubjettiness  nSub3(3,axisMode,measureMode,beta);
-    double tau1 = nSub1(fjFatJets[iJet]);
-    double tau2 = nSub2(fjFatJets[iJet]);
-    double tau3 = nSub3(fjFatJets[iJet]);
+    double tau1 = nSub1(pJet);
+    double tau2 = nSub2(pJet);
+    double tau3 = nSub3(pJet);
 
     // Store the subjettiness values
     fatJet->SetTau1(tau1);
@@ -182,11 +192,11 @@ void FillerXlJets::FillXlFatJets(std::vector<fastjet::PseudoJet> &fjFatJets)
     // Loop on the subjets and fill the subjet Xl collections - do it according to the user request
     if (fFillVSubJets) {
       std::vector<fastjet::PseudoJet> fjVSubJets = nSub2.currentSubjets();
-      FillXlSubJets(fjVSubJets,fatJet,XlSubJet::ESubJetType::eV);
+      FillfXlSubJets(fjVSubJets,fatJet,XlSubJet::ESubJetType::eV);
     } // End scope of V-subjets filling
     if (fFillTopSubJets) {
       std::vector<fastjet::PseudoJet> fjTopSubJets = nSub3.currentSubjets();
-      FillXlSubJets(fjTopSubJets,fatJet,XlSubJet::ESubJetType::eTop);
+      FillfXlSubJets(fjTopSubJets,fatJet,XlSubJet::ESubJetType::eTop);
     } // End scope of Top-subjets filling
   }
   
@@ -194,11 +204,11 @@ void FillerXlJets::FillXlFatJets(std::vector<fastjet::PseudoJet> &fjFatJets)
 }
 
 //--------------------------------------------------------------------------------------------------
-void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, XlFatJet *pFatJet,
+void FillerXlJets::FillfXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, XlFatJet *pFatJet,
                                  XlSubJet::ESubJetType subJetType)
 {
   for (int iSJet=0; iSJet < (int) fjSubJets.size(); iSJet++) {
-    XlSubJet *subJet = XlSubJets->Allocate();
+    XlSubJet *subJet = fXlSubJets->Allocate();
     // Prepare and store in an array a new SubJet 
     new (subJet) XlSubJet(fjSubJets[iSJet].px(),
                           fjSubJets[iSJet].py(),

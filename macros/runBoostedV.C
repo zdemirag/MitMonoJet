@@ -44,7 +44,7 @@ void runBoostedV(const char *fileset    = "0000",
 		 const char *book       = "t2mit/filefi/032",
 		 const char *catalogDir = "/home/cmsprod/catalog",
 		 const char *outputName = "boostedv",
-		 int         nEvents    = 100)
+		 int         nEvents    = 1000)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -368,6 +368,39 @@ void runBoostedV(const char *fileset    = "0000",
   boostedJetsFiller->FillTopSubJets(kTRUE);
   boostedJetsFiller->SetJetsName(jetCleaning->GetOutputName());
   boostedJetsFiller->SetJetsFromBranch(kFALSE);
+  boostedJetsFiller->SetPruningOn(kFALSE);        
+  boostedJetsFiller->SetFilteringOn(kFALSE);     
+  boostedJetsFiller->SetTrimmingOn(kFALSE);      
+
+  FillerXlJets *boostedJetsFillerPruned = new FillerXlJets("boostedJetsFillerPruned","boostedJetsFillerPruned");  
+  boostedJetsFillerPruned->FillTopSubJets(kTRUE);
+  boostedJetsFillerPruned->SetJetsName(jetCleaning->GetOutputName());
+  boostedJetsFillerPruned->SetJetsFromBranch(kFALSE);
+  boostedJetsFillerPruned->SetPruningOn(kTRUE);        
+  boostedJetsFillerPruned->SetFilteringOn(kFALSE);     
+  boostedJetsFillerPruned->SetTrimmingOn(kFALSE);      
+  boostedJetsFillerPruned->SetFatJetsName("XlFatJetsPruned");     
+  boostedJetsFillerPruned->SetSubJetsName("XlSubJetsPruned");      
+
+  FillerXlJets *boostedJetsFillerFiltered = new FillerXlJets("boostedJetsFillerFiltered","boostedJetsFillerFiltered");  
+  boostedJetsFillerFiltered->FillTopSubJets(kTRUE);
+  boostedJetsFillerFiltered->SetJetsName(jetCleaning->GetOutputName());
+  boostedJetsFillerFiltered->SetJetsFromBranch(kFALSE);
+  boostedJetsFillerFiltered->SetPruningOn(kFALSE);        
+  boostedJetsFillerFiltered->SetFilteringOn(kTRUE);     
+  boostedJetsFillerFiltered->SetTrimmingOn(kFALSE);      
+  boostedJetsFillerFiltered->SetFatJetsName("XlFatJetsFiltered");     
+  boostedJetsFillerFiltered->SetSubJetsName("XlSubJetsFiltered");      
+
+  FillerXlJets *boostedJetsFillerTrimmed = new FillerXlJets("boostedJetsFillerTrimmed","boostedJetsFillerTrimmed");  
+  boostedJetsFillerTrimmed->FillTopSubJets(kTRUE);
+  boostedJetsFillerTrimmed->SetJetsName(jetCleaning->GetOutputName());
+  boostedJetsFillerTrimmed->SetJetsFromBranch(kFALSE);
+  boostedJetsFillerTrimmed->SetPruningOn(kFALSE);        
+  boostedJetsFillerTrimmed->SetFilteringOn(kFALSE);     
+  boostedJetsFillerTrimmed->SetTrimmingOn(kTRUE);      
+  boostedJetsFillerTrimmed->SetFatJetsName("XlFatJetsTrimmed");     
+  boostedJetsFillerTrimmed->SetSubJetsName("XlSubJetsTrimmed");      
 
   //------------------------------------------------------------------------------------------------
   // save all this in an output ntuple
@@ -376,29 +409,40 @@ void runBoostedV(const char *fileset    = "0000",
   outMod->Drop("*");
   outMod->AddNewBranch("XlFatJets");
   outMod->AddNewBranch("XlSubJets");
-
+  outMod->AddNewBranch("XlFatJetsPruned");
+  outMod->AddNewBranch("XlSubJetsPruned");
+  outMod->AddNewBranch("XlFatJetsFiltered");
+  outMod->AddNewBranch("XlSubJetsFiltered");
+  outMod->AddNewBranch("XlFatJetsTrimmed");
+  outMod->AddNewBranch("XlSubJetsTrimmed");
+  outMod->SetFileName(TString(outputName) + TString("_") + 
+                      TString(dataset) + TString("_") + TString(skim));
+  
   //------------------------------------------------------------------------------------------------
   // making analysis chain
   //------------------------------------------------------------------------------------------------
-  runLumiSel       ->Add(goodPVFilterMod);
-  goodPVFilterMod  ->Add(hltModP);
-  hltModP          ->Add(photonReg);
-  photonReg        ->Add(sepPuMod);
-  sepPuMod         ->Add(muonId);
-  muonId           ->Add(eleIdMod);
-  eleIdMod         ->Add(electronCleaning);
-  electronCleaning ->Add(merger);
-  merger           ->Add(photonIdMod);
-  photonIdMod      ->Add(photonCleaningMod);
-  photonCleaningMod->Add(pftauIdMod);
-  pftauIdMod       ->Add(pftauCleaningMod);
-  pftauCleaningMod ->Add(pubJet);
-  pubJet           ->Add(jetCorr);
-  jetCorr          ->Add(metCorrT0T1Shift);
-  metCorrT0T1Shift ->Add(jetId);
-  jetId            ->Add(jetCleaning);
-  jetCleaning      ->Add(boostedJetsFiller);
-  boostedJetsFiller->Add(outMod);
+  runLumiSel               ->Add(goodPVFilterMod);
+  goodPVFilterMod          ->Add(hltModP);
+  hltModP                  ->Add(photonReg);
+  photonReg                ->Add(sepPuMod);
+  sepPuMod                 ->Add(muonId);
+  muonId                   ->Add(eleIdMod);
+  eleIdMod                 ->Add(electronCleaning);
+  electronCleaning         ->Add(merger);
+  merger                   ->Add(photonIdMod);
+  photonIdMod              ->Add(photonCleaningMod);
+  photonCleaningMod        ->Add(pftauIdMod);
+  pftauIdMod               ->Add(pftauCleaningMod);
+  pftauCleaningMod         ->Add(pubJet);
+  pubJet                   ->Add(jetCorr);
+  jetCorr                  ->Add(metCorrT0T1Shift);
+  metCorrT0T1Shift         ->Add(jetId);
+  jetId                    ->Add(jetCleaning);
+  jetCleaning              ->Add(boostedJetsFiller);
+  boostedJetsFiller        ->Add(boostedJetsFillerPruned);
+  boostedJetsFillerPruned  ->Add(boostedJetsFillerFiltered);
+  boostedJetsFillerFiltered->Add(boostedJetsFillerTrimmed);
+  boostedJetsFillerTrimmed ->Add(outMod);
   
   //------------------------------------------------------------------------------------------------
   // Say what we are doing

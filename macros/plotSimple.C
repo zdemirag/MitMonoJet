@@ -14,6 +14,9 @@ void plotSimple(){
 
   TCanvas *can3 = new TCanvas();
   inTree->Draw("XlFatJets->At(0)->SubJet(2)->SubJetType()","XlSubJets->GetEntries()>2");
+
+  TCanvas *can4 = new TCanvas();
+  inTree->Draw("XlFatJets->At(0)->Tau1()","XlSubJets->GetEntries()>2");
   
   return;
 }

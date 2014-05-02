@@ -4,7 +4,7 @@
 // FillerXlJets
 //
 // This module process a collection of input jet, compute the substrucure
-// and fill two output collections of XlFatJets and relative XlSubJets
+// and fill two output collections of fXlFatJets and relative fXlSubJets
 //
 // Authors: L.DiMatteo
 //--------------------------------------------------------------------------------------------------
@@ -18,6 +18,7 @@
 #include "fastjet/AreaDefinition.hh"
 #include "fastjet/ClusterSequenceArea.hh"
 #include "fastjet/tools/Pruner.hh"
+#include "fastjet/tools/Filter.hh"
 
 #include "fastjet/contrib/Njettiness.hh"
 #include "fastjet/contrib/Nsubjettiness.hh"
@@ -40,20 +41,42 @@ namespace mithep
                    const char *title = "XlJets Filler module");
       ~FillerXlJets();
 
-      void FillVSubJets(bool b)            { fFillVSubJets = b;   }
-      void FillTopSubJets(bool b)          { fFillTopSubJets = b; }
-      void SetJetsName(const char *n)      { fJetsName = n;       }
-      void SetJetsFromBranch(bool b)       { fJetsFromBranch = b; }
- 
-      void FillXlFatJets(std::vector<fastjet::PseudoJet> &fjFatJets);
-      void FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, XlFatJet *pFatJet,
-                         XlSubJet::ESubJetType t);
+      void IsData(Bool_t b)                { fIsData = b;         }
+      void FillVSubJets(Bool_t b)          { fFillVSubJets = b;   }
+      void FillTopSubJets(Bool_t b)        { fFillTopSubJets = b; }
+      void SetBtaggingOn(Bool_t b)         { fBTaggingActive = b; }
+      void SetfQGTaggingOn(Bool_t b)       { fQGTaggingActive = b;}
+      void PublishOutput(Bool_t b)         { fPublishOutput = b;  }
 
+      void SetProcessNJets(UInt_t n)       { fProcessNJets = n;  } 
+      
+      void SetJetsName(const char *n)      { fJetsName = n;       }
+      void SetJetsFromBranch(Bool_t b)     { fJetsFromBranch = b; }
+
+      void SetFatJetsName(const char *n)   { fXlFatJetsName = n;  }
+      void SetSubJetsName(const char *n)   { fXlSubJetsName = n;  }
+       
+      void SetPruningOn(Bool_t b)          { fPrune = b;          }
+      void SetFilteringOn(Bool_t b)        { fFilter = b;         }
+      void SetTrimmingOn(Bool_t b)         { fTrim = b;           }
+      
+      void SetPruneZCut(double d)          { fPruneZCut = d;      }
+      void SetPruneDistCut(double d)       { fPruneDistCut = d;   }
+      void SetFilterN(int n)               { fFilterN = n;        }
+      void SetFilterRad(double d)          { fFilterRad = d;      }
+      void SetTrimRad(double d)            { fTrimRad = d;        }
+      void SetTrimPtFrac(double d)         { fTrimPtFrac = d;     }
+      void SetConeSize(double d)           { fConeSize = d;       }
+ 
     protected:
       void Process();
       void SlaveBegin();
       void SlaveTerminate();
-  
+ 
+      void FillfXlFatJets(std::vector<fastjet::PseudoJet> &fjFatJets);
+      void FillfXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, XlFatJet *pFatJet,
+                         XlSubJet::ESubJetType t);
+ 
     private:
       Bool_t fIsData;                      //is this data or MC?
       Bool_t fFillVSubJets;                //=true if V-subjets are stored (2-prom structure)
@@ -61,6 +84,8 @@ namespace mithep
       Bool_t fBTaggingActive;              //=true if BTagging info is filled
       Bool_t fQGTaggingActive;             //=true if QGTagging info is filled
       Bool_t fPublishOutput;               //=true if output collection are published
+
+      UInt_t  fProcessNJets;               //number of input jets processed by fastjet
 
       TString fJetsName;                   //(i) name of input jets
       Bool_t fJetsFromBranch;              //are input jets from Branch?
@@ -70,20 +95,30 @@ namespace mithep
       Bool_t fPfCandidatesFromBranch;      //are PF candidates from Branch?
       const PFCandidateCol *fPfCandidates; //particle flow candidates coll handle
  
-      TString XlFatJetsName;               //name of output XlFatJets collection
-      XlFatJetArr *XlFatJets;              //array of XlFatJets
-      TString XlSubJetsName;               //name of output XlSubJets collection
-      XlSubJetArr *XlSubJets;              //array of XlSubJets
+      TString fXlFatJetsName;              //name of output fXlFatJets collection
+      XlFatJetArr *fXlFatJets;             //array of fXlFatJets
+      TString fXlSubJetsName;              //name of output fXlSubJets collection
+      XlSubJetArr *fXlSubJets;             //array of fXlSubJets
       
       // Objects from fastjet we want to use
-      double fConeSize;
-      int fPrune;                      //apply pruning: 0-no, 1-standard CMS
+      Bool_t fPrune;                       //apply pruning?
+      Bool_t fFilter;                      //apply filtering?
+      Bool_t fTrim;                        //apply trimming?
       fastjet::Pruner *fPruner;
-      fastjet::JetDefinition *fCAJetDef;
+      fastjet::Filter *fFilterer;
+      fastjet::Filter *fTrimmer;           //no this is not a typo trimmers belong to fastjet Filter class
+      double fPruneZCut;                   //pruning Z cut
+      double fPruneDistCut;                //pruning distance cut 
+      int fFilterN;                        //number of subjets after filtering
+      double fFilterRad;                   //filtered subjets radius
+      double fTrimRad;                     //trimmed subjet radius
+      double fTrimPtFrac;                  //trimmed subjet pt fraction
+      double fConeSize;                    //fastjet clustering radius
+      fastjet::JetDefinition *fCAJetDef;   //fastjet clustering definition
       fastjet::GhostedAreaSpec *fActiveArea;
       fastjet::AreaDefinition *fAreaDefinition;
 
-      ClassDef(FillerXlJets, 0)        //XlJets, Fat and Sub, filler      
+      ClassDef(FillerXlJets, 0)            //XlJets, Fat and Sub, filler      
   };
 }
 #endif
