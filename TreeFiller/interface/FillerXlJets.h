@@ -31,6 +31,7 @@
 #include "MitAna/TreeMod/interface/BaseMod.h"
 #include "MitAna/DataTree/interface/JetCol.h"
 #include "MitAna/DataTree/interface/PFCandidateCol.h"
+#include "MitAna/DataTree/interface/PFJet.h"
 
 namespace mithep
 {
@@ -73,9 +74,9 @@ namespace mithep
       void SlaveBegin();
       void SlaveTerminate();
  
-      void FillfXlFatJets(std::vector<fastjet::PseudoJet> &fjFatJets);
-      void FillfXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, XlFatJet *pFatJet,
-                         XlSubJet::ESubJetType t);
+      void FillXlFatJet (const PFJet *pPFJet);
+      void FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets,std::vector<fastjet::PseudoJet> &fjSubAxes,
+                          XlFatJet *pFatJet,XlSubJet::ESubJetType t);
  
     private:
       Bool_t fIsData;                      //is this data or MC?

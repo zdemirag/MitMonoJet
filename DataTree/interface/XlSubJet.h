@@ -40,7 +40,6 @@ namespace mithep
       ThreeVector           Axis()                          const { return fAxis.V();              }
       Double_t              BTag()                          const { return fBTag;                  }
       Double_t              QGTag()                         const { return fQGTag;                 }
-      EObjType              ObjType()                       const { return kXlSubJet;              } 
       ESubJetType           SubJetType()                    const { return fSubJetType;            } 
       void                  SetAxis(const ThreeVector &a)         { fAxis     = a;                 }
       void                  SetBTag(Double_t d)                   { fBTag     = d;                 }
