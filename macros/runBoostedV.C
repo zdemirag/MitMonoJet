@@ -9,6 +9,7 @@
 #include "MitAna/PhysicsMod/interface/RunLumiSelectionMod.h"
 #include "MitAna/PhysicsMod/interface/MCProcessSelectionMod.h"
 #include "MitAna/PhysicsMod/interface/PublisherMod.h"
+#include "MitAna/PhysicsMod/interface/SkimMod.h"
 #include "MitAna/DataTree/interface/JetCol.h"
 #include "MitAna/DataTree/interface/PFJetCol.h"
 #include "MitAna/DataTree/interface/Names.h"
@@ -44,7 +45,7 @@ void runBoostedV(const char *fileset    = "0000",
 		 const char *book       = "t2mit/filefi/032",
 		 const char *catalogDir = "/home/cmsprod/catalog",
 		 const char *outputName = "boostedv",
-		 int         nEvents    = 100)
+		 int         nEvents    = 2000)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -372,25 +373,25 @@ void runBoostedV(const char *fileset    = "0000",
   boostedJetsFiller->SetFilteringOn(kFALSE);     
   boostedJetsFiller->SetTrimmingOn(kFALSE);      
 
-  FillerXlJets *boostedJetsFillerPruned = new FillerXlJets("boostedJetsFillerPruned","boostedJetsFillerPruned");  
-  boostedJetsFillerPruned->FillTopSubJets(kTRUE);
-  boostedJetsFillerPruned->SetJetsName(jetCleaning->GetOutputName());
-  boostedJetsFillerPruned->SetJetsFromBranch(kFALSE);
-  boostedJetsFillerPruned->SetPruningOn(kTRUE);        
-  boostedJetsFillerPruned->SetFilteringOn(kFALSE);     
-  boostedJetsFillerPruned->SetTrimmingOn(kFALSE);      
-  boostedJetsFillerPruned->SetFatJetsName("XlFatJetsPruned");     
-  boostedJetsFillerPruned->SetSubJetsName("XlSubJetsPruned");      
+  //FillerXlJets *boostedJetsFillerPruned = new FillerXlJets("boostedJetsFillerPruned","boostedJetsFillerPruned");  
+  //boostedJetsFillerPruned->FillTopSubJets(kTRUE);
+  //boostedJetsFillerPruned->SetJetsName(jetCleaning->GetOutputName());
+  //boostedJetsFillerPruned->SetJetsFromBranch(kFALSE);
+  //boostedJetsFillerPruned->SetPruningOn(kTRUE);        
+  //boostedJetsFillerPruned->SetFilteringOn(kFALSE);     
+  //boostedJetsFillerPruned->SetTrimmingOn(kFALSE);      
+  //boostedJetsFillerPruned->SetFatJetsName("XlFatJetsPruned");     
+  //boostedJetsFillerPruned->SetSubJetsName("XlSubJetsPruned");      
 
-  FillerXlJets *boostedJetsFillerFiltered = new FillerXlJets("boostedJetsFillerFiltered","boostedJetsFillerFiltered");  
-  boostedJetsFillerFiltered->FillTopSubJets(kTRUE);
-  boostedJetsFillerFiltered->SetJetsName(jetCleaning->GetOutputName());
-  boostedJetsFillerFiltered->SetJetsFromBranch(kFALSE);
-  boostedJetsFillerFiltered->SetPruningOn(kFALSE);        
-  boostedJetsFillerFiltered->SetFilteringOn(kTRUE);     
-  boostedJetsFillerFiltered->SetTrimmingOn(kFALSE);      
-  boostedJetsFillerFiltered->SetFatJetsName("XlFatJetsFiltered");     
-  boostedJetsFillerFiltered->SetSubJetsName("XlSubJetsFiltered");      
+  //FillerXlJets *boostedJetsFillerFiltered = new FillerXlJets("boostedJetsFillerFiltered","boostedJetsFillerFiltered");  
+  //boostedJetsFillerFiltered->FillTopSubJets(kTRUE);
+  //boostedJetsFillerFiltered->SetJetsName(jetCleaning->GetOutputName());
+  //boostedJetsFillerFiltered->SetJetsFromBranch(kFALSE);
+  //boostedJetsFillerFiltered->SetPruningOn(kFALSE);        
+  //boostedJetsFillerFiltered->SetFilteringOn(kTRUE);     
+  //boostedJetsFillerFiltered->SetTrimmingOn(kFALSE);      
+  //boostedJetsFillerFiltered->SetFatJetsName("XlFatJetsFiltered");     
+  //boostedJetsFillerFiltered->SetSubJetsName("XlSubJetsFiltered");      
 
   FillerXlJets *boostedJetsFillerTrimmed = new FillerXlJets("boostedJetsFillerTrimmed","boostedJetsFillerTrimmed");  
   boostedJetsFillerTrimmed->FillTopSubJets(kTRUE);
@@ -403,20 +404,55 @@ void runBoostedV(const char *fileset    = "0000",
   boostedJetsFillerTrimmed->SetSubJetsName("XlSubJetsTrimmed");      
 
   //------------------------------------------------------------------------------------------------
+  // keep the skimmed collections for further usage
+  //------------------------------------------------------------------------------------------------
+  SkimMod<PFCandidate> *skmPFCandidates = new SkimMod<PFCandidate>;
+  skmPFCandidates->SetBranchName(Names::gkPFCandidatesBrn);
+  skmPFCandidates->SetPublishArray(kTRUE);
+
+  SkimMod<Photon> *skmPhotons = new SkimMod<Photon>;
+  skmPhotons->SetBranchName(photonCleaningMod->GetOutputName());
+  skmPhotons->SetColFromBranch(kFALSE);
+  skmPhotons->SetColMarkFilter(kFALSE);
+  skmPhotons->SetPublishArray(kTRUE);
+
+  SkimMod<Electron> *skmElectrons = new SkimMod<Electron>;
+  skmElectrons->SetBranchName(electronCleaning->GetOutputName());
+  skmElectrons->SetColFromBranch(kFALSE);
+  skmElectrons->SetColMarkFilter(kFALSE);
+  skmElectrons->SetPublishArray(kTRUE);
+
+  SkimMod<Muon> *skmMuons = new SkimMod<Muon>;
+  skmMuons->SetBranchName(muonId->GetOutputName());
+  skmMuons->SetColFromBranch(kFALSE);
+  skmMuons->SetColMarkFilter(kFALSE);
+  skmMuons->SetPublishArray(kTRUE);
+  
+  //------------------------------------------------------------------------------------------------
   // save all this in an output ntuple
   //------------------------------------------------------------------------------------------------
   OutputMod *outMod = new OutputMod;
-  outMod->Drop("*");
-  outMod->AddNewBranch("XlFatJets");
-  outMod->AddNewBranch("XlSubJets");
-  outMod->AddNewBranch("XlFatJetsPruned");
-  outMod->AddNewBranch("XlSubJetsPruned");
-  outMod->AddNewBranch("XlFatJetsFiltered");
-  outMod->AddNewBranch("XlSubJetsFiltered");
-  outMod->AddNewBranch("XlFatJetsTrimmed");
-  outMod->AddNewBranch("XlSubJetsTrimmed");
+  outMod->SetUseBrDep(kFALSE);
   outMod->SetFileName(TString(outputName) + TString("_") + 
                       TString(dataset) + TString("_") + TString(skim));
+  outMod->Drop("*");
+  outMod->Keep(Names::gkEvtSelDataBrn);
+  outMod->Keep(Names::gkPVBeamSpotBrn);
+  outMod->Keep(Names::gkPileupInfoBrn);
+  outMod->Keep(Names::gkPileupEnergyDensityBrn);
+  outMod->Keep("PFMet");
+  outMod->AddNewBranch(TString("Skm") + Names::gkPFCandidatesBrn);
+  outMod->AddNewBranch(TString("Skm") + photonCleaningMod->GetOutputName());
+  outMod->AddNewBranch(TString("Skm") + electronCleaning->GetOutputName());
+  outMod->AddNewBranch(TString("Skm") + muonId->GetOutputName());
+  outMod->AddNewBranch("XlFatJets");
+  outMod->AddNewBranch("XlSubJets");
+  //outMod->AddNewBranch("XlFatJetsPruned");
+  //outMod->AddNewBranch("XlSubJetsPruned");
+  //outMod->AddNewBranch("XlFatJetsFiltered");
+  //outMod->AddNewBranch("XlSubJetsFiltered");
+  outMod->AddNewBranch("XlFatJetsTrimmed");
+  outMod->AddNewBranch("XlSubJetsTrimmed");
   
   //------------------------------------------------------------------------------------------------
   // making analysis chain
@@ -439,10 +475,14 @@ void runBoostedV(const char *fileset    = "0000",
   metCorrT0T1Shift         ->Add(jetId);
   jetId                    ->Add(jetCleaning);
   jetCleaning              ->Add(boostedJetsFiller);
-  boostedJetsFiller        ->Add(boostedJetsFillerPruned);
-  boostedJetsFillerPruned  ->Add(boostedJetsFillerFiltered);
-  boostedJetsFillerFiltered->Add(boostedJetsFillerTrimmed);
-  boostedJetsFillerTrimmed ->Add(outMod);
+  //boostedJetsFiller        ->Add(boostedJetsFillerPruned);
+  //boostedJetsFillerPruned  ->Add(boostedJetsFillerFiltered);
+  boostedJetsFiller        ->Add(boostedJetsFillerTrimmed);
+  boostedJetsFillerTrimmed ->Add(skmPFCandidates);
+  skmPFCandidates          ->Add(skmPhotons);
+  skmPhotons               ->Add(skmElectrons);
+  skmElectrons             ->Add(skmMuons);
+  skmMuons                 ->Add(outMod);
   
   //------------------------------------------------------------------------------------------------
   // Say what we are doing

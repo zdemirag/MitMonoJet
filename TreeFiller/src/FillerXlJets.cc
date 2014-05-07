@@ -62,6 +62,10 @@ void FillerXlJets::Process()
   
   // Load the branches we want to work with
   LoadEventObject(fJetsName,fJets,fJetsFromBranch);
+
+  // Loop over PFCandidates and unmark them : necessary for skimming
+  for (UInt_t i=0; i<fPfCandidates->GetEntries(); ++i) 
+    fPfCandidates->At(i)->UnmarkMe();
  
   // Loop over jets
   for (UInt_t i=0; i<fJets->GetEntries(); ++i) {
@@ -75,6 +79,9 @@ void FillerXlJets::Process()
       printf(" FillerXlJets::Process() - ERROR - jets provided are not PFJets.");
       break;
     }
+ 
+    // mark jet (and consequently its consituents) for further use in skim
+    jet->Mark();       
     
     // perform Nsubjettiness analysis and fill the extended XlFatJet object
     // this method will also fill the SubJet collection       
