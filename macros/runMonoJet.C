@@ -189,8 +189,9 @@ void runMonoJet(const char *fileset    = "0000",
   eleIdMod->SetPtMin(10.);
   eleIdMod->SetEtaMax(2.5);
   eleIdMod->SetApplyEcalFiducial(kTRUE);
-  eleIdMod->SetIDType("VBTFWorkingPoint95Id");
-  eleIdMod->SetIsoType("PFIso");
+  eleIdMod->SetIDType("CustomLoose");
+  eleIdMod->SetIsoType("PFIso_HggLeptonTag2012HCP");
+  eleIdMod->SetPFNoPileUpName("pfnopileupcands");
   eleIdMod->SetApplyConversionFilterType1(kTRUE);
   eleIdMod->SetApplyConversionFilterType2(kFALSE);
   eleIdMod->SetChargeFilter(kFALSE);
@@ -200,23 +201,6 @@ void runMonoJet(const char *fileset    = "0000",
   eleIdMod->SetNExpectedHitsInnerCut(0);
   eleIdMod->SetGoodElectronsName("GoodElectronsBS");
   eleIdMod->SetRhoType(RhoUtilities::CMS_RHO_RHOKT6PFJETS);
-
-  MuonIDMod* muonIdGammaGamma = new MuonIDMod;
-  // base kinematics
-  muonIdGammaGamma->SetPtMin(10.);
-  muonIdGammaGamma->SetEtaCut(2.4);
-  // base ID
-  muonIdGammaGamma->SetIDType("NoId");
-  muonIdGammaGamma->SetClassType("GlobalorTracker");
-  muonIdGammaGamma->SetWhichVertex(0); // this is a 'hack'.. but hopefully good enough...
-  muonIdGammaGamma->SetD0Cut(0.02);
-  muonIdGammaGamma->SetDZCut(0.5);
-  muonIdGammaGamma->SetIsoType("PFIsoBetaPUCorrected"); //h
-  muonIdGammaGamma->SetPFIsoCut(0.2); //h
-  muonIdGammaGamma->SetOutputName("HggLeptonTagMuons");
-  muonIdGammaGamma->SetPFNoPileUpName("pfnopileupcands");
-  muonIdGammaGamma->SetPFPileUpName("pfpileupcands");
-  muonIdGammaGamma->SetPVName(Names::gkPVBeamSpotBrn);
 
   MuonIDMod *muonIdWW = new MuonIDMod;
   muonIdWW->SetOutputName("HWWMuons");
@@ -234,7 +218,6 @@ void runMonoJet(const char *fileset    = "0000",
   MuonIDMod *muonIdPOG = new MuonIDMod;
   muonIdPOG->SetOutputName("POGMuons");
   muonIdPOG->SetClassType("GlobalTracker");
-  //muonIdPOG->SetIDType("muonPOG2012CutBasedIDTight");
   muonIdPOG->SetIDType("NoId");
   muonIdPOG->SetApplyD0Cut(true);
   muonIdPOG->SetD0Cut(0.2);
@@ -243,13 +226,26 @@ void runMonoJet(const char *fileset    = "0000",
   //muonIdPOG->SetIsoType("PFIsoBetaPUCorrected");
   //muonIdPOG->SetPFNoPileUpName("pfnopileupcands");
   //muonIdPOG->SetPFPileUpName("pfpileupcands");
-  //muonIdPOG->SetIsoType("IsoRingsV0_BDTG_Iso");
   muonIdPOG->SetIsoType("NoIso");
   muonIdPOG->SetPtMin(10.);
   muonIdPOG->SetEtaCut(2.4);
-  
+
+  MuonIDMod* muonIdIso = new MuonIDMod;
+  muonIdIso->SetOutputName("IsolatedPOGMuons");
+  muonIdIso->SetClassType("GlobalorTracker");
+  muonIdIso->SetIDType("NoId");
+  muonIdIso->SetApplyD0Cut(true);
+  muonIdIso->SetD0Cut(0.2);
+  muonIdIso->SetApplyDZCut(true);
+  muonIdIso->SetDZCut(0.5);
+  muonIdIso->SetIsoType("PFIsoBetaPUCorrected"); //h
+  muonIdIso->SetPFNoPileUpName("pfnopileupcands");
+  muonIdIso->SetPFPileUpName("pfpileupcands");
+  muonIdIso->SetPtMin(10.);
+  muonIdIso->SetEtaCut(2.4);
+
   MuonIDMod *muonId = muonIdPOG;
-  //MuonIDMod *muonId = muonIdGammaGamma;
+  //MuonIDMod *muonId = muonIdIso;
 
   ElectronCleaningMod *electronCleaning = new ElectronCleaningMod;
   electronCleaning->SetCleanMuonsName(muonId->GetOutputName());
@@ -322,6 +318,7 @@ void runMonoJet(const char *fileset    = "0000",
   PFTauIDMod *pftauIDMod = new PFTauIDMod;
   pftauIDMod->SetPFTausName("HPSTaus");
   pftauIDMod->SetIsLooseId(kFALSE);
+  pftauIDMod->SetIsHPSSel(kTRUE); // to get >= 5_3_14 samples running
 
   PhotonCleaningMod *photonCleaningMod = new PhotonCleaningMod;
   photonCleaningMod->SetCleanElectronsName(electronCleaning->GetOutputName());
@@ -362,7 +359,7 @@ void runMonoJet(const char *fileset    = "0000",
 
   JetCleaningMod *jetCleaning = new JetCleaningMod;
   jetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());
-  jetCleaning->SetCleanMuonsName(muonId->GetOutputName());
+  jetCleaning->SetCleanMuonsName(muonIdIso->GetOutputName()); // clean up isolated muons (instead of the loose ones)
   jetCleaning->SetCleanPhotonsName(photonCleaningMod->GetOutputName());
   jetCleaning->SetApplyPhotonRemoval(kTRUE);
   jetCleaning->SetGoodJetsName(jetID->GetOutputName());
@@ -542,9 +539,10 @@ void runMonoJet(const char *fileset    = "0000",
   pubJet           ->Add(jetCorr);
   jetCorr          ->Add(metCorrT0T1Shift);
   metCorrT0T1Shift ->Add(jetID);
-  jetID            ->Add(jetCleaning);
+  jetID            ->Add(muonIdIso);
 
   // Jet+met selection
+  muonIdIso        ->Add(jetCleaning);
   jetCleaning      ->Add(jetplusmet);
   jetplusmet       ->Add(jetplusmettree);
 
