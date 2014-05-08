@@ -33,6 +33,7 @@
 #include "MitPhysics/Mods/interface/SeparatePileUpMod.h"
 #include "MitPhysics/Mods/interface/JetIDMod.h"
 #include "MitPhysics/Mods/interface/JetCleaningMod.h"
+#include "MitMonoJet/SelMods/interface/BoostedVAnalysisMod.h"
 #include "MitMonoJet/TreeFiller/interface/FillerXlJets.h"
 
 TString getCatalogDir(const char* dir);
@@ -45,7 +46,7 @@ void runBoostedV(const char *fileset    = "0000",
 		 const char *book       = "t2mit/filefi/032",
 		 const char *catalogDir = "/home/cmsprod/catalog",
 		 const char *outputName = "boostedv",
-		 int         nEvents    = 2000)
+		 int         nEvents    = 1000)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -125,7 +126,7 @@ void runBoostedV(const char *fileset    = "0000",
   rootFile += TString("_") + TString(dataset) + TString("_") + TString(skim);
   if (TString(fileset) != TString(""))
     rootFile += TString("_") + TString(fileset);
-  TString ntupleFile = rootFile + TString("_ntuple.root");
+  TString ntupleFile = rootFile + TString("_ntuple");
   rootFile += TString(".root");
   ana->SetOutputName(rootFile.Data());
   ana->SetCacheSize(0);
@@ -361,9 +362,27 @@ void runBoostedV(const char *fileset    = "0000",
   jetCleaning->SetApplyPhotonRemoval(kTRUE);
   jetCleaning->SetGoodJetsName(jetId->GetOutputName());
   jetCleaning->SetCleanJetsName("CleanJets");
+
+  //------------------------------------------------------------------------------------------------
+  // select events with a monojet topology
+  //------------------------------------------------------------------------------------------------
+  BoostedVAnalysisMod *jetplusmet = new BoostedVAnalysisMod("MonoJetSelector");
+  jetplusmet->SetJetsName(jetCleaning->GetOutputName()); //identified jets
+  jetplusmet->SetJetsFromBranch(kFALSE);
+  jetplusmet->SetElectronsName(electronCleaning->GetOutputName());
+  jetplusmet->SetElectronsFromBranch(kFALSE);
+  jetplusmet->SetMuonsName(muonId->GetOutputName());
+  jetplusmet->SetMuonsFromBranch(kFALSE);
+  jetplusmet->SetLeptonsName(merger->GetOutputName());
+  jetplusmet->ApplyTopPresel(kTRUE); 
+  jetplusmet->ApplyWlepPresel(kTRUE);
+  jetplusmet->ApplyZlepPresel(kTRUE);
+  jetplusmet->ApplyMetPresel(kTRUE);
+  jetplusmet->SetMinTagJetPt(200);
+  jetplusmet->SetMinMet(100);    
  
   //------------------------------------------------------------------------------------------------
-  // select events with a given jet substructure
+  // prepare the extended jets with substructure information
   //------------------------------------------------------------------------------------------------
   FillerXlJets *boostedJetsFiller = new FillerXlJets;  
   boostedJetsFiller->FillTopSubJets(kTRUE);
@@ -433,8 +452,7 @@ void runBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   OutputMod *outMod = new OutputMod;
   outMod->SetUseBrDep(kFALSE);
-  outMod->SetFileName(TString(outputName) + TString("_") + 
-                      TString(dataset) + TString("_") + TString(skim));
+  outMod->SetFileName(ntupleFile);
   outMod->Drop("*");
   outMod->Keep(Names::gkEvtSelDataBrn);
   outMod->Keep(Names::gkPVBeamSpotBrn);
@@ -474,7 +492,8 @@ void runBoostedV(const char *fileset    = "0000",
   jetCorr                  ->Add(metCorrT0T1Shift);
   metCorrT0T1Shift         ->Add(jetId);
   jetId                    ->Add(jetCleaning);
-  jetCleaning              ->Add(boostedJetsFiller);
+  jetCleaning              ->Add(jetplusmet);
+  jetplusmet               ->Add(boostedJetsFiller);
   //boostedJetsFiller        ->Add(boostedJetsFillerPruned);
   //boostedJetsFillerPruned  ->Add(boostedJetsFillerFiltered);
   boostedJetsFiller        ->Add(boostedJetsFillerTrimmed);
@@ -492,7 +511,7 @@ void runBoostedV(const char *fileset    = "0000",
   printf("\n Rely on Catalog: %s\n",cataDir.Data());
   printf("  -> Book: %s  Dataset: %s  Skim: %s  Fileset: %s <-\n",book,dataset,skim,fileset);
   printf("\n Root output:   %s\n",rootFile.Data());  
-  printf("\n Ntuple output: %s\n\n",ntupleFile.Data());  
+  printf("\n Ntuple output: %s\n\n",(ntupleFile + TString(".root")).Data());  
   printf("\n========================================\n");
 
   //------------------------------------------------------------------------------------------------
