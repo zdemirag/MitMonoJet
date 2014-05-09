@@ -98,7 +98,7 @@ class MitGPTree {
 
   unsigned int   nphotons_;
   LorentzVector  pho1_;
-/*   LorentzVector  pho2_; */
+  LorentzVector  pho2_;
 /*   LorentzVector  pho3_; */
 /*   LorentzVector  pho4_; */
 
@@ -163,7 +163,7 @@ class MitGPTree {
     genZPtr_(&genZ_),
     lepPtr1_(&lep1_),lepPtr2_(&lep2_),lepPtr3_(&lep3_),
     tauPtr1_(&tau1_),tauPtr2_(&tau2_),
-    phoPtr1_(&pho1_),//phoPtr2_(&pho2_),phoPtr3_(&pho3_),phoPtr4_(&pho4_),
+    phoPtr1_(&pho1_),phoPtr2_(&pho2_),//phoPtr3_(&pho3_),phoPtr4_(&pho4_),
     jetPtr1_(&jet1_),jetPtr2_(&jet2_),jetPtr3_(&jet3_),jetPtr4_(&jet4_),
     trackPtr1_(&track1_),trackPtr2_(&track2_),trackPtr3_(&track3_){}
   /// default destructor
@@ -265,7 +265,7 @@ class MitGPTree {
 
     tree_->Branch("nphotons"     , &nphotons_     ,   "nphotons/i");
     tree_->Branch("pho1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr1_);
-/*     tree_->Branch("pho2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr2_); */
+    tree_->Branch("pho2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr2_);
 /*     tree_->Branch("pho3"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr3_); */
 /*     tree_->Branch("pho4"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr4_); */
 
@@ -388,7 +388,7 @@ class MitGPTree {
 
     tree_->SetBranchAddress("nphotons"                  , &nphotons_);
     tree_->SetBranchAddress("pho1"                      , &phoPtr1_);
-/*     tree_->SetBranchAddress("pho2"                      , &phoPtr2_); */
+    tree_->SetBranchAddress("pho2"                      , &phoPtr2_);
 /*     tree_->SetBranchAddress("pho3"                      , &phoPtr3_); */
 /*     tree_->SetBranchAddress("pho4"                      , &phoPtr4_); */
 
@@ -525,7 +525,7 @@ MitGPTree::InitVariables(){
 
   nphotons_      = 0;
   pho1_       	 = LorentzVector();
-/*   pho2_       	 = LorentzVector(); */
+  pho2_       	 = LorentzVector();
 /*   pho3_       	 = LorentzVector(); */
 /*   pho4_       	 = LorentzVector(); */
 

@@ -354,6 +354,10 @@ void MonoJetTreeWriter::Process()
   if (fPhotons->GetEntries() >= 1) {
     const Photon *photon = fPhotons->At(0);
     fMitGPTree.pho1_ = photon->Mom();
+    if (fPhotons->GetEntries() >= 2) {
+      photon = fPhotons->At(1);
+      fMitGPTree.pho2_ = photon->Mom();
+    }
   }
 
   // TAUS
