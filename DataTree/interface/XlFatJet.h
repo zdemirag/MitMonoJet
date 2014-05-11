@@ -23,13 +23,16 @@ namespace mithep
   {
     public:
       XlFatJet() : 
-                fTau1(0), fTau2(0), fTau3(0) {}
+                fTau1(0), fTau2(0), fTau3(0),
+                fC2b0(0), fC2b0p2(0), fC2b0p5(0), fC2b1(0), fC2b2(0) {}
       XlFatJet(Double_t px, Double_t py, Double_t pz, Double_t e) : 
                 PFJet(px,py,pz,e),
-                fTau1(0), fTau2(0), fTau3(0) {}
+                fTau1(0), fTau2(0), fTau3(0),
+                fC2b0(0), fC2b0p2(0), fC2b0p5(0), fC2b1(0), fC2b2(0) {}
       XlFatJet(const PFJet & p) : 
                 PFJet(p),
-                fTau1(0), fTau2(0), fTau3(0) {}
+                fTau1(0), fTau2(0), fTau3(0),
+                fC2b0(0), fC2b0p2(0), fC2b0p5(0), fC2b1(0), fC2b2(0) {}
 
       void                  AddSubJet(const XlSubJet *p)          { fSubJets.Add(p);               }
       Bool_t                HasSubJet(const XlSubJet *p)    const { return fSubJets.HasObject(p);  }
@@ -39,11 +42,21 @@ namespace mithep
       Double_t              Tau1()                          const { return fTau1;                  }
       Double_t              Tau2()                          const { return fTau2;                  }
       Double_t              Tau3()                          const { return fTau3;                  }
+      Double_t              C2b0()                          const { return fC2b0;                  }
+      Double_t              C2b0p2()                        const { return fC2b0p2;                }
+      Double_t              C2b0p5()                        const { return fC2b0p5;                }
+      Double_t              C2b1()                          const { return fC2b1;                  }
+      Double_t              C2b2()                          const { return fC2b2;                  }
       const XlSubJet       *SubJet(UInt_t i)                const { return fSubJets.At(i);         }
       void                  SetGroomedMom(const FourVectorM &v)   { fGroomedMom = v;               }
       void                  SetTau1(Double_t t)                   { fTau1       = t;               }
       void                  SetTau2(Double_t t)                   { fTau2       = t;               }
       void                  SetTau3(Double_t t)                   { fTau3       = t;               }
+      void                  SetC2b0(Double_t t)                   { fC2b0       = t;               }
+      void                  SetC2b0p2(Double_t t)                 { fC2b0p2     = t;               }
+      void                  SetC2b0p5(Double_t t)                 { fC2b0p5     = t;               }
+      void                  SetC2b1(Double_t t)                   { fC2b1       = t;               }
+      void                  SetC2b2(Double_t t)                   { fC2b2       = t;               }
 
       // Some structural tools
       void                  Mark(UInt_t i=1)                const;
@@ -54,6 +67,11 @@ namespace mithep
       Double32_t            fTau1;       //1-subjettiness
       Double32_t            fTau2;       //2-subjettiness
       Double32_t            fTau3;       //3-subjettiness
+      Double32_t            fC2b0;       //ECF ratio order 2, beta 0
+      Double32_t            fC2b0p2;     //ECF ratio order 2, beta 0.2
+      Double32_t            fC2b0p5;     //ECF ratio order 2, beta 0.2
+      Double32_t            fC2b1;       //ECF ratio order 2, beta 1
+      Double32_t            fC2b2;       //ECF ratio order 2, beta 2
       RefArray<XlSubJet>    fSubJets;    //sub jets in the jet
 
     ClassDef(XlFatJet, 1) // XlFatJet class
@@ -70,3 +88,5 @@ inline void mithep::XlFatJet::Mark(UInt_t ib) const
 }
 
 #endif
+
+
