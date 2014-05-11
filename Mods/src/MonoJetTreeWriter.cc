@@ -93,9 +93,10 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fOutputFile             (0)
 
 {
-  // Constructor
   // WARNING, defining the object here invalidates the call of the setter for the CHS flag
   qgTagger = new QGTagger(fQGTaggerCHS);
+
+  // Constructor
 }
 
 MonoJetTreeWriter::~MonoJetTreeWriter()
@@ -144,8 +145,8 @@ void MonoJetTreeWriter::Process()
   ParticleOArr    *leptons  = GetObjThisEvt<ParticleOArr>(ModNames::gkMergedLeptonsName);
   const VertexCol *vertices = GetObjThisEvt<VertexOArr>(fVertexName);
 
-  const PFCandidateCol *lPFNoPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFNoPileUpName);    
-  const PFCandidateCol *lPFPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFPileUpName);
+  const PFCandidateCol *fPFNoPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFNoPileUpName);    
+  const PFCandidateCol *fPFPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFPileUpName);
 
 
   fNEventsSelected++;
@@ -282,7 +283,7 @@ void MonoJetTreeWriter::Process()
       const Muon* mu = dynamic_cast<const Muon*>(lep);
       fMitGPTree.lep1IsTightMuon_ = IsTightMuon(mu);
       fMitGPTree.lep1PtErr_ = mu->BestTrk()->PtErr()/mu->BestTrk()->Pt();
-      double totalIso =  IsolationTools::BetaMwithPUCorrection(lPFNoPileUpCands, lPFPileUpCands, mu, 0.4);
+      double totalIso =  IsolationTools::BetaMwithPUCorrection(fPFNoPileUpCands, fPFPileUpCands, mu, 0.4);
       fMitGPTree.lep1IsIsolated_ = totalIso < (mu->Pt()*0.2);
     }
     else if (lep->ObjType() == kElectron)
@@ -309,7 +310,7 @@ void MonoJetTreeWriter::Process()
       const Muon* mu = dynamic_cast<const Muon*>(lep);
       fMitGPTree.lep2IsTightMuon_ = IsTightMuon(mu);
       fMitGPTree.lep2PtErr_ = mu->BestTrk()->PtErr()/mu->BestTrk()->Pt();
-      double totalIso =  IsolationTools::BetaMwithPUCorrection(lPFNoPileUpCands, lPFPileUpCands, mu, 0.4);
+      double totalIso =  IsolationTools::BetaMwithPUCorrection(fPFNoPileUpCands, fPFPileUpCands, mu, 0.4);
       fMitGPTree.lep2IsIsolated_ = totalIso < (mu->Pt()*0.2);
     }
     else if (lep->ObjType() == kElectron)
@@ -353,6 +354,10 @@ void MonoJetTreeWriter::Process()
   if (fPhotons->GetEntries() >= 1) {
     const Photon *photon = fPhotons->At(0);
     fMitGPTree.pho1_ = photon->Mom();
+    if (fPhotons->GetEntries() >= 2) {
+      photon = fPhotons->At(1);
+      fMitGPTree.pho2_ = photon->Mom();
+    }
   }
 
   // TAUS
@@ -599,8 +604,8 @@ void MonoJetTreeWriter::Process()
 //--------------------------------------------------------------------------------------------------
 void MonoJetTreeWriter::SlaveBegin()
 {
-  // Run startup code on the computer (slave) doing the actual analysis. Here, we request all
-  // relevant information.
+  // Run startup code on the computer (slave) doing the actual analysis. Here,
+  // we just request the photon collection branch.
 
   if (! fIsData) {
     ReqEventObject(fMCPartName,      fParticles,     true);
@@ -624,17 +629,19 @@ void MonoJetTreeWriter::SlaveBegin()
   ReqEventObject(fSuperClustersName, fSuperClusters, true);
   ReqEventObject(fTracksName,        fTracks,        true);
 
+
   // This should be done in the run macro
   if (fIsData) {
-    fCorrectionFiles.push_back(std::string((gSystem->Getenv("MIT_DATA") + TString("/Summer13_V1_DATA_L1FastJet_AK5PF.txt")).Data()));
-    fCorrectionFiles.push_back(std::string((gSystem->Getenv("MIT_DATA") + TString("/Summer13_V1_DATA_L2Relative_AK5PF.txt")).Data()));
-    fCorrectionFiles.push_back(std::string((gSystem->Getenv("MIT_DATA") + TString("/Summer13_V1_DATA_L3Absolute_AK5PF.txt")).Data()));
-    fCorrectionFiles.push_back(std::string((gSystem->Getenv("MIT_DATA") + TString("/Summer13_V1_DATA_L2L3Residual_AK5PF.txt")).Data()));
+    fCorrectionFiles.push_back(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_DATA_L1FastJet_AK5PF.txt")).Data()));
+
+    fCorrectionFiles.push_back(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_DATA_L2Relative_AK5PF.txt")).Data()));
+    fCorrectionFiles.push_back(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_DATA_L3Absolute_AK5PF.txt")).Data()));
+    fCorrectionFiles.push_back(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_DATA_L2L3Residual_AK5PF.txt")).Data()));
   }
   else {
-    fCorrectionFiles.push_back(std::string((gSystem->Getenv("MIT_DATA") + TString("/Summer13_V1_MC_L1FastJet_AK5PF.txt")).Data()));
-    fCorrectionFiles.push_back(std::string((gSystem->Getenv("MIT_DATA") + TString("/Summer13_V1_MC_L2Relative_AK5PF.txt")).Data()));
-    fCorrectionFiles.push_back(std::string((gSystem->Getenv("MIT_DATA") + TString("/Summer13_V1_MC_L3Absolute_AK5PF.txt")).Data()));
+    fCorrectionFiles.push_back(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_MC_L1FastJet_AK5PF.txt")).Data()));
+    fCorrectionFiles.push_back(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_MC_L2Relative_AK5PF.txt")).Data()));
+    fCorrectionFiles.push_back(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/Summer13_V1_MC_L3Absolute_AK5PF.txt")).Data()));
   }
 
   // Initialize JetCorrectorParameters from files
@@ -648,22 +655,37 @@ void MonoJetTreeWriter::SlaveBegin()
   // This should also go into the run file
   std::string jetCorrectorParams;
   if (fIsData)
-    jetCorrectorParams = std::string(TString::Format("%s/Summer13_V1_DATA_Uncertainty_AK5PF.txt", getenv("MIT_DATA")));
+    jetCorrectorParams = std::string(TString::Format("%s/src/MitPhysics/data/Summer13_V1_DATA_Uncertainty_AK5PF.txt", getenv("CMSSW_BASE")));
   else
-    jetCorrectorParams = std::string(TString::Format("%s/Summer13_V1_MC_Uncertainty_AK5PF.txt", getenv("MIT_DATA")));
+    jetCorrectorParams = std::string(TString::Format("%s/src/MitPhysics/data/Summer13_V1_MC_Uncertainty_AK5PF.txt", getenv("CMSSW_BASE")));
 
   JetCorrectorParameters param(jetCorrectorParams);
   fJetUncertainties = new JetCorrectionUncertainty(param);
 
   // Create a new MVA MET object
   fMVAMet = new MVAMet();
-  fMVAMet->Initialize(TString(getenv("MIT_DATA")+string("/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
-                      TString(getenv("MIT_DATA")+string("/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
-                      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/Utils/python/JetIdParams_cfi.py")),
-                      TString(getenv("MIT_DATA")+string("/gbrmet_53_Dec2012.root")),
-                      TString(getenv("MIT_DATA")+string("/gbrmetphi_53_Dec2012.root")),
-                      TString(getenv("MIT_DATA")+string("/gbru1cov_53_Dec2012.root")),
-                      TString(getenv("MIT_DATA")+string("/gbru2cov_53_Dec2012.root")),JetIDMVA::k53MET);
+//   fMVAMet->Initialize(TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
+//                       TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
+//                       TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/Utils/python/JetIdParams_cfi.py")),
+//                       //TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmet_53_Dec2012.root")),
+//                       //TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmetphi_53_Dec2012.root")),
+// 		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmet_53_June2013_type1.root")),
+// 		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmetphi_53_June2013_type1.root")),
+//                       TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru1cov_53_Dec2012.root")),
+//                       TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru2cov_53_Dec2012.root")),JetIDMVA::k53MET
+// 		      );
+
+  
+  fMVAMet->Initialize(
+		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
+		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
+		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/Utils/python/JetIdParams_cfi.py")),
+		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmet_53_June2013_type1.root")),
+		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmetphi_53_June2013_type1.root")),
+		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru1cov_53_Dec2012.root")),
+		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru2cov_53_Dec2012.root")),JetIDMVA::k53MET,MVAMet::kUseType1Rho
+		      );
+
 
   // Create Ntuple Tree
   fOutputFile = TFile::Open(TString::Format("%s_tmp.root",GetName()),"RECREATE");
