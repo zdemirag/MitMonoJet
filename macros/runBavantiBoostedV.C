@@ -27,24 +27,27 @@
 #include "MitPhysics/Mods/interface/PhotonCleaningMod.h"
 #include "MitPhysics/Mods/interface/MergeLeptonsMod.h"
 #include "MitPhysics/Mods/interface/JetCorrectionMod.h"
+#include "MitPhysics/Mods/interface/MetCorrectionMod.h"
 #include "MitPhysics/Mods/interface/PhotonMvaMod.h"
 #include "MitPhysics/Mods/interface/MVASystematicsMod.h"
 #include "MitPhysics/Mods/interface/SeparatePileUpMod.h"
 #include "MitPhysics/Mods/interface/JetIDMod.h"
 #include "MitPhysics/Mods/interface/JetCleaningMod.h"
-#include "MitMonoJet/Mods/interface/BoostedVTreeWriter.h"
+#include "MitMonoJet/SelMods/interface/BoostedVAnalysisMod.h"
+#include "MitMonoJet/TreeFiller/interface/FillerXlJets.h"
+#include "MitMonoJet/TreeFiller/interface/FillerXlMet.h"
 
 TString getCatalogDir(const char* dir);
 TString getJsonFile(const char* dir);
 
 //--------------------------------------------------------------------------------------------------
-void runBoostedVntuple(const char *fileset    = "0000",
-		 const char *skim       = "noskim",
-		 const char *dataset    = "r12b-smu-j22-v1", 
-		 const char *book       = "t2mit/filefi/032",
-		 const char *catalogDir = "/home/cmsprod/catalog",
-		 const char *outputName = "boostedv",
-		 int         nEvents    = 1000)
+void runBavantiBoostedV(const char *fileset    = "0000",
+                        const char *skim       = "noskim",
+                        const char *dataset    = "s12-dmmjet-avd_m1-v7a",     
+                        const char *book       = "t2mit/filefi/032",
+                        const char *catalogDir = "/home/cmsprod/catalog",
+                        const char *outputName = "boostedv",
+                        int         nEvents    = 100)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -124,7 +127,9 @@ void runBoostedVntuple(const char *fileset    = "0000",
   rootFile += TString("_") + TString(dataset) + TString("_") + TString(skim);
   if (TString(fileset) != TString(""))
     rootFile += TString("_") + TString(fileset);
-  ana->SetOutputName(rootFile + TString(".root"));
+  TString ntupleFile = rootFile + TString("_ntuple");
+  rootFile += TString(".root");
+  ana->SetOutputName(rootFile.Data());
   ana->SetCacheSize(0);
 
   //------------------------------------------------------------------------------------------------
@@ -331,6 +336,17 @@ void runBoostedVntuple(const char *fileset    = "0000",
   jetCorr->SetInputName(pubJet->GetOutputName());
   jetCorr->SetCorrectedName("CorrectedJets");    
         
+  MetCorrectionMod *metCorrT0T1Shift = new MetCorrectionMod;
+  metCorrT0T1Shift->SetInputName("PFMet");
+  metCorrT0T1Shift->SetJetsName(pubJet->GetOutputName());    
+  metCorrT0T1Shift->SetCorrectedJetsName(jetCorr->GetOutputName());    
+  metCorrT0T1Shift->SetCorrectedName("PFMetT0T1Shift");   
+  metCorrT0T1Shift->ApplyType0(kTRUE);   
+  metCorrT0T1Shift->ApplyType1(kTRUE);   
+  metCorrT0T1Shift->ApplyShift(kTRUE);   
+  metCorrT0T1Shift->IsData(isData);
+  metCorrT0T1Shift->SetPrint(kFALSE);
+
   JetIDMod *jetId = new JetIDMod;
   jetId->SetInputName(jetCorr->GetOutputName());
   jetId->SetPtCut(30.0);
@@ -347,27 +363,95 @@ void runBoostedVntuple(const char *fileset    = "0000",
   jetCleaning->SetApplyPhotonRemoval(kTRUE);
   jetCleaning->SetGoodJetsName(jetId->GetOutputName());
   jetCleaning->SetCleanJetsName("CleanJets");
- 
+
   //------------------------------------------------------------------------------------------------
-  // save the interesting collection using the skim modules and the output module
+  // select events with a monojet topology
   //------------------------------------------------------------------------------------------------
-  SkimMod<Jet> *skmJets = new SkimMod<Jet>;
-  skmJets->SetBranchName(jetCleaning->GetOutputName());
-  skmJets->SetColFromBranch(kFALSE);
-  skmJets->SetColMarkFilter(kFALSE);
-  skmJets->SetPublishArray(kTRUE);
+  BoostedVAnalysisMod *jetplusmet = new BoostedVAnalysisMod("MonoJetSelector");
+  jetplusmet->SetJetsName(jetCleaning->GetOutputName()); //identified jets
+  jetplusmet->SetJetsFromBranch(kFALSE);
+  jetplusmet->SetElectronsName(electronCleaning->GetOutputName());
+  jetplusmet->SetElectronsFromBranch(kFALSE);
+  jetplusmet->SetMuonsName(muonId->GetOutputName());
+  jetplusmet->SetMuonsFromBranch(kFALSE);
+  jetplusmet->SetLeptonsName(merger->GetOutputName());
+  jetplusmet->ApplyTopPresel(kTRUE); 
+  jetplusmet->ApplyWlepPresel(kTRUE);
+  jetplusmet->ApplyZlepPresel(kTRUE);
+  jetplusmet->ApplyMetPresel(kTRUE);
+  jetplusmet->SetMinTagJetPt(200);
+  jetplusmet->SetMinMet(100);    
+
+  //------------------------------------------------------------------------------------------------
+  // prepare the extended MVA met 
+  //------------------------------------------------------------------------------------------------
+  FillerXlMet *extendedMetFiller = new FillerXlMet();
+  extendedMetFiller->SetIsData(isData);
+  extendedMetFiller->SetJetsFromBranch(kFALSE);
+  extendedMetFiller->SetJetsName(jetCleaning->GetOutputName());
+  extendedMetFiller->SetMuonsFromBranch(kFALSE);
+  extendedMetFiller->SetMuonsName(muonId->GetOutputName());
+  extendedMetFiller->SetElectronsFromBranch(kFALSE);
+  extendedMetFiller->SetElectronsName(electronCleaning->GetOutputName());
+  extendedMetFiller->SetTausFromBranch(kFALSE);
+  extendedMetFiller->SetTausName(pftauCleaningMod->GetOutputName());
+  extendedMetFiller->SetPVFromBranch(kFALSE);
+  extendedMetFiller->SetPVName(goodPVFilterMod->GetOutputName());
+  extendedMetFiller->SetXlMetName("PFMetMVA");     
+  
+  //------------------------------------------------------------------------------------------------
+  // prepare the extended jets with substructure information
+  //------------------------------------------------------------------------------------------------
+  FillerXlJets *boostedJetsFiller = new FillerXlJets;  
+  boostedJetsFiller->FillTopSubJets(kTRUE);
+  boostedJetsFiller->SetJetsName(jetCleaning->GetOutputName());
+  boostedJetsFiller->SetJetsFromBranch(kFALSE);
+  boostedJetsFiller->SetPruningOn(kFALSE);        
+  boostedJetsFiller->SetFilteringOn(kFALSE);     
+  boostedJetsFiller->SetTrimmingOn(kFALSE);      
+
+  //FillerXlJets *boostedJetsFillerPruned = new FillerXlJets("boostedJetsFillerPruned","boostedJetsFillerPruned");  
+  //boostedJetsFillerPruned->FillTopSubJets(kTRUE);
+  //boostedJetsFillerPruned->SetJetsName(jetCleaning->GetOutputName());
+  //boostedJetsFillerPruned->SetJetsFromBranch(kFALSE);
+  //boostedJetsFillerPruned->SetPruningOn(kTRUE);        
+  //boostedJetsFillerPruned->SetFilteringOn(kFALSE);     
+  //boostedJetsFillerPruned->SetTrimmingOn(kFALSE);      
+  //boostedJetsFillerPruned->SetFatJetsName("XlFatJetsPruned");     
+  //boostedJetsFillerPruned->SetSubJetsName("XlSubJetsPruned");      
+
+  //FillerXlJets *boostedJetsFillerFiltered = new FillerXlJets("boostedJetsFillerFiltered","boostedJetsFillerFiltered");  
+  //boostedJetsFillerFiltered->FillTopSubJets(kTRUE);
+  //boostedJetsFillerFiltered->SetJetsName(jetCleaning->GetOutputName());
+  //boostedJetsFillerFiltered->SetJetsFromBranch(kFALSE);
+  //boostedJetsFillerFiltered->SetPruningOn(kFALSE);        
+  //boostedJetsFillerFiltered->SetFilteringOn(kTRUE);     
+  //boostedJetsFillerFiltered->SetTrimmingOn(kFALSE);      
+  //boostedJetsFillerFiltered->SetFatJetsName("XlFatJetsFiltered");     
+  //boostedJetsFillerFiltered->SetSubJetsName("XlSubJetsFiltered");      
+
+  FillerXlJets *boostedJetsFillerTrimmed = new FillerXlJets("boostedJetsFillerTrimmed","boostedJetsFillerTrimmed");  
+  boostedJetsFillerTrimmed->FillTopSubJets(kTRUE);
+  boostedJetsFillerTrimmed->SetJetsName(jetCleaning->GetOutputName());
+  boostedJetsFillerTrimmed->SetJetsFromBranch(kFALSE);
+  boostedJetsFillerTrimmed->SetPruningOn(kFALSE);        
+  boostedJetsFillerTrimmed->SetFilteringOn(kFALSE);     
+  boostedJetsFillerTrimmed->SetTrimmingOn(kTRUE);      
+  boostedJetsFillerTrimmed->SetFatJetsName("XlFatJetsTrimmed");     
+  boostedJetsFillerTrimmed->SetSubJetsName("XlSubJetsTrimmed");      
+
+  //------------------------------------------------------------------------------------------------
+  // keep the skimmed collections for further usage
+  //------------------------------------------------------------------------------------------------
+  SkimMod<PFCandidate> *skmPFCandidates = new SkimMod<PFCandidate>;
+  skmPFCandidates->SetBranchName(Names::gkPFCandidatesBrn);
+  skmPFCandidates->SetPublishArray(kTRUE);
 
   SkimMod<Photon> *skmPhotons = new SkimMod<Photon>;
   skmPhotons->SetBranchName(photonCleaningMod->GetOutputName());
   skmPhotons->SetColFromBranch(kFALSE);
   skmPhotons->SetColMarkFilter(kFALSE);
   skmPhotons->SetPublishArray(kTRUE);
-
-  SkimMod<PFTau> *skmTaus = new SkimMod<PFTau>;
-  skmTaus->SetBranchName(pftauCleaningMod->GetOutputName());
-  skmTaus->SetColFromBranch(kFALSE);
-  skmTaus->SetColMarkFilter(kFALSE);
-  skmTaus->SetPublishArray(kTRUE);
 
   SkimMod<Electron> *skmElectrons = new SkimMod<Electron>;
   skmElectrons->SetBranchName(electronCleaning->GetOutputName());
@@ -381,41 +465,74 @@ void runBoostedVntuple(const char *fileset    = "0000",
   skmMuons->SetColMarkFilter(kFALSE);
   skmMuons->SetPublishArray(kTRUE);
 
+  SkimMod<Met> *skmMetCorr = new SkimMod<Met>;
+  skmMetCorr->SetBranchName(metCorrT0T1Shift->GetOutputName());
+  skmMetCorr->SetColFromBranch(kFALSE);
+  skmMetCorr->SetColMarkFilter(kFALSE);
+  skmMetCorr->SetPublishArray(kTRUE);
+  
+  //------------------------------------------------------------------------------------------------
+  // save all this in an output ntuple
+  //------------------------------------------------------------------------------------------------
   OutputMod *outMod = new OutputMod;
+  outMod->SetUseBrDep(kFALSE);
+  outMod->SetKeepTamBr(kFALSE);
+  outMod->SetFileName(ntupleFile);
   outMod->Drop("*");
+  outMod->Keep(Names::gkEvtSelDataBrn);
+  outMod->Keep(Names::gkMCEvtInfoBrn);
+  outMod->Keep(Names::gkMCPartBrn);
+  outMod->Keep(Names::gkPVBeamSpotBrn);
+  outMod->Keep(Names::gkPileupInfoBrn);
+  outMod->Keep(Names::gkPileupEnergyDensityBrn);
   outMod->Keep("PFMet");
-  outMod->AddNewBranch(TString("Skm") + jetCleaning->GetOutputName());
+  outMod->AddNewBranch(TString("Skm") + Names::gkPFCandidatesBrn);
   outMod->AddNewBranch(TString("Skm") + photonCleaningMod->GetOutputName());
-  outMod->AddNewBranch(TString("Skm") + pftauCleaningMod->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + electronCleaning->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + muonId->GetOutputName());
-  outMod->SetFileName(rootFile);
-
+  outMod->AddNewBranch(TString("Skm") + metCorrT0T1Shift->GetOutputName());
+  outMod->AddNewBranch("PFMetMVA");
+  outMod->AddNewBranch("XlFatJets");
+  outMod->AddNewBranch("XlSubJets");
+  //outMod->AddNewBranch("XlFatJetsPruned");
+  //outMod->AddNewBranch("XlSubJetsPruned");
+  //outMod->AddNewBranch("XlFatJetsFiltered");
+  //outMod->AddNewBranch("XlSubJetsFiltered");
+  outMod->AddNewBranch("XlFatJetsTrimmed");
+  outMod->AddNewBranch("XlSubJetsTrimmed");
+  
   //------------------------------------------------------------------------------------------------
   // making analysis chain
   //------------------------------------------------------------------------------------------------
-  runLumiSel       ->Add(goodPVFilterMod);
-  goodPVFilterMod  ->Add(hltModP);
-  hltModP          ->Add(photonReg);
-  photonReg        ->Add(sepPuMod);
-  sepPuMod         ->Add(muonId);
-  muonId           ->Add(eleIdMod);
-  eleIdMod         ->Add(electronCleaning);
-  electronCleaning ->Add(merger);
-  merger           ->Add(photonIdMod);
-  photonIdMod      ->Add(photonCleaningMod);
-  photonCleaningMod->Add(pftauIdMod);
-  pftauIdMod       ->Add(pftauCleaningMod);
-  pftauCleaningMod ->Add(pubJet);
-  pubJet           ->Add(jetCorr);
-  jetCorr          ->Add(jetId);
-  jetId            ->Add(jetCleaning);
-  jetCleaning      ->Add(skmJets);
-  skmJets          ->Add(skmPhotons);
-  skmPhotons       ->Add(skmTaus);
-  skmTaus          ->Add(skmElectrons);
-  skmElectrons     ->Add(skmMuons);
-  skmMuons         ->Add(outMod);
+  runLumiSel               ->Add(goodPVFilterMod);
+  goodPVFilterMod          ->Add(hltModP);
+  hltModP                  ->Add(photonReg);
+  photonReg                ->Add(sepPuMod);
+  sepPuMod                 ->Add(muonId);
+  muonId                   ->Add(eleIdMod);
+  eleIdMod                 ->Add(electronCleaning);
+  electronCleaning         ->Add(merger);
+  merger                   ->Add(photonIdMod);
+  photonIdMod              ->Add(photonCleaningMod);
+  photonCleaningMod        ->Add(pftauIdMod);
+  pftauIdMod               ->Add(pftauCleaningMod);
+  pftauCleaningMod         ->Add(pubJet);
+  pubJet                   ->Add(jetCorr);
+  jetCorr                  ->Add(metCorrT0T1Shift);
+  metCorrT0T1Shift         ->Add(jetId);
+  jetId                    ->Add(jetCleaning);
+  jetCleaning              ->Add(jetplusmet);
+  jetplusmet               ->Add(extendedMetFiller);
+  extendedMetFiller        ->Add(boostedJetsFiller);
+  //boostedJetsFiller        ->Add(boostedJetsFillerPruned);
+  //boostedJetsFillerPruned  ->Add(boostedJetsFillerFiltered);
+  boostedJetsFiller        ->Add(boostedJetsFillerTrimmed);
+  boostedJetsFillerTrimmed ->Add(skmPFCandidates);
+  skmPFCandidates          ->Add(skmPhotons);
+  skmPhotons               ->Add(skmElectrons);
+  skmElectrons             ->Add(skmMuons);
+  skmMuons                 ->Add(skmMetCorr);
+  skmMetCorr               ->Add(outMod);
   
   //------------------------------------------------------------------------------------------------
   // Say what we are doing
@@ -425,6 +542,7 @@ void runBoostedVntuple(const char *fileset    = "0000",
   printf("\n Rely on Catalog: %s\n",cataDir.Data());
   printf("  -> Book: %s  Dataset: %s  Skim: %s  Fileset: %s <-\n",book,dataset,skim,fileset);
   printf("\n Root output:   %s\n",rootFile.Data());  
+  printf("\n Ntuple output: %s\n\n",(ntupleFile + TString(".root")).Data());  
   printf("\n========================================\n");
 
   //------------------------------------------------------------------------------------------------
