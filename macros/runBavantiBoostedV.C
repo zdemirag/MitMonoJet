@@ -477,12 +477,18 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   skmJets->SetColMarkFilter(kFALSE);
   skmJets->SetPublishArray(kTRUE);
 
+  SkimMod<TriggerObject> *skmTrigger = new SkimMod<TriggerObject>;
+  skmTrigger->SetBranchName(hltModP->GetOutputName());
+  skmTrigger->SetColFromBranch(kFALSE);
+  skmTrigger->SetColMarkFilter(kFALSE);
+  skmTrigger->SetPublishArray(kTRUE);
+
   SkimMod<Met> *skmMetCorr = new SkimMod<Met>;
   skmMetCorr->SetBranchName(metCorrT0T1Shift->GetOutputName());
   skmMetCorr->SetColFromBranch(kFALSE);
   skmMetCorr->SetColMarkFilter(kFALSE);
   skmMetCorr->SetPublishArray(kTRUE);
-  
+    
   //------------------------------------------------------------------------------------------------
   // save all this in an output ntuple
   //------------------------------------------------------------------------------------------------
@@ -499,11 +505,13 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   outMod->Keep(Names::gkPileupEnergyDensityBrn);
   outMod->Keep("PFMet");
   outMod->AddNewBranch(TString("Skm") + Names::gkPFCandidatesBrn);
+  outMod->AddNewBranch(TString("Skm") + Names::gkPFCandidatesBrn);
   outMod->AddNewBranch(TString("Skm") + photonCleaningMod->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + electronCleaning->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + muonId->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + pftauCleaningMod->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + jetCleaning->GetOutputName());
+  outMod->AddNewBranch(TString("Skm") + hltModP->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + metCorrT0T1Shift->GetOutputName());
   outMod->AddNewBranch("PFMetMVA");
   outMod->AddNewBranch("XlFatJets");
@@ -547,7 +555,8 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   skmElectrons             ->Add(skmMuons);
   skmMuons                 ->Add(skmTaus);
   skmTaus                  ->Add(skmJets);
-  skmJets                  ->Add(skmMetCorr);
+  skmJets                  ->Add(skmTrigger);
+  skmTrigger               ->Add(skmMetCorr);
   skmMetCorr               ->Add(outMod);
   
   //------------------------------------------------------------------------------------------------
