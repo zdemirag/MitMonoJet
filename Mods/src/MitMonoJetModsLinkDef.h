@@ -1,8 +1,9 @@
 #ifndef MITMONOJET_MODS_LINKDEF_H
 #define MITMONOJET_MODS_LINKDEF_H
+#include "MitMonoJet/Mods/interface/HltEvtSelMod.h"
 #include "MitMonoJet/Mods/interface/MonoJetTreeWriter.h"
 #include "MitMonoJet/Mods/interface/BoostedVTreeWriter.h"
-#include "MitMonoJet/Mods/interface/HltEvtSelMod.h"
+#include "MitMonoJet/Mods/interface/DMSTreeWriter.h"
 #endif
 
 #ifdef __CINT__
@@ -13,8 +14,9 @@
 #pragma link C++ nestedtypedef;
 #pragma link C++ namespace mithep;
 
-#pragma link C++ class mithep::MonoJetTreeWriter+;
-#pragma link C++ class mithep::BoostedVTreeWriter+;
 #pragma link C++ class mithep::HltEvtSelMod+;
 #pragma link C++ class mithep::MonoJetEventHlt+;
+#pragma link C++ class mithep::MonoJetTreeWriter+;
+#pragma link C++ class mithep::BoostedVTreeWriter+;
+#pragma link C++ class mithep::DMSTreeWriter+;
 #endif
