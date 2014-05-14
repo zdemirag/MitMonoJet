@@ -65,6 +65,11 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   fPileUpDen              (0),
   fEvtSelData             (0),
   fTrigObj                (0),
+  fPUInputFileName        ("MyInputPUFile"),       
+  fPUTargetFileName       ("MyTargetPUFile"),
+  fPUInput                (0),       
+  fPUTarget               (0),
+  fPUWeight               (0),
   // -------------------------
   fOutputFile             (0)
 
@@ -109,7 +114,7 @@ void DMSTreeWriter::Process()
 
   // initialize the tree variables
   fMitDMSTree.InitVariables();
-
+  
   // EVTSELDATA
   fMitDMSTree.metFiltersWord_ = fEvtSelData->metFiltersWord();
 
@@ -149,7 +154,8 @@ void DMSTreeWriter::Process()
     bool hasGoodMuons = 0;
     for (UInt_t i=0;i<fTrigObj->GetEntries();++i) {
       const TriggerObject *to = fTrigObj->At(i);
-      if (to->TriggerType() == 83)
+      //to->Print(); 
+      if (to->TriggerType() == 83 && to->Pt() > 24 && fabs(to->Eta()) < 2.1)
         hasGoodMuons = true;
       if (to->TriggerType() == 85 && to->Pt() > 80 && fabs(to->Eta()) < 2.4)
         nGoodCntJets++;
@@ -158,6 +164,9 @@ void DMSTreeWriter::Process()
       if (to->TriggerType() == 90)
         hasGoodMHT = true;
     }
+    // skip the event if not triggered by single mu
+    //if (!hasGoodMuons)
+    //  return;
     // default MonoJet
     if (nGoodCntJets > 0 && hasGoodMHT)
       fMitDMSTree.trigger_ |= 1 << 0;
@@ -167,6 +176,47 @@ void DMSTreeWriter::Process()
     if (hasGoodMuons)
       fMitDMSTree.trigger_ |= 1 << 2;
   }
+
+  // SELECTION: should follow preselection and possibly be more stringent
+  bool fApplyTopSel = kFALSE;
+  if (fApplyTopSel) {
+    
+    // Top Selection: require boosted jet + 2 b-jets (pt-orderd) + lepton
+    // Following TOP-12-042 PAS selections
+    int nGoodBJets = 0;
+    int nGoodTagJets = 0;
+    int nGoodLeptons = 0;
+
+    // Jets
+    for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
+      const Jet *jet = fJets->At(i);
+
+      if (jet->Pt() < 30. || fabs(jet->Eta()) > 2.5)
+        continue;
+        
+      // Boosted jet first then two loose b-tagged jets
+      if (i > 0 && jet->CombinedSecondaryVertexBJetTagsDisc() > 0.244)
+        nGoodBJets++;
+      else if (jet->Pt() > 200)
+        nGoodTagJets++;
+      else
+        continue;
+    }
+
+    // Muons only
+    for (UInt_t i = 0; i < fMuons->GetEntries(); ++i) {
+      const Muon *mu = fMuons->At(i);
+      // Pt and eta cuts
+      if (mu->Pt() < 30. || fabs(mu->Eta()) > 2.1)
+        continue;
+      nGoodLeptons++;
+    }
+    
+    // skip events if not passing top preselection
+    if (!(nGoodBJets > 1 && nGoodTagJets > 0 && nGoodLeptons > 0))
+      return;
+  }
+
 
   // MET BASICS
 
@@ -248,7 +298,27 @@ void DMSTreeWriter::Process()
   
   // JETS : careful since the hardest overlaps with the tag jet
   fMitDMSTree.njets_ = fJets->GetEntries();
+  fMitDMSTree.nbjets_ = 0;
+  for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
+    const Jet *jet = fJets->At(i);
+    float btag = jet->CombinedSecondaryVertexBJetTagsDisc();  
+    if (btag > 0.244)
+      fMitDMSTree.nbjets_ ++;
 
+    if (fJets->GetEntries() == 1) {
+      fMitDMSTree.jet1_        = jet->Mom();
+      fMitDMSTree.jet1Btag_    = btag;
+    }
+    if (fJets->GetEntries() == 2) {
+      fMitDMSTree.jet2_        = jet->Mom();
+      fMitDMSTree.jet2Btag_    = btag;
+    }
+    if (fJets->GetEntries() == 3) {
+      fMitDMSTree.jet3_        = jet->Mom();
+      fMitDMSTree.jet3Btag_    = btag;
+    }
+  }
+ 
   // PILEUP RELATED
 
   if (! fIsData) {
@@ -262,6 +332,7 @@ void DMSTreeWriter::Process()
       if (puinfo->GetBunchCrossing() == -1)
         fMitDMSTree.npuMinusOne_ = puinfo->GetPU_NumInteractions();
     }
+    fMitDMSTree.puweight_ = PUWeight(fMitDMSTree.npu_);
   }
 
   // Finally fill the tree
@@ -295,6 +366,38 @@ void DMSTreeWriter::SlaveBegin()
   ReqEventObject(fMetName,           fMet,           fMetFromBranch);
   ReqEventObject(fMetMVAName,        fMetMVA,        fMetMVAFromBranch);
 
+  // Initialize the PU histrograms and weights
+  // some useful definitions
+  if (! fIsData) {
+    TString dirFwk("AnaFwkMod");
+    TString allEvts("hDAllEvents");
+    // get input histo
+    TFile *fif = new TFile(fPUInputFileName.Data());
+    if (fif->IsOpen() == kFALSE) {
+      printf(" WARNING -- missing input pile up file!\n");
+    }  
+    TDirectory *dirTmp = (TDirectory*) gROOT->FindObject(dirFwk.Data());
+    if (dirTmp) {
+      fif->cd(dirFwk.Data());
+      fPUInput = (TH1D*) dirTmp->Get("hNPUTrue")->Clone();
+      if (! fPUInput)
+        printf(" WARNING -- no input framework file!\n");      
+    }
+    // get target histo
+    TFile *ftf = new TFile(fPUTargetFileName.Data());
+    if (ftf->IsOpen() == kFALSE) {
+      printf(" WARNING -- missing target pile up file!\n");
+    }  
+    fPUTarget = (TH1D*) ftf->Get("pileup")->Clone();
+    if (! fPUTarget)
+      printf(" WARNING -- no target pile up histogram !\n");      
+    // build pile up weight histo
+    fPUInput->Rebin(10);
+    fPUInput->Scale(1.0/fPUInput->GetSumOfWeights());
+    fPUTarget->Scale(1.0/fPUTarget->GetSumOfWeights());
+    fPUWeight = new TH1D((*fPUTarget) / (*fPUInput));
+  }
+
   // Create Ntuple Tree
   fOutputFile = TFile::Open(TString::Format("%s_tmp.root",GetName()),"RECREATE");
   fMitDMSTree.CreateTree(0);
@@ -303,9 +406,10 @@ void DMSTreeWriter::SlaveBegin()
   AddOutput(fMitDMSTree.tree_);
 }
 
+//--------------------------------------------------------------------------------------------------
 void DMSTreeWriter::CorrectMet(const float met, const float metPhi,
-				   const Particle *l1, const Particle *l2,
-                                   float &newMet, float &newMetPhi)
+                               const Particle *l1, const Particle *l2,
+                               float &newMet, float &newMetPhi)
 {
   // inputs:  met, metPhi, l1,  [ l2  only used if pointer is non-zero ]
   // outputs: newMet, newMetPhi
@@ -323,4 +427,15 @@ void DMSTreeWriter::CorrectMet(const float met, const float metPhi,
   
   newMet    = TMath::Sqrt(TMath::Power(newMetX,2) + TMath::Power(newMetY,2));
   newMetPhi = TMath::ATan2(newMetY,newMetX);
+}
+
+//--------------------------------------------------------------------------------------------------
+float DMSTreeWriter::PUWeight(Float_t npu)
+{
+  if (npu<0)
+    return 1.0;
+  if (!fPUWeight)
+    return 1.0;
+  
+  return fPUWeight->GetBinContent(fPUWeight->FindFixBin(npu));
 }

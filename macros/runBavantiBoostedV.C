@@ -43,7 +43,7 @@ TString getJsonFile(const char* dir);
 //--------------------------------------------------------------------------------------------------
 void runBavantiBoostedV(const char *fileset    = "0000",
                         const char *skim       = "noskim",
-                        const char *dataset    = "s12-dmmjet-avd_m1-v7a",     
+                        const char *dataset    = "s12-ttj-v2-v7a",     
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
@@ -142,7 +142,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   hltModP->SetPrintTable(kFALSE);
 
   // monojet triggers
-  const int nMjtTrigs = 12;
+  const int nMjtTrigs = 26;
   TString monoJetTriggers[nMjtTrigs] = { "HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v4",
                                          "HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v3",
                                          "HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v1",
@@ -154,7 +154,21 @@ void runBavantiBoostedV(const char *fileset    = "0000",
                                          "HLT_MET120_HBHENoiseCleaned_v5",
                                          "HLT_MET120_HBHENoiseCleaned_v4",
                                          "HLT_MET120_HBHENoiseCleaned_v3",
-                                         "HLT_MET120_HBHENoiseCleaned_v2" };
+                                         "HLT_MET120_HBHENoiseCleaned_v2",
+                                         "HLT_IsoMu15_v2",
+                                         "HLT_IsoMu24_v2",
+                                         "HLT_IsoMu17_v6",
+                                         "HLT_IsoMu17_v8",
+                                         "HLT_IsoMu17_v9",
+                                         "HLT_IsoMu17_eta2p1_v1",
+                                         "HLT_IsoMu24_v8", 
+                                         "HLT_IsoMu24_eta2p1_v3", 
+                                         "HLT_IsoMu24_eta2p1_v6", 
+                                         "HLT_IsoMu24_eta2p1_v7", 
+                                         "HLT_IsoMu24_eta2p1_v12", 
+                                         "HLT_IsoMu24_eta2p1_v13", 
+                                         "HLT_IsoMu24_eta2p1_v14", 
+                                         "HLT_IsoMu24_eta2p1_v15"};
 
   for (int i=0; i<nMjtTrigs; i++)
     hltModP->AddTrigger(TString("!+"+monoJetTriggers[i]),0,999999);

@@ -21,11 +21,11 @@ TString getJsonFile(const char* dir);
 //--------------------------------------------------------------------------------------------------
 void runFlatBoostedV(const char *fileset    = "0000",
                      const char *skim       = "noskim",
-                     const char *dataset    = "s12-dmmjet-avd_m1-v7a",     
+                     const char *dataset    = "s12-sch-v7a",     
                      const char *book       = "t2mit/filefi/032",
                      const char *catalogDir = "/home/cmsprod/catalog",
                      const char *outputName = "boostedv",
-                     int         nEvents    = 100)
+                     int         nEvents    = -1)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -47,7 +47,7 @@ void runFlatBoostedV(const char *fileset    = "0000",
 
 
   // Caching and how
-  Int_t local = 1, cacher = 1;
+  Int_t local = 1, cacher = 0;
 
   // local =   0 - as is,
   //           1 - /mt/hadoop  (MIT:SmartCache - preload one-by-one)
@@ -92,56 +92,32 @@ void runFlatBoostedV(const char *fileset    = "0000",
   TString skimdataset = TString(dataset)+TString("/") +TString(skim);
   Dataset *d = NULL;
   TString bookstr = book;
-  //if (TString(skim).CompareTo("noskim") == 0)
-  //  d = c->FindDataset(bookstr,dataset,fileset,local);
-  //else 
-  //  d = c->FindDataset(bookstr,skimdataset.Data(),fileset,local);
-  ana->AddFile("/scratch1/dimatteo/cmssw/033/CMSSW_5_3_15/src/MitMonoJet/macros/boostedv_s12-dmmjet-avd_m1-v7a_noskim_0000_ntuple_000.root");
+  TString inputFile = "/scratch4/dimatteo/cms/hist/" + TString(outputName) + "/t2mit/filefi/032/";
+  inputFile += TString(dataset);
+  inputFile += TString("/") +  TString(outputName) + "_";
+  inputFile += TString(dataset) + "_*_ntuple_*.root";  
+  //inputFile += TString(dataset) + "_noskim_0036_ntuple_*.root";  
+  ana->AddFile(inputFile);
+
+  TString inputPUFile = "/scratch4/dimatteo/cms/hist/" + TString(outputName) + "/merged/";
+  inputPUFile += TString(outputName) + TString("_") +  TString(dataset);
+  inputPUFile += "_noskim.root";  
 
   //------------------------------------------------------------------------------------------------
   // organize output
   //------------------------------------------------------------------------------------------------
   TString rootFile = TString(outputName);
   rootFile += TString("_") + TString(dataset) + TString("_") + TString(skim);
-  if (TString(fileset) != TString(""))
-    rootFile += TString("_") + TString(fileset);
-  TString ntupleFile = rootFile + TString("_ntuple");
-  rootFile += TString(".root");
+  rootFile += TString("_flatntuple") + TString(".root");
   ana->SetOutputName(rootFile.Data());
   ana->SetCacheSize(0);
-
-  //------------------------------------------------------------------------------------------------
-  // HLT information
-  //------------------------------------------------------------------------------------------------
-  //HLTMod *hltModP = new HLTMod("HLTModP");
-  //hltModP->SetBitsName("HLTBits");
-  //hltModP->SetTrigObjsName("HltObjsMonoJet");
-  //hltModP->SetAbortIfNotAccepted(isData);
-  //hltModP->SetPrintTable(kFALSE);
-
-  //// monojet triggers
-  //const int nMjtTrigs = 12;
-  //TString monoJetTriggers[nMjtTrigs] = { "HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v4",
-                                         //"HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v3",
-                                         //"HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v1",
-                                         //"HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v5",
-                                         //"HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v4",
-                                         //"HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v3",
-                                         //"HLT_MonoCentralPFJet80_PFMETnoMu95_NHEF0p95_v2",
-                                         //"HLT_MET120_HBHENoiseCleaned_v6",
-                                         //"HLT_MET120_HBHENoiseCleaned_v5",
-                                         //"HLT_MET120_HBHENoiseCleaned_v4",
-                                         //"HLT_MET120_HBHENoiseCleaned_v3",
-                                         //"HLT_MET120_HBHENoiseCleaned_v2" };
-
-  //for (int i=0; i<nMjtTrigs; i++)
-    //hltModP->AddTrigger(TString("!+"+monoJetTriggers[i]),0,999999);
 
   //------------------------------------------------------------------------------------------------
   // prepare the tree writer 
   //------------------------------------------------------------------------------------------------
   DMSTreeWriter *treeWriter = new DMSTreeWriter();
-  treeWriter->SetIsData(kFALSE);
+  //treeWriter->SetIsData(kFALSE);
+  treeWriter->SetIsData(isData);
   treeWriter->SetMetName("SkmPFMetT0T1Shift");
   treeWriter->SetMetMVAName("PFMetMVA");
   treeWriter->SetPhotonsName("SkmCleanPhotons");
@@ -150,6 +126,8 @@ void runFlatBoostedV(const char *fileset    = "0000",
   treeWriter->SetTausName("SkmCleanPFTaus");
   treeWriter->SetJetsName("SkmCleanJets");
   treeWriter->SetTriggerObjectsName("SkmHltObjsMonoJet");
+  treeWriter->SetInPUHistoFileName(inputPUFile);
+  treeWriter->SetTargetPUHistoFileName("/home/dimatteo/cms/external/MyDataPileupHistogram.root");
   
   //------------------------------------------------------------------------------------------------
   // making analysis chain
@@ -164,13 +142,17 @@ void runFlatBoostedV(const char *fileset    = "0000",
   printf("\n Rely on Catalog: %s\n",cataDir.Data());
   printf("  -> Book: %s  Dataset: %s  Skim: %s  Fileset: %s <-\n",book,dataset,skim,fileset);
   printf("\n Root output:   %s\n",rootFile.Data());  
-  printf("\n Ntuple output: %s\n\n",(ntupleFile + TString(".root")).Data());  
   printf("\n========================================\n");
 
   //------------------------------------------------------------------------------------------------
   // run the analysis after successful initialisation
   //------------------------------------------------------------------------------------------------
   ana->Run(!gROOT->IsBatch());
+
+  //------------------------------------------------------------------------------------------------
+  // copy the file to its final destination
+  //------------------------------------------------------------------------------------------------
+  gSystem->Exec("mv " + rootFile + TString(" /scratch4/dimatteo/cms/hist/boostedv/") + TString("merged/")); 
 
   return;
 }

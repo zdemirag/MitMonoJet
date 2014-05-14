@@ -3,10 +3,13 @@
 //
 // DMSTreeWriter
 //
-// Authors: L. Di Matteo
+// Authors: L. Di Matteo        (original class from G.G.Ceballos)
 //--------------------------------------------------------------------------------------------------
 #ifndef MITMONOJET_MODS_DMSTreeWriter_H
 #define MITMONOJET_MODS_DMSTreeWriter_H
+
+#include <TH1D.h>
+#include <TFile.h>
 
 #include "MitAna/TreeMod/interface/BaseMod.h" 
 #include "MitAna/DataTree/interface/EvtSelData.h"
@@ -47,40 +50,43 @@ namespace mithep
     ~DMSTreeWriter();
 
     // setting all the input Names
-    void                SetRawMetName(const char *n)      { fRawMetName= n;              }
-    void                SetMetName(const char *n)         { fMetName= n;                 }
-    void                SetMetFromBranch(bool b)          { fMetFromBranch = b;          }
-    void                SetMetMVAName(const char *n)      { fMetMVAName= n;              }
-    void                SetMetMVAFromBranch(bool b)       { fMetMVAFromBranch = b;       }
-    void                SetPhotonsName(const char *n)     { fPhotonsName= n;             }
-    void                SetPhotonsFromBranch(bool b)      { fPhotonsFromBranch = b;      }
-    void                SetElectronsName(const char *n)   { fElectronsName = n;          }
-    void                SetElectronsFromBranch(bool b)    { fElectronsFromBranch = b;    }
-    void                SetMuonsName(const char *n)       { fMuonsName = n;              }
-    void                SetMuonsFromBranch(bool b)        { fMuonsFromBranch = b;        }
-    void                SetTausName(const char *n)        { fTausName = n;               }
-    void                SetTausFromBranch(bool b)         { fTausFromBranch = b;         }
-    void                SetJetsName(const char *n)        { fJetsName = n;               }
-    void                SetJetsFromBranch(bool b)         { fJetsFromBranch = b;         }
-    void                SetFatJetsName(const char *n)     { fFatJetsName = n;            }
-    void                SetFatJetsFromBranch(bool b)      { fFatJetsFromBranch = b;      }
-    void                SetSubJetsName(const char *n)     { fSubJetsName = n;            }
-    void                SetSubJetsFromBranch(bool b)      { fSubJetsFromBranch = b;      }
- 
-    void                SetPVName(const char *n)          { fPVName = n;                 }
-    void                SetPVFromBranch(bool b)           { fPVFromBranch = b;           }
-    void                SetPUInfoName(const char *n)      { fPileUpName = n;             }
+    void    SetRawMetName(const char *n)            { fRawMetName= n;              }
+    void    SetMetName(const char *n)               { fMetName= n;                 }
+    void    SetMetFromBranch(bool b)                { fMetFromBranch = b;          }
+    void    SetMetMVAName(const char *n)            { fMetMVAName= n;              }
+    void    SetMetMVAFromBranch(bool b)             { fMetMVAFromBranch = b;       }
+    void    SetPhotonsName(const char *n)           { fPhotonsName= n;             }
+    void    SetPhotonsFromBranch(bool b)            { fPhotonsFromBranch = b;      }
+    void    SetElectronsName(const char *n)         { fElectronsName = n;          }
+    void    SetElectronsFromBranch(bool b)          { fElectronsFromBranch = b;    }
+    void    SetMuonsName(const char *n)             { fMuonsName = n;              }
+    void    SetMuonsFromBranch(bool b)              { fMuonsFromBranch = b;        }
+    void    SetTausName(const char *n)              { fTausName = n;               }
+    void    SetTausFromBranch(bool b)               { fTausFromBranch = b;         }
+    void    SetJetsName(const char *n)              { fJetsName = n;               }
+    void    SetJetsFromBranch(bool b)               { fJetsFromBranch = b;         }
+    void    SetFatJetsName(const char *n)           { fFatJetsName = n;            }
+    void    SetFatJetsFromBranch(bool b)            { fFatJetsFromBranch = b;      }
+    void    SetSubJetsName(const char *n)           { fSubJetsName = n;            }
+    void    SetSubJetsFromBranch(bool b)            { fSubJetsFromBranch = b;      }
+                                                    
+    void    SetPVName(const char *n)                { fPVName = n;                 }
+    void    SetPVFromBranch(bool b)                 { fPVFromBranch = b;           }
+    void    SetPUInfoName(const char *n)            { fPileUpName = n;             }
 
-    void                SetTriggerObjectsName(const char *n) { fTriggerObjectsName = n;  }
-    void                SetIsData (Bool_t b)              { fIsData = b;                 }
+    void    SetTriggerObjectsName(const char *n)    { fTriggerObjectsName = n;     }
+    void    SetIsData (Bool_t b)                    { fIsData = b;                 }
+
+    void    SetInPUHistoFileName(const char *n)     { fPUInputFileName = n;        }
+    void    SetTargetPUHistoFileName(const char *n) { fPUTargetFileName = n;       }
 
   protected:
-    void                Process();
-    void                SlaveBegin();
-    void                SlaveTerminate();
-
-  private:
-    void                CorrectMet(const float met, const float metPhi,
+    void    Process();
+    void    SlaveBegin();
+    void    SlaveTerminate();
+            
+  private:  
+    void    CorrectMet(const float met, const float metPhi,
                                    const Particle *l1, const Particle *l2,
                                    float &newMet, float &newMetPhi);
 
@@ -129,6 +135,15 @@ namespace mithep
     const PileupEnergyDensityCol  *fPileUpDen;
     const EvtSelData              *fEvtSelData;
     const TriggerObjectCol        *fTrigObj;
+
+    // Auxiliary
+    TString                        fPUInputFileName;     // input PU histo file
+    TString                        fPUTargetFileName;    // target PU histo file
+    TH1D                          *fPUInput;             // input PU histo
+    TH1D                          *fPUTarget;            // target PU histo
+    const TH1D                    *fPUWeight;            // target PU histo
+    float                          PUWeight(Float_t npu);// PU reweighting function
+
     TFile                         *fOutputFile;
     MitDMSTree                     fMitDMSTree;
 
