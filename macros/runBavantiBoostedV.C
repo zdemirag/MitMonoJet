@@ -47,7 +47,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 200)
+                        int         nEvents    = 100)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -335,10 +335,6 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   pubJet->SetInputName("AKt5PFJets");
   pubJet->SetOutputName("PubAKt5PFJets");
 
-  PublisherMod<PFJet,Jet> *pubFatJet = new PublisherMod<PFJet,Jet>("FatJetPub");
-  pubFatJet->SetInputName("AKt7PFJets");
-  pubFatJet->SetOutputName("PubAKt7PFJets");
-
   JetCorrectionMod *jetCorr = new JetCorrectionMod;
   if (isData){ 
     jetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L1FastJet_AK5PF.txt")).Data()); 
@@ -353,21 +349,6 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   }
   jetCorr->SetInputName(pubJet->GetOutputName());
   jetCorr->SetCorrectedName("CorrectedJets");    
-
-  JetCorrectionMod *fatJetCorr = new JetCorrectionMod;
-  if (isData){ 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L1FastJet_AK5PF.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L2Relative_AK5PF.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L3Absolute_AK5PF.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L2L3Residual_AK5PF.txt")).Data());
-  }                                                                                      
-  else {                                                                                 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_MC_L1FastJet_AK5PF.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_MC_L2Relative_AK5PF.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_MC_L3Absolute_AK5PF.txt")).Data()); 
-  }
-  fatJetCorr->SetInputName(pubFatJet->GetOutputName());
-  fatJetCorr->SetCorrectedName("CorrectedFatJets");    
         
   MetCorrectionMod *metCorrT0T1Shift = new MetCorrectionMod;
   metCorrT0T1Shift->SetInputName("PFMet");
@@ -389,15 +370,6 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   jetId->SetApplyBetaCut(kFALSE);
   jetId->SetApplyMVACut(kTRUE);
 
-  JetIDMod *fatJetId = new JetIDMod;
-  fatJetId->SetInputName(fatJetCorr->GetOutputName());
-  fatJetId->SetPtCut(100.0);
-  fatJetId->SetEtaMaxCut(4.7);
-  fatJetId->SetJetEEMFractionMinCut(0.00);
-  fatJetId->SetOutputName("GoodFatJets");
-  fatJetId->SetApplyBetaCut(kFALSE);
-  fatJetId->SetApplyMVACut(kTRUE);
-
   JetCleaningMod *jetCleaning = new JetCleaningMod;
   jetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());
   jetCleaning->SetCleanMuonsName(muonId->GetOutputName());
@@ -405,14 +377,6 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   jetCleaning->SetApplyPhotonRemoval(kTRUE);
   jetCleaning->SetGoodJetsName(jetId->GetOutputName());
   jetCleaning->SetCleanJetsName("CleanJets");
-
-  JetCleaningMod *fatJetCleaning = new JetCleaningMod;
-  fatJetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());
-  fatJetCleaning->SetCleanMuonsName(muonId->GetOutputName());
-  fatJetCleaning->SetCleanPhotonsName(photonCleaningMod->GetOutputName());
-  fatJetCleaning->SetApplyPhotonRemoval(kTRUE);
-  fatJetCleaning->SetGoodJetsName(fatJetId->GetOutputName());
-  fatJetCleaning->SetCleanJetsName("CleanFatJets");
 
   //------------------------------------------------------------------------------------------------
   // select events with a monojet topology
@@ -454,12 +418,11 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   FillerXlJets *boostedJetsFiller = new FillerXlJets;  
   boostedJetsFiller->FillTopSubJets(kTRUE);
-  boostedJetsFiller->SetJetsName(fatJetCleaning->GetOutputName());
+  boostedJetsFiller->SetJetsName(jetCleaning->GetOutputName());
   boostedJetsFiller->SetJetsFromBranch(kFALSE);
   boostedJetsFiller->SetPruningOn(kFALSE);        
   boostedJetsFiller->SetFilteringOn(kFALSE);     
   boostedJetsFiller->SetTrimmingOn(kFALSE);      
-  boostedJetsFiller->SetConeSize(0.7);      
 
   //FillerXlJets *boostedJetsFillerPruned = new FillerXlJets("boostedJetsFillerPruned","boostedJetsFillerPruned");  
   //boostedJetsFillerPruned->FillTopSubJets(kTRUE);
@@ -483,14 +446,13 @@ void runBavantiBoostedV(const char *fileset    = "0000",
 
   FillerXlJets *boostedJetsFillerTrimmed = new FillerXlJets("boostedJetsFillerTrimmed","boostedJetsFillerTrimmed");  
   boostedJetsFillerTrimmed->FillTopSubJets(kTRUE);
-  boostedJetsFillerTrimmed->SetJetsName(fatJetCleaning->GetOutputName());
+  boostedJetsFillerTrimmed->SetJetsName(jetCleaning->GetOutputName());
   boostedJetsFillerTrimmed->SetJetsFromBranch(kFALSE);
   boostedJetsFillerTrimmed->SetPruningOn(kFALSE);        
   boostedJetsFillerTrimmed->SetFilteringOn(kFALSE);     
   boostedJetsFillerTrimmed->SetTrimmingOn(kTRUE);      
   boostedJetsFillerTrimmed->SetFatJetsName("XlFatJetsTrimmed");     
   boostedJetsFillerTrimmed->SetSubJetsName("XlSubJetsTrimmed");      
-  boostedJetsFillerTrimmed->SetConeSize(0.7);      
 
   //------------------------------------------------------------------------------------------------
   // keep the skimmed collections for further usage
@@ -591,15 +553,11 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   photonCleaningMod        ->Add(pftauIdMod);
   pftauIdMod               ->Add(pftauCleaningMod);
   pftauCleaningMod         ->Add(pubJet);
-  pubJet                   ->Add(pubFatJet);
-  pubFatJet                ->Add(jetCorr);
-  jetCorr                  ->Add(fatJetCorr);
-  fatJetCorr               ->Add(metCorrT0T1Shift);
+  pubJet                   ->Add(jetCorr);
+  jetCorr                  ->Add(metCorrT0T1Shift);
   metCorrT0T1Shift         ->Add(jetId);
-  jetId                    ->Add(fatJetId);
-  fatJetId                 ->Add(jetCleaning);
-  jetCleaning              ->Add(fatJetCleaning);
-  fatJetCleaning           ->Add(jetplusmet);
+  jetId                    ->Add(jetCleaning);
+  jetCleaning              ->Add(jetplusmet);
   jetplusmet               ->Add(extendedMetFiller);
   extendedMetFiller        ->Add(boostedJetsFiller);
   //boostedJetsFiller        ->Add(boostedJetsFillerPruned);
