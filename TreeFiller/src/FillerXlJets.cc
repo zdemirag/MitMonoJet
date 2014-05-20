@@ -185,6 +185,18 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   double tau2 = nSub2(fjGroomedJet);
   double tau3 = nSub3(fjGroomedJet);
 
+  // Compute the energy correlation function ratios
+  fastjet::contrib::EnergyCorrelatorRatio ECR2b0  (2,0. ,fastjet::contrib::EnergyCorrelator::pt_R);
+  fastjet::contrib::EnergyCorrelatorRatio ECR2b0p2(2,0.2,fastjet::contrib::EnergyCorrelator::pt_R);
+  fastjet::contrib::EnergyCorrelatorRatio ECR2b0p5(2,0.5,fastjet::contrib::EnergyCorrelator::pt_R);
+  fastjet::contrib::EnergyCorrelatorRatio ECR2b1  (2,1.0,fastjet::contrib::EnergyCorrelator::pt_R);
+  fastjet::contrib::EnergyCorrelatorRatio ECR2b2  (2,2.0,fastjet::contrib::EnergyCorrelator::pt_R);
+  double C2b0   = ECR2b0(fjGroomedJet);
+  double C2b0p2 = ECR2b0p2(fjGroomedJet);
+  double C2b0p5 = ECR2b0p5(fjGroomedJet);
+  double C2b1   = ECR2b1(fjGroomedJet);
+  double C2b2   = ECR2b2(fjGroomedJet);
+  
   // ---- Fastjet is done ----
       
   // Prepare and store in an array a new FatJet 
@@ -199,6 +211,13 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   fatJet->SetTau1(tau1);
   fatJet->SetTau2(tau2);
   fatJet->SetTau3(tau3);
+
+  // Store the energy correlation values
+  fatJet->SetC2b0(C2b0);  
+  fatJet->SetC2b0p2(C2b0p2);
+  fatJet->SetC2b0p5(C2b0p5);
+  fatJet->SetC2b1(C2b1);  
+  fatJet->SetC2b2(C2b2);  
 
   // Loop on the subjets and fill the subjet Xl collections - do it according to the user request
   if (fFillVSubJets) {

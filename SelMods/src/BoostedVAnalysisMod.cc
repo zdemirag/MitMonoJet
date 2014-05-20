@@ -101,7 +101,7 @@ void BoostedVAnalysisMod::Process()
     for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
       const Jet *jet = fJets->At(i);
       // Pt and eta cuts
-      if (jet->Pt() < 30. || fabs(jet->Eta()) > 2.5);
+      if (jet->Pt() < 30. || fabs(jet->Eta()) > 2.5)
         continue;
       // Either loose b-tagged or boosted jet
       if (jet->CombinedSecondaryVertexBJetTagsDisc() > 0.244)
@@ -116,7 +116,7 @@ void BoostedVAnalysisMod::Process()
     for (UInt_t i = 0; i < fElectrons->GetEntries(); ++i) {
       const Electron *ele = fElectrons->At(i);
       // Pt and eta cuts
-      if (ele->Pt() < 30. || fabs(ele->Eta()) > 2.5 || (fabs(ele->Eta()) > 1.442 && fabs(ele->Eta()) > 1.566));
+      if (ele->Pt() < 30. || fabs(ele->Eta()) > 2.5 || (fabs(ele->Eta()) > 1.442 && fabs(ele->Eta()) > 1.566))
         continue;
       nGoodLeptons++;
     }
@@ -127,7 +127,6 @@ void BoostedVAnalysisMod::Process()
         continue;
       nGoodLeptons++;
     }
-    
     if (nGoodBJets > 1 && nGoodTagJets > 0 && nGoodLeptons > 0)
       passTopPresel = kTRUE;
   }

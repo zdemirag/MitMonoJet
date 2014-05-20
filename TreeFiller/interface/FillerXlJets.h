@@ -20,6 +20,7 @@
 #include "fastjet/tools/Pruner.hh"
 #include "fastjet/tools/Filter.hh"
 
+#include "fastjet/contrib/EnergyCorrelator.hh"
 #include "fastjet/contrib/Njettiness.hh"
 #include "fastjet/contrib/Nsubjettiness.hh"
 #include "fastjet/contrib/NjettinessPlugin.hh"

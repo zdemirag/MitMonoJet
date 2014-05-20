@@ -35,6 +35,7 @@
 #include "MitPhysics/Mods/interface/JetCleaningMod.h"
 #include "MitMonoJet/SelMods/interface/BoostedVAnalysisMod.h"
 #include "MitMonoJet/TreeFiller/interface/FillerXlJets.h"
+#include "MitMonoJet/TreeFiller/interface/FillerXlMet.h"
 
 TString getCatalogDir(const char* dir);
 TString getJsonFile(const char* dir);
@@ -42,11 +43,12 @@ TString getJsonFile(const char* dir);
 //--------------------------------------------------------------------------------------------------
 void runBoostedV(const char *fileset    = "0000",
 		 const char *skim       = "noskim",
-		 const char *dataset    = "r12b-smu-j22-v1", 
+//		 const char *dataset    = "r12b-smu-j22-v1", 
+		 const char *dataset    = "s12-dmmjet-avd_m1-v7a",     
 		 const char *book       = "t2mit/filefi/032",
 		 const char *catalogDir = "/home/cmsprod/catalog",
 		 const char *outputName = "boostedv",
-		 int         nEvents    = 1000)
+		 int         nEvents    = 100)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -380,7 +382,24 @@ void runBoostedV(const char *fileset    = "0000",
   jetplusmet->ApplyMetPresel(kTRUE);
   jetplusmet->SetMinTagJetPt(200);
   jetplusmet->SetMinMet(100);    
- 
+
+  //------------------------------------------------------------------------------------------------
+  // prepare the extended MVA met 
+  //------------------------------------------------------------------------------------------------
+  FillerXlMet *extendedMetFiller = new FillerXlMet();
+  extendedMetFiller->SetIsData(isData);
+  extendedMetFiller->SetJetsFromBranch(kFALSE);
+  extendedMetFiller->SetJetsName(jetCleaning->GetOutputName());
+  extendedMetFiller->SetMuonsFromBranch(kFALSE);
+  extendedMetFiller->SetMuonsName(muonId->GetOutputName());
+  extendedMetFiller->SetElectronsFromBranch(kFALSE);
+  extendedMetFiller->SetElectronsName(electronCleaning->GetOutputName());
+  extendedMetFiller->SetTausFromBranch(kFALSE);
+  extendedMetFiller->SetTausName(pftauCleaningMod->GetOutputName());
+  extendedMetFiller->SetPVFromBranch(kFALSE);
+  extendedMetFiller->SetPVName(goodPVFilterMod->GetOutputName());
+  extendedMetFiller->SetXlMetName("PFMetMVA");     
+  
   //------------------------------------------------------------------------------------------------
   // prepare the extended jets with substructure information
   //------------------------------------------------------------------------------------------------
@@ -446,15 +465,24 @@ void runBoostedV(const char *fileset    = "0000",
   skmMuons->SetColFromBranch(kFALSE);
   skmMuons->SetColMarkFilter(kFALSE);
   skmMuons->SetPublishArray(kTRUE);
+
+  SkimMod<Met> *skmMetCorr = new SkimMod<Met>;
+  skmMetCorr->SetBranchName(metCorrT0T1Shift->GetOutputName());
+  skmMetCorr->SetColFromBranch(kFALSE);
+  skmMetCorr->SetColMarkFilter(kFALSE);
+  skmMetCorr->SetPublishArray(kTRUE);
   
   //------------------------------------------------------------------------------------------------
   // save all this in an output ntuple
   //------------------------------------------------------------------------------------------------
   OutputMod *outMod = new OutputMod;
   outMod->SetUseBrDep(kFALSE);
+  outMod->SetKeepTamBr(kFALSE);
   outMod->SetFileName(ntupleFile);
   outMod->Drop("*");
   outMod->Keep(Names::gkEvtSelDataBrn);
+  outMod->Keep(Names::gkMCEvtInfoBrn);
+  outMod->Keep(Names::gkMCPartBrn);
   outMod->Keep(Names::gkPVBeamSpotBrn);
   outMod->Keep(Names::gkPileupInfoBrn);
   outMod->Keep(Names::gkPileupEnergyDensityBrn);
@@ -463,6 +491,8 @@ void runBoostedV(const char *fileset    = "0000",
   outMod->AddNewBranch(TString("Skm") + photonCleaningMod->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + electronCleaning->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + muonId->GetOutputName());
+  outMod->AddNewBranch(TString("Skm") + metCorrT0T1Shift->GetOutputName());
+  outMod->AddNewBranch("PFMetMVA");
   outMod->AddNewBranch("XlFatJets");
   outMod->AddNewBranch("XlSubJets");
   //outMod->AddNewBranch("XlFatJetsPruned");
@@ -493,7 +523,8 @@ void runBoostedV(const char *fileset    = "0000",
   metCorrT0T1Shift         ->Add(jetId);
   jetId                    ->Add(jetCleaning);
   jetCleaning              ->Add(jetplusmet);
-  jetplusmet               ->Add(boostedJetsFiller);
+  jetplusmet               ->Add(extendedMetFiller);
+  extendedMetFiller        ->Add(boostedJetsFiller);
   //boostedJetsFiller        ->Add(boostedJetsFillerPruned);
   //boostedJetsFillerPruned  ->Add(boostedJetsFillerFiltered);
   boostedJetsFiller        ->Add(boostedJetsFillerTrimmed);
@@ -501,7 +532,8 @@ void runBoostedV(const char *fileset    = "0000",
   skmPFCandidates          ->Add(skmPhotons);
   skmPhotons               ->Add(skmElectrons);
   skmElectrons             ->Add(skmMuons);
-  skmMuons                 ->Add(outMod);
+  skmMuons                 ->Add(skmMetCorr);
+  skmMetCorr               ->Add(outMod);
   
   //------------------------------------------------------------------------------------------------
   // Say what we are doing

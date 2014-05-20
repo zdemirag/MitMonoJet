@@ -71,7 +71,7 @@ namespace mithep
 
     Bool_t                        fIsData;                 //is this data or MC?
     TString                       fMcPartsName;            //(i) name of MC particles
-    const MCParticleCol          *fMcParts;	           //MC particle coll
+    const MCParticleCol          *fMcParts;	               //MC particle coll
     TString                       fTriggerObjsName;        //(i) name of trigger objects
     const TriggerObjectCol       *fTrigObjs;               //trigger objects coll handle
     TString                       fJetsName;               //(i) name of jets used to make trigger
@@ -114,7 +114,7 @@ namespace mithep
 
     // Output tree
     TString                       fOutputName;             //(o) name of ntuple output
-    TFile	                 *fOutputFile;
+    TFile	                     *fOutputFile;
     MitGPBoostedVTree             fMitGPTree;
 
     ClassDef(BoostedVTreeWriter, 0) // Boosted Vector boson tree writer

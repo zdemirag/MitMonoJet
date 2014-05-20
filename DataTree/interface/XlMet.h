@@ -20,9 +20,10 @@ namespace mithep
   {
     public:
 
-      XlMet() {}
+      XlMet() : 
+                fMetCov(2,2) {}
       XlMet(Double_t mex, Double_t mey) : 
-                Met(mex, mey) {}
+                Met(mex, mey), fMetCov(2,2) {}
 
       Met                  *MakeCopy()                      const { return new XlMet(*this);       }
       TMatrixD              GetCovMatrix()                  const { return fMetCov;                }
@@ -36,7 +37,6 @@ namespace mithep
       void                  Mark(UInt_t i=1)                const;
 
     protected:
-
       TMatrixD              fMetCov;     //MET covariance Matrix
       
     ClassDef(XlMet, 1) // XlMet class
