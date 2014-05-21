@@ -24,6 +24,7 @@
 #include "fastjet/contrib/Njettiness.hh"
 #include "fastjet/contrib/Nsubjettiness.hh"
 #include "fastjet/contrib/NjettinessPlugin.hh"
+#include "fastjet/contrib/SoftDrop.hh"
 #include "MitMonoJet/DataTree/interface/XlFatJetFwd.h"
 #include "MitMonoJet/DataTree/interface/XlFatJet.h"
 #include "MitMonoJet/DataTree/interface/XlSubJetFwd.h"
@@ -57,11 +58,9 @@ namespace mithep
 
       void SetFatJetsName(const char *n)   { fXlFatJetsName = n;  }
       void SetSubJetsName(const char *n)   { fXlSubJetsName = n;  }
-       
-      void SetPruningOn(Bool_t b)          { fPrune = b;          }
-      void SetFilteringOn(Bool_t b)        { fFilter = b;         }
-      void SetTrimmingOn(Bool_t b)         { fTrim = b;           }
-      
+             
+      void SetSoftDropZCut(double d)       { fSoftDropZCut = d;   }
+      void SetSoftDropMuCut(double d)      { fSoftDropMuCut = d;  }
       void SetPruneZCut(double d)          { fPruneZCut = d;      }
       void SetPruneDistCut(double d)       { fPruneDistCut = d;   }
       void SetFilterN(int n)               { fFilterN = n;        }
@@ -103,12 +102,11 @@ namespace mithep
       XlSubJetArr *fXlSubJets;             //array of fXlSubJets
       
       // Objects from fastjet we want to use
-      Bool_t fPrune;                       //apply pruning?
-      Bool_t fFilter;                      //apply filtering?
-      Bool_t fTrim;                        //apply trimming?
       fastjet::Pruner *fPruner;
       fastjet::Filter *fFilterer;
       fastjet::Filter *fTrimmer;           //no this is not a typo trimmers belong to fastjet Filter class
+      double fSoftDropZCut;                //soft-drop Z cut
+      double fSoftDropMuCut;               //soft-drop mu cut 
       double fPruneZCut;                   //pruning Z cut
       double fPruneDistCut;                //pruning distance cut 
       int fFilterN;                        //number of subjets after filtering

@@ -418,6 +418,8 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   // select events with a monojet topology
   //------------------------------------------------------------------------------------------------
   BoostedVAnalysisMod *jetplusmet = new BoostedVAnalysisMod("MonoJetSelector");
+  jetplusmet->SetFatJetsName(fatJetCleaning->GetOutputName()); //identified fat jets
+  jetplusmet->SetFatJetsFromBranch(kFALSE);
   jetplusmet->SetJetsName(jetCleaning->GetOutputName()); //identified jets
   jetplusmet->SetJetsFromBranch(kFALSE);
   jetplusmet->SetElectronsName(electronCleaning->GetOutputName());
@@ -429,8 +431,10 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   jetplusmet->ApplyWlepPresel(kTRUE);
   jetplusmet->ApplyZlepPresel(kTRUE);
   jetplusmet->ApplyMetPresel(kTRUE);
-  jetplusmet->SetMinTagJetPt(200);
-  jetplusmet->SetMinMet(100);    
+  jetplusmet->ApplyVbfPresel(kFALSE);
+  jetplusmet->SetMinFatJetPt(200);
+  jetplusmet->SetMinTagJetPt(100);
+  jetplusmet->SetMinMet(200);    
 
   //------------------------------------------------------------------------------------------------
   // prepare the extended MVA met 
@@ -456,41 +460,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   boostedJetsFiller->FillTopSubJets(kTRUE);
   boostedJetsFiller->SetJetsName(fatJetCleaning->GetOutputName());
   boostedJetsFiller->SetJetsFromBranch(kFALSE);
-  boostedJetsFiller->SetPruningOn(kFALSE);        
-  boostedJetsFiller->SetFilteringOn(kFALSE);     
-  boostedJetsFiller->SetTrimmingOn(kFALSE);      
   boostedJetsFiller->SetConeSize(0.7);      
-
-  //FillerXlJets *boostedJetsFillerPruned = new FillerXlJets("boostedJetsFillerPruned","boostedJetsFillerPruned");  
-  //boostedJetsFillerPruned->FillTopSubJets(kTRUE);
-  //boostedJetsFillerPruned->SetJetsName(jetCleaning->GetOutputName());
-  //boostedJetsFillerPruned->SetJetsFromBranch(kFALSE);
-  //boostedJetsFillerPruned->SetPruningOn(kTRUE);        
-  //boostedJetsFillerPruned->SetFilteringOn(kFALSE);     
-  //boostedJetsFillerPruned->SetTrimmingOn(kFALSE);      
-  //boostedJetsFillerPruned->SetFatJetsName("XlFatJetsPruned");     
-  //boostedJetsFillerPruned->SetSubJetsName("XlSubJetsPruned");      
-
-  //FillerXlJets *boostedJetsFillerFiltered = new FillerXlJets("boostedJetsFillerFiltered","boostedJetsFillerFiltered");  
-  //boostedJetsFillerFiltered->FillTopSubJets(kTRUE);
-  //boostedJetsFillerFiltered->SetJetsName(jetCleaning->GetOutputName());
-  //boostedJetsFillerFiltered->SetJetsFromBranch(kFALSE);
-  //boostedJetsFillerFiltered->SetPruningOn(kFALSE);        
-  //boostedJetsFillerFiltered->SetFilteringOn(kTRUE);     
-  //boostedJetsFillerFiltered->SetTrimmingOn(kFALSE);      
-  //boostedJetsFillerFiltered->SetFatJetsName("XlFatJetsFiltered");     
-  //boostedJetsFillerFiltered->SetSubJetsName("XlSubJetsFiltered");      
-
-  FillerXlJets *boostedJetsFillerTrimmed = new FillerXlJets("boostedJetsFillerTrimmed","boostedJetsFillerTrimmed");  
-  boostedJetsFillerTrimmed->FillTopSubJets(kTRUE);
-  boostedJetsFillerTrimmed->SetJetsName(fatJetCleaning->GetOutputName());
-  boostedJetsFillerTrimmed->SetJetsFromBranch(kFALSE);
-  boostedJetsFillerTrimmed->SetPruningOn(kFALSE);        
-  boostedJetsFillerTrimmed->SetFilteringOn(kFALSE);     
-  boostedJetsFillerTrimmed->SetTrimmingOn(kTRUE);      
-  boostedJetsFillerTrimmed->SetFatJetsName("XlFatJetsTrimmed");     
-  boostedJetsFillerTrimmed->SetSubJetsName("XlSubJetsTrimmed");      
-  boostedJetsFillerTrimmed->SetConeSize(0.7);      
 
   //------------------------------------------------------------------------------------------------
   // keep the skimmed collections for further usage
@@ -568,12 +538,6 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   outMod->AddNewBranch("PFMetMVA");
   outMod->AddNewBranch("XlFatJets");
   outMod->AddNewBranch("XlSubJets");
-  //outMod->AddNewBranch("XlFatJetsPruned");
-  //outMod->AddNewBranch("XlSubJetsPruned");
-  //outMod->AddNewBranch("XlFatJetsFiltered");
-  //outMod->AddNewBranch("XlSubJetsFiltered");
-  outMod->AddNewBranch("XlFatJetsTrimmed");
-  outMod->AddNewBranch("XlSubJetsTrimmed");
   
   //------------------------------------------------------------------------------------------------
   // making analysis chain
@@ -602,10 +566,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   fatJetCleaning           ->Add(jetplusmet);
   jetplusmet               ->Add(extendedMetFiller);
   extendedMetFiller        ->Add(boostedJetsFiller);
-  //boostedJetsFiller        ->Add(boostedJetsFillerPruned);
-  //boostedJetsFillerPruned  ->Add(boostedJetsFillerFiltered);
-  boostedJetsFiller        ->Add(boostedJetsFillerTrimmed);
-  boostedJetsFillerTrimmed ->Add(skmPFCandidates);
+  boostedJetsFiller        ->Add(skmPFCandidates);
   skmPFCandidates          ->Add(skmPhotons);
   skmPhotons               ->Add(skmElectrons);
   skmElectrons             ->Add(skmMuons);

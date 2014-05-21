@@ -281,7 +281,6 @@ void DMSTreeWriter::Process()
   if (fFatJets->GetEntries() >= 1) {
     const XlFatJet *fjet = fFatJets->At(0);    
     fMitDMSTree.tjet_        = fjet->Mom();
-    fMitDMSTree.tjetGroomed_ = fjet->GroomedMom();
     fMitDMSTree.tjetBtag_    = fjet->CombinedSecondaryVertexBJetTagsDisc();
     fMitDMSTree.tjetTau1_    = fjet->Tau1();
     fMitDMSTree.tjetTau2_    = fjet->Tau2();

@@ -26,11 +26,13 @@ ClassImp(mithep::BoostedVAnalysisMod)
     BaseMod(name,title),
     // define all the Branches to load
     fMetBranchName         ("PFMet"),
+    fFatJetsName           ("AKt7PFJets"),
     fJetsName              (Names::gkPFJetBrn),
     fElectronsName         (Names::gkElectronBrn),
     fMuonsName             (Names::gkMuonBrn),
     fLeptonsName           (ModNames::gkMergedLeptonsName),
     fMetFromBranch         (kTRUE),
+    fFatJetsFromBranch     (kTRUE),
     fJetsFromBranch        (kTRUE),
     fElectronsFromBranch   (kTRUE),
     fMuonsFromBranch       (kTRUE),
@@ -39,14 +41,17 @@ ClassImp(mithep::BoostedVAnalysisMod)
     fApplyWlepPresel       (kTRUE),
     fApplyZlepPresel       (kTRUE),
     fApplyMetPresel        (kTRUE), 
+    fApplyVbfPresel        (kTRUE),
     // collections
     fMet                   (0),
     fJets                  (0),
     fElectrons             (0),
     fMuons                 (0),    
     // cuts
-    fMinTagJetPt           (200),
-    fMinMet                (100),
+    fMinFatJetPt           (200),
+    fMinTagJetPt           (100),
+    fMinMet                (200),
+    fMinVbfMass            (800),
     // counters
     fAll                   (0),
     fPass                  (0)
@@ -77,6 +82,7 @@ void BoostedVAnalysisMod::Process()
   LoadEventObject(fMuonsName,fMuons,fMuonsFromBranch);
 
   fJets = GetObjThisEvt<JetOArr>(fJetsName);
+  fFatJets = GetObjThisEvt<JetOArr>(fFatJetsName);
 
   ParticleOArr   *leptons      = GetObjThisEvt<ParticleOArr>(fLeptonsName);
 
@@ -85,6 +91,7 @@ void BoostedVAnalysisMod::Process()
   Bool_t passWlepPresel = kFALSE;
   Bool_t passZlepPresel = kFALSE;
   Bool_t passMetPresel = kFALSE;
+  Bool_t passVbfPresel = kFALSE;
 
   // Increment all events counter
   fAll++;
@@ -93,9 +100,19 @@ void BoostedVAnalysisMod::Process()
   if (fApplyTopPresel) {
     // Top Preselection: require boosted jet + 2 b-jets + lepton
     // Following TOP-12-042 PAS selections
-    int nGoodBJets = 0;
+    // also require standard tag jet selection for trigger matching
+    int nGoodFatJets = 0;
     int nGoodTagJets = 0;
+    int nGoodBJets = 0;
     int nGoodLeptons = 0;
+
+    // FatJets
+    for (UInt_t i = 0; i < fFatJets->GetEntries(); ++i) {
+      const Jet *jet = fJets->At(i);
+      // Pt and eta cuts
+      if (jet->Pt() < fMinFatJetPt || fabs(jet->Eta()) > 2.5)
+        nGoodFatJets++;
+    }
 
     // Jets
     for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
@@ -103,13 +120,12 @@ void BoostedVAnalysisMod::Process()
       // Pt and eta cuts
       if (jet->Pt() < 30. || fabs(jet->Eta()) > 2.5)
         continue;
-      // Either loose b-tagged or boosted jet
+      // Check high pt jet
+      if (jet->Pt() > fMinTagJetPt)
+        nGoodTagJets++;
+      // Check b-tagging
       if (jet->CombinedSecondaryVertexBJetTagsDisc() > 0.244)
         nGoodBJets++;
-      else if (jet->Pt() > fMinTagJetPt)
-        nGoodTagJets++;
-      else
-        continue;
     }
 
     // Leptons
@@ -127,12 +143,12 @@ void BoostedVAnalysisMod::Process()
         continue;
       nGoodLeptons++;
     }
-    if (nGoodBJets > 1 && nGoodTagJets > 0 && nGoodLeptons > 0)
+    if (nGoodTagJets > 0 && nGoodBJets > 1 && nGoodFatJets > 0 && nGoodLeptons > 0)
       passTopPresel = kTRUE;
   }
 
   if (fApplyWlepPresel) {
-    // W Preselection: require boosted jet + lepton + MET
+    // W Preselection: require high pt jet + lepton + MET
     int nGoodTagJets = 0;
     int nGoodLeptons = 0;
 
@@ -165,7 +181,7 @@ void BoostedVAnalysisMod::Process()
   }
 
   if (fApplyZlepPresel) {
-    // Z Preselection: require boosted jet + di-leptons
+    // Z Preselection: require high pt jet + di-leptons
     int nGoodTagJets = 0;
     int nGoodLeptons = 0;
 
@@ -213,9 +229,35 @@ void BoostedVAnalysisMod::Process()
     if (nGoodTagJets > 0 && fMet->At(0)->Pt() > fMinMet)
       passMetPresel = kTRUE;
   }
+
+  if (fApplyVbfPresel) {
+    // Vbf Preselection: require VBF jets + MET
+    int nGoodVbfPairs = 0;
+
+    // Jets
+    for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
+      const Jet *jetOne = fJets->At(i);
+      // Pt and eta cuts
+      if (jetOne->Pt() < fMinTagJetPt || fabs(jetOne->Eta()) > 2.5)
+        continue;
+      // Jet mulitplicity cut (at least need second jet)
+      if (fJets->GetEntries() < 2) 
+        continue;
+      // di-jet mass cut                
+      for (UInt_t j = i+1; j < fJets->GetEntries(); ++j) {
+        const Jet *jetTwo = fJets->At(j);
+        if ((jetOne->Mom() + jetTwo->Mom()).M() > fMinVbfMass)
+          nGoodVbfPairs++;
+      }
+                
+    }
+        
+    if (nGoodVbfPairs > 0 && fMet->At(0)->Pt() > fMinMet)
+      passVbfPresel = kTRUE;
+  }
   
   // Skip event if it does not pass any preselection
-  if (!passTopPresel && !passWlepPresel && !passZlepPresel && !passMetPresel) {
+  if (!passTopPresel && !passWlepPresel && !passZlepPresel && !passMetPresel && !passVbfPresel) {
     this->SkipEvent(); 
     return;
   }

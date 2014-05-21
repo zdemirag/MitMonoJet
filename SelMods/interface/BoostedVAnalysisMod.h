@@ -32,6 +32,7 @@ namespace mithep
     
     // setting all the input Names
     void                  SetInputMetName          (const char *n) { fMetBranchName= n;           }
+    void                  SetFatJetsName           (const char *n) { fFatJetsName = n;            } 
     void                  SetJetsName              (const char *n) { fJetsName = n;               } 
     void                  SetElectronsName         (const char *n) { fElectronsName = n;          }
     void                  SetMuonsName             (const char *n) { fMuonsName = n;              }
@@ -39,6 +40,7 @@ namespace mithep
 
     // decide whether to read from branch
     void                  SetMetFromBranch         (Bool_t b)      { fMetFromBranch = b;          }
+    void                  SetFatJetsFromBranch     (Bool_t b)      { fFatJetsFromBranch = b;      }
     void                  SetJetsFromBranch        (Bool_t b)      { fJetsFromBranch = b;         }
     void                  SetElectronsFromBranch   (Bool_t b)      { fElectronsFromBranch = b;    }
     void                  SetMuonsFromBranch       (Bool_t b)      { fMuonsFromBranch = b;        }
@@ -48,10 +50,13 @@ namespace mithep
     void                  ApplyWlepPresel          (Bool_t b)      { fApplyWlepPresel = b;        }
     void                  ApplyZlepPresel          (Bool_t b)      { fApplyZlepPresel = b;        }
     void                  ApplyMetPresel           (Bool_t b)      { fApplyMetPresel = b;         }
+    void                  ApplyVbfPresel           (Bool_t b)      { fApplyVbfPresel = b;         }
 
     // Setting cut values
+    void                  SetMinFatJetPt           (Double_t x)    { fMinFatJetPt = x;            }
     void                  SetMinTagJetPt           (Double_t x)    { fMinTagJetPt = x;            }
     void                  SetMinMet                (Double_t x)    { fMinMet = x;                 }
+    void                  SetMinVbfMass            (Double_t x)    { fMinVbfMass = x;             }
     
   protected:
     // Standard module methods
@@ -66,12 +71,14 @@ namespace mithep
                                      float &newMet, float &newMetPhi);
     // names of the collections
     TString               fMetBranchName;
+    TString               fFatJetsName;
     TString               fJetsName;
     TString               fElectronsName;
     TString               fMuonsName;
     TString               fLeptonsName;
     // logical whether to read from branch
     Bool_t                fMetFromBranch;
+    Bool_t                fFatJetsFromBranch;
     Bool_t                fJetsFromBranch;
     Bool_t                fElectronsFromBranch;
     Bool_t                fMuonsFromBranch;
@@ -80,14 +87,18 @@ namespace mithep
     Bool_t                fApplyWlepPresel;
     Bool_t                fApplyZlepPresel;
     Bool_t                fApplyMetPresel; 
+    Bool_t                fApplyVbfPresel; 
     // hooks to the collections
     const PFMetCol       *fMet;
+    const JetCol         *fFatJets; 
     const JetCol         *fJets; 
     const ElectronCol    *fElectrons;
     const MuonCol        *fMuons;
     // Cuts
+    Double_t              fMinFatJetPt;
     Double_t              fMinTagJetPt;
     Double_t              fMinMet;
+    Double_t              fMinVbfMass;
     // Counters
     Long64_t              fAll;
     Long64_t              fPass;

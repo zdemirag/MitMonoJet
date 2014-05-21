@@ -59,7 +59,6 @@ class MitDMSTree {
 
   // here comes the tag jet (can contain substructure)
   LorentzVector  tjet_;
-  LorentzVector  tjetGroomed_;
   float          tjetBtag_;
   float          tjetTau1_;
   float          tjetTau2_;
@@ -106,7 +105,7 @@ class MitDMSTree {
   MitDMSTree():
     lepPtr1_(&lep1_),lepPtr2_(&lep2_),
     tauPtr1_(&tau1_),phoPtr1_(&pho1_),
-    tjetPtr_(&tjet_),tjetGroomedPtr_(&tjetGroomed_),
+    tjetPtr_(&tjet_),
     sjetPtr1_(&sjet1_),sjetPtr2_(&sjet2_),
     jetPtr1_(&jet1_),jetPtr2_(&jet2_),jetPtr3_(&jet3_){}
   /// default destructor
@@ -180,7 +179,6 @@ class MitDMSTree {
     tree_->Branch("pho1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr1_);
 
     tree_->Branch("tjet"          , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &tjetPtr_);
-    tree_->Branch("tjetGroomed"   , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &tjetGroomedPtr_);
     tree_->Branch("tjetBtag"      , &tjetBtag_     ,   "tjetBtag/F");
     tree_->Branch("tjetTau1"      , &tjetTau1_     ,   "tjetTau1/F");
     tree_->Branch("tjetTau2"      , &tjetTau2_     ,   "tjetTau2/F");
@@ -260,7 +258,6 @@ class MitDMSTree {
     tree_->SetBranchAddress("pho1"                      , &phoPtr1_);
 
     tree_->SetBranchAddress("tjet"          , &tjetPtr_       );
-    tree_->SetBranchAddress("tjetGroomed"   , &tjetGroomedPtr_);
     tree_->SetBranchAddress("tjetBtag"      , &tjetBtag_      );
     tree_->SetBranchAddress("tjetTau1"      , &tjetTau1_      );
     tree_->SetBranchAddress("tjetTau2"      , &tjetTau2_      );
@@ -306,7 +303,6 @@ class MitDMSTree {
   LorentzVector* phoPtr1_;
 
   LorentzVector* tjetPtr_;
-  LorentzVector* tjetGroomedPtr_;
   LorentzVector* sjetPtr1_;
   LorentzVector* sjetPtr2_;
   LorentzVector* jetPtr1_;
@@ -349,7 +345,6 @@ MitDMSTree::InitVariables(){
   pho1_       	 = LorentzVector();
 
   tjet_          = LorentzVector();
-  tjetGroomed_   = LorentzVector();
   tjetBtag_      = -999.;
   tjetTau1_      = -999.;
   tjetTau2_      = -999.;

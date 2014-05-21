@@ -30,9 +30,8 @@ FillerXlJets::FillerXlJets(const char *name, const char *title) :
   fPfCandidates (0),
   fXlFatJetsName ("XlFatJets"),
   fXlSubJetsName ("XlSubJets"),
-  fPrune (kFALSE),         
-  fFilter (kFALSE),        
-  fTrim (kFALSE),          
+  fSoftDropZCut (0.1),     
+  fSoftDropMuCut (1.),  
   fPruneZCut (0.1),     
   fPruneDistCut (0.5),  
   fFilterN (3),      
@@ -162,17 +161,7 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
     printf(" FillerXlJets::FillXlFatJet() - WARNING - input PFJet produces null reclustering output");
     return;
   }
-
-  // If required by the user apply grooming algorithm on the jet
-  fastjet::PseudoJet fjGroomedJet;
-  if (fPrune)
-    fjGroomedJet = (*fPruner)(fjOutJets[0]);
-  else if (fFilter)
-    fjGroomedJet = (*fFilterer)(fjOutJets[0]);
-  else if (fTrim)
-    fjGroomedJet = (*fTrimmer)(fjOutJets[0]);
-  else 
-    fjGroomedJet = fjOutJets[0];
+  fastjet::PseudoJet fjJet = fjOutJets[0];
 
   // Compute the subjettiness
   fastjet::contrib::Njettiness::AxesMode axisMode = fastjet::contrib::Njettiness::onepass_wta_kt_axes;
@@ -181,9 +170,9 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   fastjet::contrib::Nsubjettiness  nSub1(1,axisMode,measureMode,beta);
   fastjet::contrib::Nsubjettiness  nSub2(2,axisMode,measureMode,beta);
   fastjet::contrib::Nsubjettiness  nSub3(3,axisMode,measureMode,beta);
-  double tau1 = nSub1(fjGroomedJet);
-  double tau2 = nSub2(fjGroomedJet);
-  double tau3 = nSub3(fjGroomedJet);
+  double tau1 = nSub1(fjJet);
+  double tau2 = nSub2(fjJet);
+  double tau3 = nSub3(fjJet);
 
   // Compute the energy correlation function ratios
   fastjet::contrib::EnergyCorrelatorRatio ECR2b0  (2,0. ,fastjet::contrib::EnergyCorrelator::pt_R);
@@ -191,21 +180,32 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   fastjet::contrib::EnergyCorrelatorRatio ECR2b0p5(2,0.5,fastjet::contrib::EnergyCorrelator::pt_R);
   fastjet::contrib::EnergyCorrelatorRatio ECR2b1  (2,1.0,fastjet::contrib::EnergyCorrelator::pt_R);
   fastjet::contrib::EnergyCorrelatorRatio ECR2b2  (2,2.0,fastjet::contrib::EnergyCorrelator::pt_R);
-  double C2b0   = ECR2b0(fjGroomedJet);
-  double C2b0p2 = ECR2b0p2(fjGroomedJet);
-  double C2b0p5 = ECR2b0p5(fjGroomedJet);
-  double C2b1   = ECR2b1(fjGroomedJet);
-  double C2b2   = ECR2b2(fjGroomedJet);
-  
+  double C2b0   = ECR2b0(fjJet);
+  double C2b0p2 = ECR2b0p2(fjJet);
+  double C2b0p5 = ECR2b0p5(fjJet);
+  double C2b1   = ECR2b1(fjJet);
+  double C2b2   = ECR2b2(fjJet);
+
+  // Compute Q-jets volatility
+  double QJetVol = -1;
+
+  // Compute groomed masses
+  fastjet::contrib::SoftDropTagger softDropSDb0(0.0, fSoftDropZCut, fSoftDropMuCut);
+  fastjet::contrib::SoftDropTagger softDropSDb2(2.0, fSoftDropZCut, fSoftDropMuCut);
+  fastjet::contrib::SoftDropTagger softDropSDbm1(-1.0, fSoftDropZCut, fSoftDropMuCut);
+  double MassSDb0 = (softDropSDb0(fjJet)).m();
+  double MassSDb2 = (softDropSDb2(fjJet)).m();
+  double MassSDbm1 = (softDropSDbm1(fjJet)).m();
+
+  double MassPruned = ((*fPruner)(fjOutJets[0])).m();
+  double MassFiltered = ((*fFilterer)(fjOutJets[0]).m());
+  double MassTrimmed = ((*fTrimmer)(fjOutJets[0]).m());
+    
   // ---- Fastjet is done ----
       
   // Prepare and store in an array a new FatJet 
   XlFatJet *fatJet = fXlFatJets->Allocate();
   new (fatJet) XlFatJet(*pPFJet);
-
-  // Store the groomed momentum
-  FourVectorM groomedMom(fjGroomedJet.pt(),fjGroomedJet.eta(),fjGroomedJet.phi(),fjGroomedJet.m());
-  fatJet->SetGroomedMom(groomedMom);
     
   // Store the subjettiness values
   fatJet->SetTau1(tau1);
@@ -218,6 +218,17 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   fatJet->SetC2b0p5(C2b0p5);
   fatJet->SetC2b1(C2b1);  
   fatJet->SetC2b2(C2b2);  
+
+  // Store the Qjets volatility
+  fatJet->SetQJetVol(QJetVol);  
+  
+  // Store the groomed masses
+  fatJet->SetMassSDb0(MassSDb0);     
+  fatJet->SetMassSDb2(MassSDb2);     
+  fatJet->SetMassSDbm1(MassSDbm1);    
+  fatJet->SetMassPruned(MassPruned);   
+  fatJet->SetMassFiltered(MassFiltered);  
+  fatJet->SetMassTrimmed(MassTrimmed);  
 
   // Loop on the subjets and fill the subjet Xl collections - do it according to the user request
   if (fFillVSubJets) {
