@@ -77,7 +77,11 @@ namespace mithep
       void FillXlFatJet (const PFJet *pPFJet);
       void FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets,std::vector<fastjet::PseudoJet> &fjSubAxes,
                           XlFatJet *pFatJet,XlSubJet::ESubJetType t);
- 
+      // QJets volatility helpers
+      double getQjetVolatility(std::vector < fastjet::PseudoJet > constits, int QJetsN = 25, int seed = 12345);
+      double FindRMS          (std::vector < float > qjetmasses);
+      double FindMean         (std::vector < float > qjetmasses); 
+
     private:
       Bool_t fIsData;                      //is this data or MC?
       Bool_t fFillVSubJets;                //=true if V-subjets are stored (2-prom structure)
@@ -117,6 +121,9 @@ namespace mithep
       fastjet::JetDefinition *fCAJetDef;   //fastjet clustering definition
       fastjet::GhostedAreaSpec *fActiveArea;
       fastjet::AreaDefinition *fAreaDefinition;
+      
+      // Counters : used to initialize seed for QJets volatility
+      Long64_t fCounter;
 
       ClassDef(FillerXlJets, 0)            //XlJets, Fat and Sub, filler      
   };

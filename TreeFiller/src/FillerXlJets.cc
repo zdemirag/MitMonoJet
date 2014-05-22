@@ -8,6 +8,9 @@
 #include "MitCommon/DataFormats/interface/Vect3.h"
 #include "MitCommon/DataFormats/interface/Types.h"
 
+#include "MitMonoJet/Utils/interface/QjetsPlugin.h"
+#include "MitMonoJet/Utils/interface/Qjets.h"
+
 using namespace mithep;
 
 ClassImp(mithep::FillerXlJets)
@@ -38,7 +41,8 @@ FillerXlJets::FillerXlJets(const char *name, const char *title) :
   fFilterRad (0.2),     
   fTrimRad (0.05),       
   fTrimPtFrac (0.03),    
-  fConeSize (0.6)
+  fConeSize (0.6),
+  fCounter (0)
 {
   // Constructor.
 }
@@ -187,7 +191,16 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   double C2b2   = ECR2b2(fjJet);
 
   // Compute Q-jets volatility
-  double QJetVol = -1;
+  int QJetsPreclustering = 999;
+  std::vector<fastjet::PseudoJet> constits;     
+  unsigned int nqjetconstits = fjOutJets[0].constituents().size();
+  if (nqjetconstits < (unsigned int) QJetsPreclustering) 
+    constits = fjOutJets[0].constituents();
+  else 
+    constits = fjOutJets[0].associated_cluster_sequence()->exclusive_subjets_up_to(fjOutJets[0],QJetsPreclustering);
+  double QJetVol = getQjetVolatility(constits, 25, fCounter*25);
+  fCounter++;
+  constits.clear();
 
   // Compute groomed masses
   fastjet::contrib::SoftDropTagger softDropSDb0(0.0, fSoftDropZCut, fSoftDropMuCut);
@@ -269,4 +282,61 @@ void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, std
   }
     
   return;    
+}
+
+//--------------------------------------------------------------------------------------------------
+double FillerXlJets::getQjetVolatility(std::vector < fastjet::PseudoJet > constits, int QJetsN, int seed)
+{
+  std::vector< float > qjetmasses;
+  
+  double zcut(0.1), dcut_fctr(0.5), exp_min(0.), exp_max(0.), rigidity(0.1), truncationFactor(0.01);
+  
+  for(unsigned int ii = 0 ; ii < (unsigned int) QJetsN ; ii++){
+    QjetsPlugin qjet_plugin(zcut, dcut_fctr, exp_min, exp_max, rigidity, truncationFactor);
+    qjet_plugin.SetRandSeed(seed+ii); // new feature in Qjets to set the random seed
+    fastjet::JetDefinition qjet_def(&qjet_plugin);
+    fastjet::ClusterSequence qjet_seq(constits, qjet_def);
+    vector<fastjet::PseudoJet> inclusive_jets2 = sorted_by_pt(qjet_seq.inclusive_jets(5.0));
+    
+    if (inclusive_jets2.size()>0) { qjetmasses.push_back( inclusive_jets2[0].m() ); }
+      
+  }
+  
+  // find RMS of a vector
+  float qjetsRMS = FindRMS( qjetmasses );
+  // find mean of a vector
+  float qjetsMean = FindMean( qjetmasses );
+  float qjetsVolatility = qjetsRMS/qjetsMean;
+  return qjetsVolatility;
+}
+
+//--------------------------------------------------------------------------------------------------
+double FillerXlJets::FindRMS(std::vector< float > qjetmasses)
+{
+  float total = 0.;
+  float ctr = 0.;
+  for (unsigned int i = 0; i < qjetmasses.size(); i++){
+      total = total + qjetmasses[i];
+      ctr++;
+  }
+  float mean = total/ctr;
+  
+  float totalsquared = 0.;
+  for (unsigned int i = 0; i < qjetmasses.size(); i++){
+    totalsquared += (qjetmasses[i] - mean)*(qjetmasses[i] - mean) ;
+  }
+  float RMS = sqrt( totalsquared/ctr );
+  return RMS;
+}
+
+//--------------------------------------------------------------------------------------------------
+double FillerXlJets::FindMean(std::vector< float > qjetmasses)
+{
+  float total = 0.;
+  float ctr = 0.;
+  for (unsigned int i = 0; i < qjetmasses.size(); i++){
+      total = total + qjetmasses[i];
+      ctr++;
+  }
+  return total/ctr;
 }

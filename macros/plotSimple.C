@@ -56,6 +56,9 @@ void plotSimple(){
 
   TCanvas *can18 = new TCanvas();
   inTree->Draw("XlFatJets->At(0)->MassTrimmed()","XlSubJets->GetEntries()>2");
+
+  TCanvas *can19 = new TCanvas();
+  inTree->Draw("XlFatJets->At(0)->QJetVol()","XlSubJets->GetEntries()>2");
   
   return;
 }
