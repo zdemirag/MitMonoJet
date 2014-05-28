@@ -47,7 +47,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 200)
+                        int         nEvents    = 20)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -519,14 +519,13 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   outMod->SetKeepTamBr(kFALSE);
   outMod->SetFileName(ntupleFile);
   outMod->Drop("*");
-  outMod->Keep(Names::gkEvtSelDataBrn);
   outMod->Keep(Names::gkMCEvtInfoBrn);
   outMod->Keep(Names::gkMCPartBrn);
   outMod->Keep(Names::gkPVBeamSpotBrn);
   outMod->Keep(Names::gkPileupInfoBrn);
   outMod->Keep(Names::gkPileupEnergyDensityBrn);
   outMod->Keep("PFMet");
-  outMod->AddNewBranch(TString("Skm") + Names::gkPFCandidatesBrn);
+  outMod->AddNewBranch("XlEvtSelData");
   outMod->AddNewBranch(TString("Skm") + Names::gkPFCandidatesBrn);
   outMod->AddNewBranch(TString("Skm") + photonCleaningMod->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + electronCleaning->GetOutputName());

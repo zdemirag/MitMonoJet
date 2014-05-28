@@ -59,6 +59,10 @@ void plotSimple(){
 
   TCanvas *can19 = new TCanvas();
   inTree->Draw("XlFatJets->At(0)->QJetVol()","XlSubJets->GetEntries()>2");
+
+  TCanvas *can20 = new TCanvas();
+  //inTree->Draw("mithep::XlEvtSelData->metFiltersWord()","XlSubJets->GetEntries()>2");
+  inTree->Draw("mithep::XlEvtSelData->preselWord()","XlSubJets->GetEntries()>2");
   
   return;
 }

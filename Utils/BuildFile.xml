@@ -5,6 +5,7 @@
 <use   name="lhapdf"/>
 <use   name="root"/>
 <use   name="roottmva"/>
+<use   name="boost"/>
 <use   root=""/>
 <lib   name="EG"/>
 <export>

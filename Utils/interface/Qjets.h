@@ -1,6 +1,7 @@
 #ifndef MITMONOJET_UTILS_QJETS_H
 #define MITMONOJET_UTILS_QJETS_H
 
+#include <iostream>
 #include <queue>
 #include <vector>
 #include <list>
@@ -24,12 +25,16 @@ class JetDistanceCompare{
 };
 
 class Qjets{
+  //typedef priority_queue<jet_distance,vector<jet_distance>,JetDistanceCompare>      myQueue;
  private:
   bool _rand_seed_set;
   unsigned int _seed;
   double _zcut, _dcut, _dcut_fctr, _exp_min, _exp_max, _rigidity, _truncation_fctr;
   map<int,bool> _merged_jets;
-  priority_queue<jet_distance, vector<jet_distance>, JetDistanceCompare> _distances;
+  // comment and uncomment the following line to compile
+  //queue<jet_distance> _distances;
+  //queue<jet_distance, vector<jet_distance>, JetDistanceCompare> _distances;
+  priority_queue<jet_distance, vector<jet_distance>, JetDistanceCompare > _distances;
 
   double d_ij(const fastjet::PseudoJet& v1, const fastjet::PseudoJet& v2) const;
   void ComputeDCut(fastjet::ClusterSequence & cs);

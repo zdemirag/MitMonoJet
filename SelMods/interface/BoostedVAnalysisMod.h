@@ -11,12 +11,16 @@
 #define MITMONOJET_SELMODS_BOOSTEDVANALYSISMOD_H
 
 #include "MitAna/TreeMod/interface/BaseMod.h" 
-#include "MitAna/DataTree/interface/MetCol.h"
 #include "MitAna/DataTree/interface/ElectronCol.h"
-#include "MitAna/DataTree/interface/MuonCol.h"
+#include "MitAna/DataTree/interface/EvtSelData.h"
 #include "MitAna/DataTree/interface/JetCol.h"
+#include "MitAna/DataTree/interface/MetCol.h"
+#include "MitAna/DataTree/interface/MuonCol.h"
 #include "MitPhysics/Utils/interface/MuonTools.h"
 #include "MitAna/DataTree/interface/PFMetCol.h"
+#include "MitAna/DataTree/interface/MCEventInfo.h"
+
+#include "MitMonoJet/DataTree/interface/XlEvtSelData.h"
 
 class TH1D;
 class TH2D;
@@ -28,7 +32,7 @@ namespace mithep
   public:
     BoostedVAnalysisMod(const char *name  = "BoostedVAnalysisMod", 
                         const char *title = "Boosted V selection Module");
-    ~BoostedVAnalysisMod() {}
+    ~BoostedVAnalysisMod();
     
     // setting all the input Names
     void                  SetInputMetName          (const char *n) { fMetBranchName= n;           }
@@ -52,9 +56,13 @@ namespace mithep
     void                  ApplyMetPresel           (Bool_t b)      { fApplyMetPresel = b;         }
     void                  ApplyVbfPresel           (Bool_t b)      { fApplyVbfPresel = b;         }
 
+    // decide whether to to fill and publish the preseleciton word or not
+    void                  FillAndPublishPresel     (Bool_t b)      { fFillAndPublishPresel = b;   }
+
     // Setting cut values
     void                  SetMinFatJetPt           (Double_t x)    { fMinFatJetPt = x;            }
     void                  SetMinTagJetPt           (Double_t x)    { fMinTagJetPt = x;            }
+    void                  SetMinVbfJetPt           (Double_t x)    { fMinVbfJetPt = x;            }
     void                  SetMinMet                (Double_t x)    { fMinMet = x;                 }
     void                  SetMinVbfMass            (Double_t x)    { fMinVbfMass = x;             }
     
@@ -69,6 +77,13 @@ namespace mithep
     void                  CorrectMet(const float met, const float metPhi,
                                      const Particle *l1, const Particle *l2,
                                      float &newMet, float &newMetPhi);
+    int                   GetPreselWord( 
+                          bool passTopPresel, 
+                          bool passWlepPresel,
+                          bool passZlepPresel,
+                          bool passMetPresel, 
+                          bool passVbfPresel);
+                                     
     // names of the collections
     TString               fMetBranchName;
     TString               fFatJetsName;
@@ -88,15 +103,21 @@ namespace mithep
     Bool_t                fApplyZlepPresel;
     Bool_t                fApplyMetPresel; 
     Bool_t                fApplyVbfPresel; 
+    // logical whether to  to to fill and publish the preseleciton word or not
+    Bool_t                fFillAndPublishPresel; 
     // hooks to the collections
     const PFMetCol       *fMet;
     const JetCol         *fFatJets; 
     const JetCol         *fJets; 
     const ElectronCol    *fElectrons;
     const MuonCol        *fMuons;
+    const EvtSelData     *fEvtSelData;
+    XlEvtSelData         *fXlEvtSelData;  //extended event selection data object
+    MCEventInfo          *fMCEventInfo;  //extended event selection data object
     // Cuts
     Double_t              fMinFatJetPt;
     Double_t              fMinTagJetPt;
+    Double_t              fMinVbfJetPt;
     Double_t              fMinMet;
     Double_t              fMinVbfMass;
     // Counters

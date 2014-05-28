@@ -28,6 +28,7 @@
 
 #include "MitMonoJet/DataTree/interface/XlMet.h"
 #include "MitMonoJet/DataTree/interface/XlMetFwd.h"
+#include "MitMonoJet/DataTree/interface/XlEvtSelData.h"
 
 namespace mithep
 {
@@ -95,6 +96,7 @@ namespace mithep
       const PileupEnergyDensityCol *fPileUpDen;
       const PFMetCol               *fRawMet;
       XlMetArr                     *fXlMet;      //array of XlMet
+      const XlEvtSelData                     *fEvtSelData;      //array of XlMet
 
       MVAMet *fMVAMet;                           
       std::vector<std::string> fCorrectionFiles; // list of jet correction files
