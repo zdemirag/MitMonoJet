@@ -23,7 +23,7 @@
   str = str + TString(" -lMitAnaValidation");
   str = str + TString(" -lMitPhysicsMods -lMitPhysicsSelMods -lMitPhysicsUtils");
   str = str + TString(" -lMitMonoJetMods -lMitMonoJetSelMods -lMitMonoJetDataTree -lMitMonoJetTreeFiller");
-  str = str + TString(" -lfastjet -lfastjettools -lfastjetcontrib");
+  str = str + TString(" -lfastjet -lfastjettools -lfastjetcontrib -lqjets");
   str = str + TString(" -lMitPlotsStyle -lMitPlotsInput -lMitPlotsPlot");
   gSystem->SetMakeSharedLib(str);
 
@@ -32,6 +32,7 @@
 
   // Make sure we have all include files
   gSystem->AddIncludePath("-I$EXTERNAL/include");
+  gSystem->AddIncludePath("-I$EXTERNAL/Qjets");
   gSystem->AddIncludePath("-I$CMSSW_BASE/src/");
   gSystem->AddIncludePath("-I$CMSSW_RELEASE_BASE/src/");
   gSystem->AddIncludePath("-I$CMSSW_BASE/src/MitAna/macros");
