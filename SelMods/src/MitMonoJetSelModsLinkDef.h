@@ -3,6 +3,7 @@
 #ifndef MITMONOJET_SELMODS_LINKDEF_H
 #define MITMONOJET_SELMODS_LINKDEF_H
 
+#include "MitMonoJet/SelMods/interface/BoostedVAnalysisMod.h"
 #include "MitMonoJet/SelMods/interface/MonoJetAnalysisMod.h"
 #endif
  
@@ -14,5 +15,6 @@
 #pragma link C++ nestedtypedef;
 #pragma link C++ namespace mithep;
 
+#pragma link C++ class mithep::BoostedVAnalysisMod+;
 #pragma link C++ class mithep::MonoJetAnalysisMod+;
 #endif

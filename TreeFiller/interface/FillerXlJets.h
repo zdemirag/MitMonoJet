@@ -1,0 +1,131 @@
+//--------------------------------------------------------------------------------------------------
+// $Id: FillerXlJets.h,v 1.9 2011/03/01 17:27:22 mzanetti Exp $
+//
+// FillerXlJets
+//
+// This module process a collection of input jet, compute the substrucure
+// and fill two output collections of fXlFatJets and relative fXlSubJets
+//
+// Authors: L.DiMatteo
+//--------------------------------------------------------------------------------------------------
+
+#ifndef MITMONOJET_TREEFILLER_FILLERXLJETS_H
+#define MITMONOJET_TREEFILLER_FILLERXLJETS_H
+
+#include "fastjet/PseudoJet.hh"
+#include "fastjet/JetDefinition.hh"
+#include "fastjet/GhostedAreaSpec.hh"
+#include "fastjet/AreaDefinition.hh"
+#include "fastjet/ClusterSequenceArea.hh"
+#include "fastjet/tools/Pruner.hh"
+#include "fastjet/tools/Filter.hh"
+
+#include "fastjet/contrib/EnergyCorrelator.hh"
+#include "fastjet/contrib/Njettiness.hh"
+#include "fastjet/contrib/Nsubjettiness.hh"
+#include "fastjet/contrib/NjettinessPlugin.hh"
+#include "fastjet/contrib/SoftDrop.hh"
+#include "MitMonoJet/DataTree/interface/XlFatJetFwd.h"
+#include "MitMonoJet/DataTree/interface/XlFatJet.h"
+#include "MitMonoJet/DataTree/interface/XlSubJetFwd.h"
+#include "MitMonoJet/DataTree/interface/XlSubJet.h"
+
+#include "MitAna/TreeMod/interface/BaseMod.h"
+#include "MitAna/DataTree/interface/JetCol.h"
+#include "MitAna/DataTree/interface/PFCandidateCol.h"
+#include "MitAna/DataTree/interface/PFJet.h"
+
+namespace mithep
+{
+  class FillerXlJets : public BaseMod
+  {
+    public:
+      FillerXlJets(const char *name = "FillerXlJets",
+                   const char *title = "XlJets Filler module");
+      ~FillerXlJets();
+
+      void IsData(Bool_t b)                { fIsData = b;         }
+      void FillVSubJets(Bool_t b)          { fFillVSubJets = b;   }
+      void FillTopSubJets(Bool_t b)        { fFillTopSubJets = b; }
+      void SetBtaggingOn(Bool_t b)         { fBTaggingActive = b; }
+      void SetfQGTaggingOn(Bool_t b)       { fQGTaggingActive = b;}
+      void PublishOutput(Bool_t b)         { fPublishOutput = b;  }
+
+      void SetProcessNJets(UInt_t n)       { fProcessNJets = n;  } 
+      
+      void SetJetsName(const char *n)      { fJetsName = n;       }
+      void SetJetsFromBranch(Bool_t b)     { fJetsFromBranch = b; }
+
+      void SetFatJetsName(const char *n)   { fXlFatJetsName = n;  }
+      void SetSubJetsName(const char *n)   { fXlSubJetsName = n;  }
+             
+      void SetSoftDropZCut(double d)       { fSoftDropZCut = d;   }
+      void SetSoftDropMuCut(double d)      { fSoftDropMuCut = d;  }
+      void SetPruneZCut(double d)          { fPruneZCut = d;      }
+      void SetPruneDistCut(double d)       { fPruneDistCut = d;   }
+      void SetFilterN(int n)               { fFilterN = n;        }
+      void SetFilterRad(double d)          { fFilterRad = d;      }
+      void SetTrimRad(double d)            { fTrimRad = d;        }
+      void SetTrimPtFrac(double d)         { fTrimPtFrac = d;     }
+      void SetConeSize(double d)           { fConeSize = d;       }
+ 
+    protected:
+      void Process();
+      void SlaveBegin();
+      void SlaveTerminate();
+ 
+      void FillXlFatJet (const PFJet *pPFJet);
+      void FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets,std::vector<fastjet::PseudoJet> &fjSubAxes,
+                          XlFatJet *pFatJet,XlSubJet::ESubJetType t);
+      // QJets volatility helpers
+      double getQjetVolatility(std::vector < fastjet::PseudoJet > constits, int QJetsN = 25, int seed = 12345);
+      double FindRMS          (std::vector < float > qjetmasses);
+      double FindMean         (std::vector < float > qjetmasses); 
+
+    private:
+      Bool_t fIsData;                      //is this data or MC?
+      Bool_t fFillVSubJets;                //=true if V-subjets are stored (2-prom structure)
+      Bool_t fFillTopSubJets;              //=true if top-subjets are stored (3-prom structure)
+      Bool_t fBTaggingActive;              //=true if BTagging info is filled
+      Bool_t fQGTaggingActive;             //=true if QGTagging info is filled
+      Bool_t fPublishOutput;               //=true if output collection are published
+
+      UInt_t  fProcessNJets;               //number of input jets processed by fastjet
+
+      TString fJetsName;                   //(i) name of input jets
+      Bool_t fJetsFromBranch;              //are input jets from Branch?
+      const JetCol *fJets;                 //input jets
+
+      TString fPfCandidatesName;           //(i) name of PF candidates coll
+      Bool_t fPfCandidatesFromBranch;      //are PF candidates from Branch?
+      const PFCandidateCol *fPfCandidates; //particle flow candidates coll handle
+ 
+      TString fXlFatJetsName;              //name of output fXlFatJets collection
+      XlFatJetArr *fXlFatJets;             //array of fXlFatJets
+      TString fXlSubJetsName;              //name of output fXlSubJets collection
+      XlSubJetArr *fXlSubJets;             //array of fXlSubJets
+      
+      // Objects from fastjet we want to use
+      fastjet::Pruner *fPruner;
+      fastjet::Filter *fFilterer;
+      fastjet::Filter *fTrimmer;           //no this is not a typo trimmers belong to fastjet Filter class
+      double fSoftDropZCut;                //soft-drop Z cut
+      double fSoftDropMuCut;               //soft-drop mu cut 
+      double fPruneZCut;                   //pruning Z cut
+      double fPruneDistCut;                //pruning distance cut 
+      int fFilterN;                        //number of subjets after filtering
+      double fFilterRad;                   //filtered subjets radius
+      double fTrimRad;                     //trimmed subjet radius
+      double fTrimPtFrac;                  //trimmed subjet pt fraction
+      double fConeSize;                    //fastjet clustering radius
+      fastjet::JetDefinition *fCAJetDef;   //fastjet clustering definition
+      fastjet::GhostedAreaSpec *fActiveArea;
+      fastjet::AreaDefinition *fAreaDefinition;
+      
+      // Counters : used to initialize seed for QJets volatility
+      Long64_t fCounter;
+
+      ClassDef(FillerXlJets, 0)            //XlJets, Fat and Sub, filler      
+  };
+}
+#endif

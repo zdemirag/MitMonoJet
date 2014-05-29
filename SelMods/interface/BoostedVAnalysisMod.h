@@ -1,0 +1,128 @@
+//--------------------------------------------------------------------------------------------------
+// BoostedVAnalysisMod
+//
+// An analysis module for selecting jet+MET events.
+//
+//
+// Authors: LDM
+//
+//--------------------------------------------------------------------------------------------------
+#ifndef MITMONOJET_SELMODS_BOOSTEDVANALYSISMOD_H
+#define MITMONOJET_SELMODS_BOOSTEDVANALYSISMOD_H
+
+#include "MitAna/TreeMod/interface/BaseMod.h" 
+#include "MitAna/DataTree/interface/ElectronCol.h"
+#include "MitAna/DataTree/interface/EvtSelData.h"
+#include "MitAna/DataTree/interface/JetCol.h"
+#include "MitAna/DataTree/interface/MetCol.h"
+#include "MitAna/DataTree/interface/MuonCol.h"
+#include "MitPhysics/Utils/interface/MuonTools.h"
+#include "MitAna/DataTree/interface/PFMetCol.h"
+
+#include "MitMonoJet/DataTree/interface/XlEvtSelData.h"
+
+class TH1D;
+class TH2D;
+
+namespace mithep 
+{
+  class BoostedVAnalysisMod : public BaseMod
+  {
+  public:
+    BoostedVAnalysisMod(const char *name  = "BoostedVAnalysisMod", 
+                        const char *title = "Boosted V selection Module");
+    ~BoostedVAnalysisMod();
+    
+    // setting all the input Names
+    void                  SetInputMetName          (const char *n) { fMetBranchName= n;           }
+    void                  SetFatJetsName           (const char *n) { fFatJetsName = n;            } 
+    void                  SetJetsName              (const char *n) { fJetsName = n;               } 
+    void                  SetElectronsName         (const char *n) { fElectronsName = n;          }
+    void                  SetMuonsName             (const char *n) { fMuonsName = n;              }
+    void                  SetLeptonsName           (const char *n) { fLeptonsName = n;            }
+
+    // decide whether to read from branch
+    void                  SetMetFromBranch         (Bool_t b)      { fMetFromBranch = b;          }
+    void                  SetFatJetsFromBranch     (Bool_t b)      { fFatJetsFromBranch = b;      }
+    void                  SetJetsFromBranch        (Bool_t b)      { fJetsFromBranch = b;         }
+    void                  SetElectronsFromBranch   (Bool_t b)      { fElectronsFromBranch = b;    }
+    void                  SetMuonsFromBranch       (Bool_t b)      { fMuonsFromBranch = b;        }
+
+    // decide whether to apply given preselections or not
+    void                  ApplyTopPresel           (Bool_t b)      { fApplyTopPresel = b;         }
+    void                  ApplyWlepPresel          (Bool_t b)      { fApplyWlepPresel = b;        }
+    void                  ApplyZlepPresel          (Bool_t b)      { fApplyZlepPresel = b;        }
+    void                  ApplyMetPresel           (Bool_t b)      { fApplyMetPresel = b;         }
+    void                  ApplyVbfPresel           (Bool_t b)      { fApplyVbfPresel = b;         }
+
+    // decide whether to to fill and publish the preseleciton word or not
+    void                  FillAndPublishPresel     (Bool_t b)      { fFillAndPublishPresel = b;   }
+
+    // Setting cut values
+    void                  SetMinFatJetPt           (Double_t x)    { fMinFatJetPt = x;            }
+    void                  SetMinTagJetPt           (Double_t x)    { fMinTagJetPt = x;            }
+    void                  SetMinVbfJetPt           (Double_t x)    { fMinVbfJetPt = x;            }
+    void                  SetMinMet                (Double_t x)    { fMinMet = x;                 }
+    void                  SetMinVbfMass            (Double_t x)    { fMinVbfMass = x;             }
+    
+  protected:
+    // Standard module methods
+    void                  Begin();
+    void                  Process();
+    void                  SlaveBegin();
+    void                  SlaveTerminate();
+    void                  Terminate();      
+    // Auxiliary methods
+    void                  CorrectMet(const float met, const float metPhi,
+                                     const Particle *l1, const Particle *l2,
+                                     float &newMet, float &newMetPhi);
+    int                   GetPreselWord( 
+                          bool passTopPresel, 
+                          bool passWlepPresel,
+                          bool passZlepPresel,
+                          bool passMetPresel, 
+                          bool passVbfPresel);
+                                     
+    // names of the collections
+    TString               fMetBranchName;
+    TString               fFatJetsName;
+    TString               fJetsName;
+    TString               fElectronsName;
+    TString               fMuonsName;
+    TString               fLeptonsName;
+    // logical whether to read from branch
+    Bool_t                fMetFromBranch;
+    Bool_t                fFatJetsFromBranch;
+    Bool_t                fJetsFromBranch;
+    Bool_t                fElectronsFromBranch;
+    Bool_t                fMuonsFromBranch;
+    // logical whether to apply given preselections or not
+    Bool_t                fApplyTopPresel; 
+    Bool_t                fApplyWlepPresel;
+    Bool_t                fApplyZlepPresel;
+    Bool_t                fApplyMetPresel; 
+    Bool_t                fApplyVbfPresel; 
+    // logical whether to  to to fill and publish the preseleciton word or not
+    Bool_t                fFillAndPublishPresel; 
+    // hooks to the collections
+    const PFMetCol       *fMet;
+    const JetCol         *fFatJets; 
+    const JetCol         *fJets; 
+    const ElectronCol    *fElectrons;
+    const MuonCol        *fMuons;
+    const EvtSelData     *fEvtSelData;
+    XlEvtSelData         *fXlEvtSelData;  //extended event selection data object
+    // Cuts
+    Double_t              fMinFatJetPt;
+    Double_t              fMinTagJetPt;
+    Double_t              fMinVbfJetPt;
+    Double_t              fMinMet;
+    Double_t              fMinVbfMass;
+    // Counters
+    Long64_t              fAll;
+    Long64_t              fPass;
+        
+    ClassDef(BoostedVAnalysisMod,1) // MonJet Selection Module
+  };
+}
+#endif
