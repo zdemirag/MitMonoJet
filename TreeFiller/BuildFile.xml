@@ -6,7 +6,7 @@
 <use   name="MitPhysics/Init"/>
 <use   name="MitPhysics/Utils"/>
 <use   name="MitMonoJet/DataTree"/>
-<use   name="MitMonoJet/Utils"/>
+<use   name="qjets"/>
 <use   name="fastjet"/>
 <use   name="root"/>
 <use   name="roottmva"/>

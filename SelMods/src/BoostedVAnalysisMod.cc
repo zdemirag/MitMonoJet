@@ -91,9 +91,6 @@ void BoostedVAnalysisMod::SlaveBegin()
     // Create the new output collection
     fXlEvtSelData = new XlEvtSelData("XlEvtSelData");
     PublishObj(fXlEvtSelData);
-
-    fMCEventInfo = new MCEventInfo();
-    PublishObj(fMCEventInfo);
   }
 
 }
@@ -125,7 +122,10 @@ void BoostedVAnalysisMod::Process()
   fAll++;
   
   // Discard events with no jets
-  if (fJets->GetEntries() < 1) return; 
+  if (fJets->GetEntries() < 1) {
+    this->SkipEvent(); 
+    return;
+  }
 
   // Determine if the event passes any of the preselection cuts
   if (fApplyTopPresel) {
@@ -138,11 +138,13 @@ void BoostedVAnalysisMod::Process()
     int nGoodLeptons = 0;
 
     // FatJets
-    if (fFatJets->GetEntries() > 0) for (UInt_t i = 0; i < fFatJets->GetEntries(); ++i) {
-      const Jet *jet = fFatJets->At(i);
-      // Pt and eta cuts
-      if (jet->Pt() < fMinFatJetPt || fabs(jet->Eta()) > 2.5)
-        nGoodFatJets++;
+    if (fFatJets->GetEntries() > 0) { 
+      for (UInt_t i = 0; i < fFatJets->GetEntries(); ++i) {
+        const Jet *jet = fFatJets->At(i);
+        // Pt and eta cuts
+        if (jet->Pt() < fMinFatJetPt || fabs(jet->Eta()) > 2.5)
+          nGoodFatJets++;
+      }
     }
 
     // Jets
@@ -160,19 +162,23 @@ void BoostedVAnalysisMod::Process()
     }
 
     // Leptons
-    if (fElectrons->GetEntries() > 0) for (UInt_t i = 0; i < fElectrons->GetEntries(); ++i) {
-      const Electron *ele = fElectrons->At(i);
-      // Pt and eta cuts
-      if (ele->Pt() < 30. || fabs(ele->Eta()) > 2.5 || (fabs(ele->Eta()) > 1.442 && fabs(ele->Eta()) > 1.566))
-        continue;
-      nGoodLeptons++;
+    if (fElectrons->GetEntries() > 0) {
+      for (UInt_t i = 0; i < fElectrons->GetEntries(); ++i) {
+        const Electron *ele = fElectrons->At(i);
+        // Pt and eta cuts
+        if (ele->Pt() < 30. || fabs(ele->Eta()) > 2.5 || (fabs(ele->Eta()) > 1.442 && fabs(ele->Eta()) > 1.566))
+          continue;
+        nGoodLeptons++;
+      }
     }
-    if (fMuons->GetEntries() > 0) for (UInt_t i = 0; i < fMuons->GetEntries(); ++i) {
-      const Muon *mu = fMuons->At(i);
-      // Pt and eta cuts
-      if (mu->Pt() < 30. || fabs(mu->Eta()) > 2.1)
-        continue;
-      nGoodLeptons++;
+    if (fMuons->GetEntries() > 0) {
+      for (UInt_t i = 0; i < fMuons->GetEntries(); ++i) {
+        const Muon *mu = fMuons->At(i);
+        // Pt and eta cuts
+        if (mu->Pt() < 30. || fabs(mu->Eta()) > 2.1)
+          continue;
+        nGoodLeptons++;
+      }
     }
     if (nGoodTagJets > 0 && nGoodBJets > 1 && nGoodFatJets > 0 && nGoodLeptons > 0)
       passTopPresel = kTRUE;
@@ -193,12 +199,14 @@ void BoostedVAnalysisMod::Process()
     }
 
     // Leptons
-    if (leptons->GetEntries() > 0) for (UInt_t i = 0; i < leptons->GetEntries(); ++i) {
-      const Particle *lep = leptons->At(i);
-      // Pt cut
-      if (lep->Pt() < 10.)
-        continue;
-      nGoodLeptons++;
+    if (leptons->GetEntries() > 0) {
+      for (UInt_t i = 0; i < leptons->GetEntries(); ++i) {
+        const Particle *lep = leptons->At(i);
+        // Pt cut
+        if (lep->Pt() < 10.)
+          continue;
+        nGoodLeptons++;
+      }
     }
     
     // Corrected MET
@@ -226,12 +234,14 @@ void BoostedVAnalysisMod::Process()
     }
 
     // Leptons
-    if (leptons->GetEntries() > 0) for (UInt_t i = 0; i < leptons->GetEntries(); ++i) {
-      const Particle *lep = leptons->At(i);
-      // Pt cut
-      if (lep->Pt() < 10.)
-        continue;
-      nGoodLeptons++;
+    if (leptons->GetEntries() > 0) {
+      for (UInt_t i = 0; i < leptons->GetEntries(); ++i) {
+        const Particle *lep = leptons->At(i);
+        // Pt cut
+        if (lep->Pt() < 10.)
+          continue;
+        nGoodLeptons++;
+      }
     }
     
     // Corrected MET

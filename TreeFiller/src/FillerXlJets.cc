@@ -8,8 +8,8 @@
 #include "MitCommon/DataFormats/interface/Vect3.h"
 #include "MitCommon/DataFormats/interface/Types.h"
 
-#include "MitMonoJet/Utils/interface/QjetsPlugin.h"
-#include "MitMonoJet/Utils/interface/Qjets.h"
+#include "QjetsPlugin.h"
+#include "Qjets.h"
 
 using namespace mithep;
 

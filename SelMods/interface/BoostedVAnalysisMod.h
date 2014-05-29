@@ -18,7 +18,6 @@
 #include "MitAna/DataTree/interface/MuonCol.h"
 #include "MitPhysics/Utils/interface/MuonTools.h"
 #include "MitAna/DataTree/interface/PFMetCol.h"
-#include "MitAna/DataTree/interface/MCEventInfo.h"
 
 #include "MitMonoJet/DataTree/interface/XlEvtSelData.h"
 
@@ -113,7 +112,6 @@ namespace mithep
     const MuonCol        *fMuons;
     const EvtSelData     *fEvtSelData;
     XlEvtSelData         *fXlEvtSelData;  //extended event selection data object
-    MCEventInfo          *fMCEventInfo;  //extended event selection data object
     // Cuts
     Double_t              fMinFatJetPt;
     Double_t              fMinTagJetPt;
