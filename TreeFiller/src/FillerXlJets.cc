@@ -166,7 +166,7 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
     return;
   }
   fastjet::PseudoJet fjJet = fjOutJets[0];
-
+  
   // Compute the subjettiness
   fastjet::contrib::Njettiness::AxesMode axisMode = fastjet::contrib::Njettiness::onepass_wta_kt_axes;
   fastjet::contrib::Njettiness::MeasureMode measureMode = fastjet::contrib::Njettiness::unnormalized_measure;
@@ -191,14 +191,10 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   double C2b2   = ECR2b2(fjJet);
 
   // Compute Q-jets volatility
-  int QJetsPreclustering = 999;
-  std::vector<fastjet::PseudoJet> constits;     
-  unsigned int nqjetconstits = fjOutJets[0].constituents().size();
-  if (nqjetconstits < (unsigned int) QJetsPreclustering) 
-    constits = fjOutJets[0].constituents();
-  else 
-    constits = fjOutJets[0].associated_cluster_sequence()->exclusive_subjets_up_to(fjOutJets[0],QJetsPreclustering);
-  double QJetVol = getQjetVolatility(constits, 25, fCounter*25);
+  std::vector<fastjet::PseudoJet> constits;
+  getJetConstituents(fjJet, constits, 0.01);
+  double QJetVol = 0;
+  QJetVol = getQjetVolatility(constits, 25, fCounter*25);
   fCounter++;
   constits.clear();
 
@@ -285,9 +281,23 @@ void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, std
 }
 
 //--------------------------------------------------------------------------------------------------
-double FillerXlJets::getQjetVolatility(std::vector < fastjet::PseudoJet > constits, int QJetsN, int seed)
+void FillerXlJets::getJetConstituents(fastjet::PseudoJet &jet, std::vector <fastjet::PseudoJet> &constits,  
+                                      float constitsPtMin)
 {
-  std::vector< float > qjetmasses;
+  // Loop on input jet constituents vector and discard very soft particles (ghosts)
+  for (unsigned int iPart = 0; iPart < jet.constituents().size(); iPart++) {
+    if (jet.constituents()[iPart].perp() < constitsPtMin)
+      continue;
+    constits.push_back(jet.constituents()[iPart]);        
+  }
+  
+  return;
+}
+
+//--------------------------------------------------------------------------------------------------
+double FillerXlJets::getQjetVolatility(std::vector <fastjet::PseudoJet> constits, int QJetsN, int seed)
+{
+  std::vector<float> qjetmasses;
   
   double zcut(0.1), dcut_fctr(0.5), exp_min(0.), exp_max(0.), rigidity(0.1), truncationFactor(0.01);
   
@@ -297,7 +307,6 @@ double FillerXlJets::getQjetVolatility(std::vector < fastjet::PseudoJet > consti
     fastjet::JetDefinition qjet_def(&qjet_plugin);
     fastjet::ClusterSequence qjet_seq(constits, qjet_def);
     vector<fastjet::PseudoJet> inclusive_jets2 = sorted_by_pt(qjet_seq.inclusive_jets(5.0));
-    
     if (inclusive_jets2.size()>0) { qjetmasses.push_back( inclusive_jets2[0].m() ); }
       
   }
@@ -311,7 +320,7 @@ double FillerXlJets::getQjetVolatility(std::vector < fastjet::PseudoJet > consti
 }
 
 //--------------------------------------------------------------------------------------------------
-double FillerXlJets::FindRMS(std::vector< float > qjetmasses)
+double FillerXlJets::FindRMS(std::vector<float> qjetmasses)
 {
   float total = 0.;
   float ctr = 0.;
@@ -330,7 +339,7 @@ double FillerXlJets::FindRMS(std::vector< float > qjetmasses)
 }
 
 //--------------------------------------------------------------------------------------------------
-double FillerXlJets::FindMean(std::vector< float > qjetmasses)
+double FillerXlJets::FindMean(std::vector<float> qjetmasses)
 {
   float total = 0.;
   float ctr = 0.;
