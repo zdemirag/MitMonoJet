@@ -193,8 +193,7 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   // Compute Q-jets volatility
   std::vector<fastjet::PseudoJet> constits;
   getJetConstituents(fjJet, constits, 0.01);
-  double QJetVol = 0;
-  QJetVol = getQjetVolatility(constits, 25, fCounter*25);
+  double QJetVol = getQjetVolatility(constits, 25, fCounter*25);
   fCounter++;
   constits.clear();
 
