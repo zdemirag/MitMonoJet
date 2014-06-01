@@ -78,9 +78,11 @@ namespace mithep
       void FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets,std::vector<fastjet::PseudoJet> &fjSubAxes,
                           XlFatJet *pFatJet,XlSubJet::ESubJetType t);
       // QJets volatility helpers
-      double getQjetVolatility(std::vector < fastjet::PseudoJet > constits, int QJetsN = 25, int seed = 12345);
-      double FindRMS          (std::vector < float > qjetmasses);
-      double FindMean         (std::vector < float > qjetmasses); 
+      void   getJetConstituents(fastjet::PseudoJet &jet, std::vector <fastjet::PseudoJet> &constits,  
+                                float constitsPtMin);
+      double getQjetVolatility (std::vector<fastjet::PseudoJet> constits, int QJetsN = 25, int seed = 12345);
+      double FindRMS           (std::vector<float> qjetmasses);
+      double FindMean          (std::vector<float> qjetmasses); 
 
     private:
       Bool_t fIsData;                      //is this data or MC?
@@ -125,7 +127,7 @@ namespace mithep
       // Counters : used to initialize seed for QJets volatility
       Long64_t fCounter;
 
-      ClassDef(FillerXlJets, 0)            //XlJets, Fat and Sub, filler      
+      ClassDef(FillerXlJets, 1)            //XlJets, Fat and Sub, filler      
   };
 }
 #endif
