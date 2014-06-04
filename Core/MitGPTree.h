@@ -49,6 +49,8 @@ class MitGPTree {
   unsigned int   nvtx_;
   unsigned int   cuts_;
   float          scale1fb_;
+  float          genmet_;
+  float          genmetPhi_;
   float          metRaw_;
   float          metRawPhi_;
   float          met_;
@@ -76,6 +78,8 @@ class MitGPTree {
   DataType       dstype_;
 
   LorentzVector  genZ_;
+  LorentzVector  genMuon1_;
+  LorentzVector  genMuon2_;
 
   unsigned int   nlep_;
   LorentzVector  lep1_;
@@ -98,7 +102,7 @@ class MitGPTree {
 
   unsigned int   nphotons_;
   LorentzVector  pho1_;
-/*   LorentzVector  pho2_; */
+  LorentzVector  pho2_;
 /*   LorentzVector  pho3_; */
 /*   LorentzVector  pho4_; */
 
@@ -161,9 +165,10 @@ class MitGPTree {
   /// default constructor  
   MitGPTree():
     genZPtr_(&genZ_),
+    genMuon1Ptr_(&genMuon1_),genMuon2Ptr_(&genMuon2_),
     lepPtr1_(&lep1_),lepPtr2_(&lep2_),lepPtr3_(&lep3_),
     tauPtr1_(&tau1_),tauPtr2_(&tau2_),
-    phoPtr1_(&pho1_),//phoPtr2_(&pho2_),phoPtr3_(&pho3_),phoPtr4_(&pho4_),
+    phoPtr1_(&pho1_),phoPtr2_(&pho2_),//phoPtr3_(&pho3_),phoPtr4_(&pho4_),
     jetPtr1_(&jet1_),jetPtr2_(&jet2_),jetPtr3_(&jet3_),jetPtr4_(&jet4_),
     trackPtr1_(&track1_),trackPtr2_(&track2_),trackPtr3_(&track3_){}
   /// default destructor
@@ -216,6 +221,8 @@ class MitGPTree {
     tree_->Branch("HLTmatch"     , &HLTmatch_     ,   "HLTmatch/i");
     tree_->Branch("nvtx"         , &nvtx_         ,   "nvtx/i");
     tree_->Branch("scale1fb"     , &scale1fb_     ,   "scale1fb/F");
+    tree_->Branch("genmet"       , &genmet_       ,   "genmet/F");
+    tree_->Branch("genmetPhi"    , &genmetPhi_    ,   "genmetPhi/F");
     tree_->Branch("metRaw"       , &metRaw_       ,   "metRaw/F");
     tree_->Branch("metRawPhi"    , &metRawPhi_    ,   "metRawPhi/F");
     tree_->Branch("met"          , &met_          ,   "met/F");
@@ -243,6 +250,8 @@ class MitGPTree {
     tree_->Branch("dstype"       , &dstype_       ,   "dstype/I");
 
     tree_->Branch("genZ"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genZPtr_);
+    tree_->Branch("genMuon1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genMuon1Ptr_);
+    tree_->Branch("genMuon2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genMuon2Ptr_);
 
     tree_->Branch("nlep"         , &nlep_         ,   "nlep/i");
     tree_->Branch("lep1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &lepPtr1_);
@@ -265,7 +274,7 @@ class MitGPTree {
 
     tree_->Branch("nphotons"     , &nphotons_     ,   "nphotons/i");
     tree_->Branch("pho1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr1_);
-/*     tree_->Branch("pho2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr2_); */
+    tree_->Branch("pho2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr2_);
 /*     tree_->Branch("pho3"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr3_); */
 /*     tree_->Branch("pho4"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr4_); */
 
@@ -339,6 +348,8 @@ class MitGPTree {
     tree_->SetBranchAddress("HLTmatch",      &HLTmatch_);
     tree_->SetBranchAddress("nvtx",          &nvtx_);
     tree_->SetBranchAddress("scale1fb",      &scale1fb_);
+    tree_->SetBranchAddress("genmet",        &genmet_);
+    tree_->SetBranchAddress("genmetPhi",     &genmetPhi_);
     tree_->SetBranchAddress("metRaw",        &metRaw_);
     tree_->SetBranchAddress("metRawPhi",     &metRawPhi_);
     tree_->SetBranchAddress("met",           &met_);
@@ -366,6 +377,8 @@ class MitGPTree {
     tree_->SetBranchAddress("dstype",        &dstype_);
 
     tree_->SetBranchAddress("genZ",          &genZPtr_);
+    tree_->SetBranchAddress("genMuon1",      &genMuon1Ptr_);
+    tree_->SetBranchAddress("genMuon2",      &genMuon2Ptr_);
 
     tree_->SetBranchAddress("nlep",          &nlep_);
     tree_->SetBranchAddress("lep1",          &lepPtr1_);
@@ -388,7 +401,7 @@ class MitGPTree {
 
     tree_->SetBranchAddress("nphotons"                  , &nphotons_);
     tree_->SetBranchAddress("pho1"                      , &phoPtr1_);
-/*     tree_->SetBranchAddress("pho2"                      , &phoPtr2_); */
+    tree_->SetBranchAddress("pho2"                      , &phoPtr2_);
 /*     tree_->SetBranchAddress("pho3"                      , &phoPtr3_); */
 /*     tree_->SetBranchAddress("pho4"                      , &phoPtr4_); */
 
@@ -447,6 +460,8 @@ class MitGPTree {
   private:
 
   LorentzVector* genZPtr_;
+  LorentzVector* genMuon1Ptr_;
+  LorentzVector* genMuon2Ptr_;
   LorentzVector* lepPtr1_;
   LorentzVector* lepPtr2_;
   LorentzVector* lepPtr3_;
@@ -475,6 +490,8 @@ MitGPTree::InitVariables(){
   HLTmatch_       = 0;
   nvtx_          = 0;
   scale1fb_      = 0;
+  genmet_        = -999.;
+  genmetPhi_     = -999.;
   metRaw_        = -999.;
   metRawPhi_     = -999.;
   met_           = -999.;
@@ -503,6 +520,8 @@ MitGPTree::InitVariables(){
   dstype_        = data;
 
   genZ_       	 = LorentzVector();
+  genMuon1_      = LorentzVector();
+  genMuon2_      = LorentzVector();
 
   nlep_          = 0;
   lep1_       	 = LorentzVector();
@@ -525,7 +544,7 @@ MitGPTree::InitVariables(){
 
   nphotons_      = 0;
   pho1_       	 = LorentzVector();
-/*   pho2_       	 = LorentzVector(); */
+  pho2_       	 = LorentzVector();
 /*   pho3_       	 = LorentzVector(); */
 /*   pho4_       	 = LorentzVector(); */
 

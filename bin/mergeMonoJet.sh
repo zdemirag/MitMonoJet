@@ -49,13 +49,15 @@ do
 	  then
 
           # check if files are there
+	  echo $INPUT_DIR/$DATASET
 	  if [ ! -d $INPUT_DIR/$DATASET ]; then
 	      echo "neither jobs running nor ouput for ${DATASET}"
 	      continue
 	  fi
 	  
           # check if merged file is already there and ask what to do with the dataset
-	  if [ -e $OUTPUT_DIR/${MIT_PROD_CFG}_${DATASET}_${SKIM}.root ]; then
+	  #if [ -e $OUTPUT_DIR/${MIT_PROD_CFG}_${DATASET}_${SKIM}.root ]; then
+	  if ls $OUTPUT_DIR/${MIT_PROD_CFG}_${DATASET}_${SKIM}*.root &> /dev/null; then
 	  #if [ -e $OUTPUT_DIR/${DATASET}.root ]; then
 	      read -p "$OUTPUT_DIR/${DATASET}.root exist, should it be deleted? [Y,n]" action
 	      if [ "$action" == "n" ]; then
@@ -65,13 +67,13 @@ do
 	  fi
       
           # now merge the sucker
-	  mergeHist.py --Dataset=$DATASET --Skim=$SKIM --InputPath=$INPUT_DIR/ --OutputPath=$OUTPUT_DIR/ --FilenameHeader=$MIT_PROD_CFG
+	  mergeHistSmart.py --Dataset=$DATASET --Skim=$SKIM --InputPath=$INPUT_DIR/ --OutputPath=$OUTPUT_DIR/ --FilenameHeader=$MIT_PROD_CFG
 
 	  # clean up the data (MC done later on)
-	  if [ "`echo $DATASET | grep r12`" != "" ]
+	  if [ "`echo $DATASET | grep r12`" != "" ] # WARNING!!: "_0" hardcoded in the file name. If more that 1 datafile is produced, the next ones will be ignored
 	      then
-	      echo 'input for cleaning' $OUTPUT_DIR/${MIT_PROD_CFG}_${DATASET}_${SKIM}.root -o $OUTPUT_DIR/${DATASET}.root
-	      ./cleanMergedOutput.py -i $OUTPUT_DIR/${MIT_PROD_CFG}_${DATASET}_${SKIM}.root -o $OUTPUT_DIR/${DATASET}.root
+	      echo 'input for cleaning' $OUTPUT_DIR/${MIT_PROD_CFG}_${DATASET}_${SKIM}_0.root -o $OUTPUT_DIR/${DATASET}_0.root
+	      ./cleanMergedOutput.py -i $OUTPUT_DIR/${MIT_PROD_CFG}_${DATASET}_${SKIM}_0.root -o $OUTPUT_DIR/${DATASET}_0.root
 	  fi
 
       fi

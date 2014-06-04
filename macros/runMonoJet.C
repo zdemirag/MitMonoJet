@@ -467,6 +467,7 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmettree->SetTausName(pftauCleaningMod->GetOutputName());
   jetplusmettree->SetJetsFromBranch(kFALSE);
   jetplusmettree->SetJetsName(jetCleaning->GetOutputName());
+  jetplusmettree->SetRawJetsName(pubJet->GetOutputName());
   jetplusmettree->SetPVFromBranch(kFALSE);
   jetplusmettree->SetPVName(goodPVFilterMod->GetOutputName());
   jetplusmettree->SetLeptonsName(merger->GetOutputName());
@@ -488,6 +489,7 @@ void runMonoJet(const char *fileset    = "0000",
   dileptontree->SetTausName(pftauCleaningMod->GetOutputName());
   dileptontree->SetJetsFromBranch(kFALSE);
   dileptontree->SetJetsName(jetCleaning->GetOutputName());
+  dileptontree->SetRawJetsName(pubJet->GetOutputName());
   dileptontree->SetPVFromBranch(kFALSE);
   dileptontree->SetPVName(goodPVFilterMod->GetOutputName());
   dileptontree->SetLeptonsName(merger->GetOutputName());
@@ -509,6 +511,7 @@ void runMonoJet(const char *fileset    = "0000",
   wlnutree->SetTausName(pftauCleaningMod->GetOutputName());
   wlnutree->SetJetsFromBranch(kFALSE);
   wlnutree->SetJetsName(jetCleaning->GetOutputName());
+  wlnutree->SetRawJetsName(pubJet->GetOutputName());
   wlnutree->SetPVFromBranch(kFALSE);
   wlnutree->SetPVName(goodPVFilterMod->GetOutputName());
   wlnutree->SetLeptonsName(merger->GetOutputName());

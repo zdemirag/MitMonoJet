@@ -73,6 +73,7 @@ namespace mithep
     void                SetTausFromBranch(bool b)         { fTausFromBranch = b;         }
 
     void                SetJetsName(const char *n)        { fJetsName = n;               }
+    void                SetRawJetsName(const char *n)     { fRawJetsName = n;            }
     void                SetJetsFromBranch(bool b)         { fJetsFromBranch = b;         }
     void                SetQGTaggerCHS(bool b)            { fQGTaggerCHS = b;            }
     void                SetLeptonsName(const char *n)     { fLeptonsName = n;            }
@@ -117,6 +118,7 @@ namespace mithep
     TString                        fMuonsName;
     TString                        fTausName;
     TString                        fJetsName;
+    TString                        fRawJetsName;
     TString                        fLeptonsName;
     TString                        fPFCandidatesName;
     TString                        fVertexName;
@@ -157,6 +159,7 @@ namespace mithep
     const MuonCol                 *fMuons;
     const PFTauCol                *fPFTaus;
     const JetCol                  *fJets;
+    const JetCol                  *fRawJets;
     const TriggerObjectCol        *fTrigObj;
     const PFCandidateCol          *fPFCandidates;
     const TrackCol                *fTracks;
