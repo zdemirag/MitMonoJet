@@ -12,7 +12,7 @@
 #include <TFile.h>
 
 #include "MitAna/TreeMod/interface/BaseMod.h" 
-#include "MitAna/DataTree/interface/EvtSelData.h"
+#include "MitAna/DataTree/interface/MCEventInfo.h"
 #include "MitAna/DataTree/interface/PileupInfoCol.h"
 #include "MitAna/DataTree/interface/PileupEnergyDensityCol.h"
 #include "MitAna/DataTree/interface/VertexCol.h"
@@ -34,6 +34,7 @@
 #include "MitMonoJet/DataTree/interface/XlMetCol.h"
 #include "MitMonoJet/DataTree/interface/XlFatJetCol.h"
 #include "MitMonoJet/DataTree/interface/XlSubJetCol.h"
+#include "MitMonoJet/DataTree/interface/XlEvtSelData.h"
 
 #include "MitMonoJet/Core/MitDMSTree.h"
 
@@ -106,6 +107,7 @@ namespace mithep
     TString                        fPVName;
     TString                        fPileUpDenName;    
     TString                        fPileUpName;
+    TString                        fMCEventInfoName;
     TString                        fTriggerObjectsName;
 			           
     Bool_t                         fIsData;
@@ -133,7 +135,8 @@ namespace mithep
     const VertexCol               *fPV;
     const PileupInfoCol           *fPileUp;    
     const PileupEnergyDensityCol  *fPileUpDen;
-    const EvtSelData              *fEvtSelData;
+    const MCEventInfo             *fMCEventInfo;
+    const XlEvtSelData            *fEvtSelData;
     const TriggerObjectCol        *fTrigObj;
 
     // Auxiliary

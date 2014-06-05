@@ -33,7 +33,6 @@ class MitDMSTree {
   unsigned int   trigger_;
   unsigned int   HLTmatch_;
   unsigned int   nvtx_;
-  unsigned int   cuts_;
   float          metRaw_;
   float          metRawPhi_;
   float          met_;
@@ -64,6 +63,17 @@ class MitDMSTree {
   float          tjetTau2_;
   float          tjetTau3_;
   float          tjetC2b0_;
+  float          tjetC2b0p2_;      
+  float          tjetC2b0p5_;      
+  float          tjetC2b1_;        
+  float          tjetC2b2_;        
+  float          tjetQJetVol_;     
+  float          tjetMassSDb0_;    
+  float          tjetMassSDb2_;    
+  float          tjetMassSDbm1_;   
+  float          tjetMassPruned_;  
+  float          tjetMassFiltered_;
+  float          tjetMassTrimmed_; 
   unsigned int   tjetPartonId_;
  
   unsigned int   nsjets_;
@@ -92,6 +102,7 @@ class MitDMSTree {
   float          npuPlusOne_;
   float          npuMinusOne_;
   int            metFiltersWord_;
+  int            preselWord_;
 
  public:
   /// this is the main element
@@ -154,7 +165,6 @@ class MitDMSTree {
     tree_->Branch("trigger"         , &trigger_         ,   "trigger/i");
     tree_->Branch("HLTmatch"        , &HLTmatch_        ,   "HLTmatch/i");
     tree_->Branch("nvtx"            , &nvtx_            ,   "nvtx/i");
-    tree_->Branch("cuts"            , &cuts_            ,   "cuts/i");
     tree_->Branch("metRaw"          , &metRaw_          ,   "metRaw/F");
     tree_->Branch("metRawPhi"       , &metRawPhi_       ,   "metRawPhi/F");
     tree_->Branch("met"             , &met_             ,   "met/F");
@@ -184,6 +194,17 @@ class MitDMSTree {
     tree_->Branch("tjetTau2"      , &tjetTau2_     ,   "tjetTau2/F");
     tree_->Branch("tjetTau3"      , &tjetTau3_     ,   "tjetTau3/F");
     tree_->Branch("tjetC2b0"      , &tjetC2b0_     ,   "tjetC2b0/F");
+    tree_->Branch("tjetC2b0p2"       , &tjetC2b0p2_         , "tjetC2b0p2/F");     
+    tree_->Branch("tjetC2b0p5"       , &tjetC2b0p5_         , "tjetC2b0p5/F");     
+    tree_->Branch("tjetC2b1"         , &tjetC2b1_           , "tjetC2b1/F");       
+    tree_->Branch("tjetC2b2"         , &tjetC2b2_           , "tjetC2b2/F");       
+    tree_->Branch("tjetQJetVol"      , &tjetQJetVol_        , "tjetQJetVol/F");    
+    tree_->Branch("tjetMassSDb0"     , &tjetMassSDb0_       , "tjetMassSDb0/F");   
+    tree_->Branch("tjetMassSDb2"     , &tjetMassSDb2_       , "tjetMassSDb2/F");   
+    tree_->Branch("tjetMassSDbm1"    , &tjetMassSDbm1_      , "tjetMassSDbm1/F");  
+    tree_->Branch("tjetMassPruned"   , &tjetMassPruned_     , "tjetMassPruned/F"); 
+    tree_->Branch("tjetMassFiltered" , &tjetMassFiltered_   , "tjetMassFiltered/F");
+    tree_->Branch("tjetMassTrimmed"  , &tjetMassTrimmed_    , "tjetMassTrimmed/F");
     tree_->Branch("tjetPartonId"  , &tjetPartonId_ ,   "tjetPartonId/i");
 
     tree_->Branch("nsjets"        , &nsjets_        ,   "nsjets/i");
@@ -211,7 +232,8 @@ class MitDMSTree {
     tree_->Branch("npu",           &npu_        , "npu/F");
     tree_->Branch("npuPlusOne",    &npuPlusOne_ , "npuPlusOne/F");
     tree_->Branch("npuMinusOne",   &npuMinusOne_, "npuMinusOne/F");
-    tree_->Branch("metFiltersWord",   &metFiltersWord_, "metFiltersWord/I");
+    tree_->Branch("metFiltersWord",&metFiltersWord_, "metFiltersWord/I");
+    tree_->Branch("preselWord",    &preselWord_, "preselWord/I");
 
   }
 
@@ -233,7 +255,6 @@ class MitDMSTree {
     tree_->SetBranchAddress("trigger",       &trigger_);
     tree_->SetBranchAddress("HLTmatch",      &HLTmatch_);
     tree_->SetBranchAddress("nvtx",          &nvtx_);
-    tree_->SetBranchAddress("cuts",          &cuts_);
     tree_->SetBranchAddress("metRaw",        &metRaw_);
     tree_->SetBranchAddress("metRawPhi",     &metRawPhi_);
     tree_->SetBranchAddress("met",           &met_);
@@ -263,6 +284,17 @@ class MitDMSTree {
     tree_->SetBranchAddress("tjetTau2"      , &tjetTau2_      );
     tree_->SetBranchAddress("tjetTau3"      , &tjetTau3_      );
     tree_->SetBranchAddress("tjetC2b0"      , &tjetC2b0_      );
+    tree_->SetBranchAddress("tjetC2b0p2"       , &tjetC2b0p2_      );
+    tree_->SetBranchAddress("tjetC2b0p5"       , &tjetC2b0p5_      );
+    tree_->SetBranchAddress("tjetC2b1"         , &tjetC2b1_        );
+    tree_->SetBranchAddress("tjetC2b2"         , &tjetC2b2_        );
+    tree_->SetBranchAddress("tjetQJetVol"      , &tjetQJetVol_     );
+    tree_->SetBranchAddress("tjetMassSDb0"     , &tjetMassSDb0_    );
+    tree_->SetBranchAddress("tjetMassSDb2"     , &tjetMassSDb2_    );
+    tree_->SetBranchAddress("tjetMassSDbm1"    , &tjetMassSDbm1_   );
+    tree_->SetBranchAddress("tjetMassPruned"   , &tjetMassPruned_  );
+    tree_->SetBranchAddress("tjetMassFiltered" , &tjetMassFiltered_);
+    tree_->SetBranchAddress("tjetMassTrimmed"  , &tjetMassTrimmed_ );
     tree_->SetBranchAddress("tjetPartonId"  , &tjetPartonId_  );
 
     tree_->SetBranchAddress("nsjets"        , &nsjets_        );
@@ -290,7 +322,8 @@ class MitDMSTree {
     tree_->SetBranchAddress("npu"           ,	&npu_           );
     tree_->SetBranchAddress("npuPlusOne"    , &npuPlusOne_    );
     tree_->SetBranchAddress("npuMinusOne"   , &npuMinusOne_   );
-    tree_->SetBranchAddress("metFiltersWord", &metFiltersWord_);
+    tree_->SetBranchAddress("metFiltersWord" , &metFiltersWord_ );
+    tree_->SetBranchAddress("preselWord"    , &preselWord_);
 
     gErrorIgnoreLevel = currentState;
   }
@@ -320,7 +353,6 @@ MitDMSTree::InitVariables(){
   trigger_       = 0;
   HLTmatch_      = 0;
   nvtx_          = 0;
-  cuts_          = 0;
   metRaw_        = -999.;
   metRawPhi_     = -999.;
   met_           = -999.;
@@ -350,6 +382,17 @@ MitDMSTree::InitVariables(){
   tjetTau2_      = -999.;
   tjetTau3_      = -999.;
   tjetC2b0_      = -999.;
+  tjetC2b0p2_      = -999.;
+  tjetC2b0p5_      = -999.;
+  tjetC2b1_        = -999.;
+  tjetC2b2_        = -999.;
+  tjetQJetVol_     = -999.;
+  tjetMassSDb0_    = -999.;
+  tjetMassSDb2_    = -999.;
+  tjetMassSDbm1_   = -999.;
+  tjetMassPruned_  = -999.;
+  tjetMassFiltered_= -999.;
+  tjetMassTrimmed_ = -999.;
   tjetPartonId_  = 0;
   
   nsjets_        = 0;
@@ -378,6 +421,7 @@ MitDMSTree::InitVariables(){
   npuPlusOne_    = -999.;
   npuMinusOne_   = -999.;
   metFiltersWord_= -1.;  
+  preselWord_    = -1.;  
 }
 
 #endif

@@ -23,7 +23,7 @@ ClassImp(mithep::DMSTreeWriter)
 //--------------------------------------------------------------------------------------------------
 DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   BaseMod                 (name,title),
-  fEvtSelDataName         (Names::gkEvtSelDataBrn),
+  fEvtSelDataName         ("XlEvtSelData"),
   fRawMetName             ("PFMet"),
   fMetName                ("PFMet"),
   fMetMVAName             ("PFMetMVA"),
@@ -37,6 +37,7 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   fPVName                 (Names::gkPVBeamSpotBrn),
   fPileUpDenName          (Names::gkPileupEnergyDensityBrn),
   fPileUpName             (Names::gkPileupInfoBrn),
+  fMCEventInfoName        (Names::gkMCEvtInfoBrn),
   fTriggerObjectsName     ("MyHltPhotObjs"),
   fIsData                 (false),
   fMetFromBranch          (kTRUE),
@@ -63,6 +64,7 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   fPV                     (0),
   fPileUp                 (0),
   fPileUpDen              (0),
+  fMCEventInfo            (0),
   fEvtSelData             (0),
   fTrigObj                (0),
   fPUInputFileName        ("MyInputPUFile"),       
@@ -97,6 +99,7 @@ void DMSTreeWriter::Process()
   LoadEventObject(fPileUpDenName,     fPileUpDen,     true);
   if (!fIsData) {
     LoadBranch(fPileUpName);
+    LoadBranch(fMCEventInfoName);
   }
   LoadEventObject(fTriggerObjectsName,fTrigObj,       true);
 
@@ -115,8 +118,9 @@ void DMSTreeWriter::Process()
   // initialize the tree variables
   fMitDMSTree.InitVariables();
   
-  // EVTSELDATA
+  // EVTSELDATA  
   fMitDMSTree.metFiltersWord_ = fEvtSelData->metFiltersWord();
+  fMitDMSTree.preselWord_     = fEvtSelData->preselWord();
 
   // PILEUP RELATED
 
@@ -181,40 +185,12 @@ void DMSTreeWriter::Process()
   bool fApplyTopSel = kTRUE;
   if (fApplyTopSel) {
     
-    // Top Selection: require boosted jet + 2 b-jets (pt-orderd) + lepton
-    // Following TOP-12-042 PAS selections
-    int nGoodBJets = 0;
-    int nGoodTagJets = 0;
-    int nGoodLeptons = 0;
-
-    // Jets
-    for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
-      const Jet *jet = fJets->At(i);
-
-      if (jet->Pt() < 30. || fabs(jet->Eta()) > 2.5)
-        continue;
-        
-      // Boosted jet first then two loose b-tagged jets
-      if (i > 0 && jet->CombinedSecondaryVertexBJetTagsDisc() > 0.244)
-        nGoodBJets++;
-      else if (jet->Pt() > 200)
-        nGoodTagJets++;
-      else
-        continue;
-    }
-
-    // Muons only
-    for (UInt_t i = 0; i < fMuons->GetEntries(); ++i) {
-      const Muon *mu = fMuons->At(i);
-      // Pt and eta cuts
-      if (mu->Pt() < 30. || fabs(mu->Eta()) > 2.1)
-        continue;
-      nGoodLeptons++;
-    }
-    
+    // Require the first bit of the preselection word to be on
+    bool theDecision = fMitDMSTree.preselWord_ & (1 << 0);
     // skip events if not passing top preselection
-    if (!(nGoodBJets > 1 && nGoodTagJets > 0 && nGoodLeptons > 0))
+    if (!theDecision)
       return;
+    
   }
 
 
@@ -286,6 +262,17 @@ void DMSTreeWriter::Process()
     fMitDMSTree.tjetTau2_    = fjet->Tau2();
     fMitDMSTree.tjetTau3_    = fjet->Tau3();
     fMitDMSTree.tjetC2b0_    = fjet->C2b0();
+    fMitDMSTree.tjetC2b0p2_      = fjet->C2b0p2();      
+    fMitDMSTree.tjetC2b0p5_      = fjet->C2b0p5();      
+    fMitDMSTree.tjetC2b1_        = fjet->C2b1();        
+    fMitDMSTree.tjetC2b2_        = fjet->C2b2();        
+    fMitDMSTree.tjetQJetVol_     = fjet->QJetVol();     
+    fMitDMSTree.tjetMassSDb0_    = fjet->MassSDb0();    
+    fMitDMSTree.tjetMassSDb2_    = fjet->MassSDb2();    
+    fMitDMSTree.tjetMassSDbm1_   = fjet->MassSDbm1();   
+    fMitDMSTree.tjetMassPruned_  = fjet->MassPruned();  
+    fMitDMSTree.tjetMassFiltered_= fjet->MassFiltered();
+    fMitDMSTree.tjetMassTrimmed_ = fjet->MassTrimmed();  
     fMitDMSTree.tjetPartonId_= -1;
   
     fMitDMSTree.nsjets_ = fjet->NSubJets();
@@ -318,8 +305,37 @@ void DMSTreeWriter::Process()
     }
   }
  
-  // PILEUP RELATED
+  // MC INFORMATION
 
+  Double_t Q = 0.0;
+  Int_t    id1 = 0;
+  Double_t x1 = 0.0;
+  Double_t pdf1 = 0.0;
+  Int_t    id2 = 0;
+  Double_t x2 = 0.0;
+  Double_t pdf2 = 0.0;
+  Int_t    processId = 0;
+  if (! fIsData) {
+    Q         = fMCEventInfo->Scale();
+    id1       = fMCEventInfo->Id1();
+    x1        = fMCEventInfo->X1();
+    pdf1      = fMCEventInfo->Pdf1();
+    id2       = fMCEventInfo->Id2();
+    x2        = fMCEventInfo->X2();
+    pdf2      = fMCEventInfo->Pdf2();
+    processId = fMCEventInfo->ProcessId();
+  }
+
+  fMitDMSTree.Q_ = Q;
+  fMitDMSTree.id1_ = id1;
+  fMitDMSTree.x1_ = x1;
+  fMitDMSTree.pdf1_ = pdf1;
+  fMitDMSTree.id2_ = id2;
+  fMitDMSTree.x2_ = x2;
+  fMitDMSTree.pdf2_ = pdf2;
+  fMitDMSTree.processId_ = processId;
+
+  // PILEUP RELATED
   if (! fIsData) {
     // loop over the pileup summary info and grab what you need
     for (UInt_t i=0; i<fPileUp->GetEntries(); ++i) {
@@ -348,10 +364,11 @@ void DMSTreeWriter::SlaveBegin()
 
   if (! fIsData) {
     ReqBranch(fPileUpName,           fPileUp);
+    ReqBranch(fMCEventInfoName,      fMCEventInfo);
   }
   ReqEventObject(fPileUpDenName,     fPileUpDen,     true);
   ReqEventObject(fPVName,            fPV,            fPVFromBranch);
-  ReqEventObject("EvtSelData",       fEvtSelData,    true);
+  ReqEventObject(fEvtSelDataName,    fEvtSelData,    true);
   ReqEventObject(fTriggerObjectsName,fTrigObj,       true);
 
   ReqEventObject(fPhotonsName,       fPhotons,       fPhotonsFromBranch);

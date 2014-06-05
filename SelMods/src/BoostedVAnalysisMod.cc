@@ -30,24 +30,28 @@ ClassImp(mithep::BoostedVAnalysisMod)
     fJetsName              (Names::gkPFJetBrn),
     fElectronsName         (Names::gkElectronBrn),
     fMuonsName             (Names::gkMuonBrn),
+    fPhotonsName           (Names::gkPhotonBrn),
     fLeptonsName           (ModNames::gkMergedLeptonsName),
     fMetFromBranch         (kTRUE),
     fFatJetsFromBranch     (kTRUE),
     fJetsFromBranch        (kTRUE),
     fElectronsFromBranch   (kTRUE),
     fMuonsFromBranch       (kTRUE),
+    fPhotonsFromBranch     (kTRUE),
     // define active preselection regions
     fApplyTopPresel        (kTRUE),
     fApplyWlepPresel       (kTRUE),
     fApplyZlepPresel       (kTRUE),
     fApplyMetPresel        (kTRUE), 
     fApplyVbfPresel        (kTRUE),
+    fApplyGjetPresel       (kTRUE),
     fFillAndPublishPresel  (kTRUE),
     // collections
     fMet                   (0),
     fJets                  (0),
     fElectrons             (0),
     fMuons                 (0),
+    fPhotons               (0),
     fEvtSelData            (0),    
     // cuts
     fMinFatJetPt           (200),
@@ -55,6 +59,7 @@ ClassImp(mithep::BoostedVAnalysisMod)
     fMinVbfJetPt           (40),
     fMinMet                (200),
     fMinVbfMass            (800),
+    fMinPhotonPt           (150),
     // counters
     fAll                   (0),
     fPass                  (0)
@@ -79,10 +84,11 @@ void BoostedVAnalysisMod::Begin()
 void BoostedVAnalysisMod::SlaveBegin()
 {
   // Load Branches
-  ReqEventObject(fMetBranchName,   fMet,         fMetFromBranch);
-  ReqEventObject(fJetsName,        fJets,        fJetsFromBranch);
-  ReqEventObject(fElectronsName,   fElectrons,   fElectronsFromBranch);
-  ReqEventObject(fMuonsName,       fMuons,       fMuonsFromBranch);
+  ReqEventObject(fMetBranchName, fMet,       fMetFromBranch);
+  ReqEventObject(fJetsName,      fJets,      fJetsFromBranch);
+  ReqEventObject(fElectronsName, fElectrons, fElectronsFromBranch);
+  ReqEventObject(fMuonsName,     fMuons,     fMuonsFromBranch);
+  ReqEventObject(fPhotonsName,   fPhotons,   fPhotonsFromBranch);
   
   // If requested by the user prepare the collections to store the
   // preselection word
@@ -98,18 +104,19 @@ void BoostedVAnalysisMod::SlaveBegin()
 //--------------------------------------------------------------------------------------------------
 void BoostedVAnalysisMod::Process()
 {
-  LoadEventObject(fMetBranchName,fMet,fMetFromBranch);
-  LoadEventObject(fElectronsName,fElectrons,fElectronsFromBranch);
-  LoadEventObject(fMuonsName,fMuons,fMuonsFromBranch);
-
+  LoadEventObject(fMetBranchName, fMet,       fMetFromBranch);
+  LoadEventObject(fElectronsName, fElectrons, fElectronsFromBranch);
+  LoadEventObject(fMuonsName,     fMuons,     fMuonsFromBranch);
+  LoadEventObject(fPhotonsName,   fPhotons,   fPhotonsFromBranch);
+                 
   if (fFillAndPublishPresel) {
     LoadEventObject(Names::gkEvtSelDataBrn, fEvtSelData, true);
   }
 
-  fJets = GetObjThisEvt<JetOArr>(fJetsName);
+  fJets    = GetObjThisEvt<JetOArr>(fJetsName);
   fFatJets = GetObjThisEvt<JetOArr>(fFatJetsName);
 
-  ParticleOArr   *leptons      = GetObjThisEvt<ParticleOArr>(fLeptonsName);
+  ParticleOArr *leptons = GetObjThisEvt<ParticleOArr>(fLeptonsName);
   
   // Initialize selection flags
   Bool_t passTopPresel = kFALSE;
@@ -117,6 +124,7 @@ void BoostedVAnalysisMod::Process()
   Bool_t passZlepPresel = kFALSE;
   Bool_t passMetPresel = kFALSE;
   Bool_t passVbfPresel = kFALSE;
+  Bool_t passGjetPresel = kFALSE;
 
   // Increment all events counter
   fAll++;
@@ -298,8 +306,37 @@ void BoostedVAnalysisMod::Process()
       passVbfPresel = kTRUE;
   }
 
+  if (fApplyGjetPresel) {
+    // G+jets Preselection: require boosted jet + photon
+    int nGoodTagJets = 0;
+    int nGoodPhotons = 0;
+
+    // Jets
+    for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
+      const Jet *jet = fJets->At(i);
+      // Pt and eta cuts
+      if (jet->Pt() < fMinTagJetPt || fabs(jet->Eta()) > 2.5)
+        continue;
+      nGoodTagJets++;
+    }
+
+    // Photons
+    if (fPhotons->GetEntries() > 0) {
+      for (UInt_t i = 0; i < fPhotons->GetEntries(); ++i) {
+        const Photon *pho = fPhotons->At(i);
+        // Pt and eta cuts
+        if (pho->Pt() < fMinPhotonPt || fabs(pho->Eta()) > 2.5)
+          continue;
+        nGoodPhotons++;
+      }
+    }
+    if (nGoodTagJets > 0 && nGoodPhotons > 0)
+      passGjetPresel = kTRUE;
+  }
+
   // Skip event if it does not pass any preselection
-  if (!passTopPresel && !passWlepPresel && !passZlepPresel && !passMetPresel && !passVbfPresel) {
+  if (!passTopPresel && !passWlepPresel && !passZlepPresel 
+   && !passMetPresel && !passVbfPresel  && !passGjetPresel) {
     this->SkipEvent(); 
     return;
   }
@@ -310,7 +347,8 @@ void BoostedVAnalysisMod::Process()
                          passWlepPresel,
                          passZlepPresel,
                          passMetPresel, 
-                         passVbfPresel); 
+                         passVbfPresel, 
+                         passGjetPresel); 
   fXlEvtSelData->SetFiltersWord(fEvtSelData->metFiltersWord());
   fXlEvtSelData->SetPreselWord(preselectionWord);
    
@@ -365,7 +403,8 @@ int  BoostedVAnalysisMod::GetPreselWord(
                           bool passWlepPresel,
                           bool passZlepPresel,
                           bool passMetPresel, 
-                          bool passVbfPresel)
+                          bool passVbfPresel,
+                          bool passGjetPresel)
 {  
   // This function creates the word containing the bit decisions.
   // The bit ordering follows the order of the parameters passed
@@ -380,6 +419,7 @@ int  BoostedVAnalysisMod::GetPreselWord(
   theBits.push_back((int) passZlepPresel);
   theBits.push_back((int) passMetPresel);
   theBits.push_back((int) passVbfPresel);
+  theBits.push_back((int) passGjetPresel);
   //Create the word
   for (unsigned int iBit = 0; iBit < theBits.size(); iBit++)
     theWord |= theBits[iBit] << iBit;

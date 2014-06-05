@@ -43,7 +43,7 @@ TString getJsonFile(const char* dir);
 //--------------------------------------------------------------------------------------------------
 void runBavantiBoostedV(const char *fileset    = "0000",
                         const char *skim       = "noskim",
-                        const char *dataset    = "s12-ttj-v2-v7a",     
+                        const char *dataset    = "s12-pj300_470-v7a",     
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
@@ -119,7 +119,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   else 
     d = c->FindDataset(bookstr,skimdataset.Data(),fileset,local);
   ana->AddDataset(d);
-
+  
   //------------------------------------------------------------------------------------------------
   // organize output
   //------------------------------------------------------------------------------------------------
@@ -142,7 +142,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   hltModP->SetPrintTable(kFALSE);
 
   // monojet triggers
-  const int nMjtTrigs = 26;
+  const int nMjtTrigs = 12;
   TString monoJetTriggers[nMjtTrigs] = { "HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v4",
                                          "HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v3",
                                          "HLT_MonoCentralPFJet80_PFMETnoMu105_NHEF0p95_v1",
@@ -154,24 +154,42 @@ void runBavantiBoostedV(const char *fileset    = "0000",
                                          "HLT_MET120_HBHENoiseCleaned_v5",
                                          "HLT_MET120_HBHENoiseCleaned_v4",
                                          "HLT_MET120_HBHENoiseCleaned_v3",
-                                         "HLT_MET120_HBHENoiseCleaned_v2",
-                                         "HLT_IsoMu15_v2",
-                                         "HLT_IsoMu24_v2",
-                                         "HLT_IsoMu17_v6",
-                                         "HLT_IsoMu17_v8",
-                                         "HLT_IsoMu17_v9",
-                                         "HLT_IsoMu17_eta2p1_v1",
-                                         "HLT_IsoMu24_v8", 
-                                         "HLT_IsoMu24_eta2p1_v3", 
-                                         "HLT_IsoMu24_eta2p1_v6", 
-                                         "HLT_IsoMu24_eta2p1_v7", 
-                                         "HLT_IsoMu24_eta2p1_v12", 
-                                         "HLT_IsoMu24_eta2p1_v13", 
-                                         "HLT_IsoMu24_eta2p1_v14", 
-                                         "HLT_IsoMu24_eta2p1_v15"};
+                                         "HLT_MET120_HBHENoiseCleaned_v2"};
 
   for (int i=0; i<nMjtTrigs; i++)
     hltModP->AddTrigger(TString("!+"+monoJetTriggers[i]),0,999999);
+
+  // top semileptonic triggers
+  const int nTopTrigs = 14;
+  TString topTriggers[nTopTrigs] = { "HLT_IsoMu15_v2",
+                                     "HLT_IsoMu24_v2",
+                                     "HLT_IsoMu17_v6",
+                                     "HLT_IsoMu17_v8",
+                                     "HLT_IsoMu17_v9",
+                                     "HLT_IsoMu17_eta2p1_v1",
+                                     "HLT_IsoMu24_v8", 
+                                     "HLT_IsoMu24_eta2p1_v3", 
+                                     "HLT_IsoMu24_eta2p1_v6", 
+                                     "HLT_IsoMu24_eta2p1_v7", 
+                                     "HLT_IsoMu24_eta2p1_v12", 
+                                     "HLT_IsoMu24_eta2p1_v13", 
+                                     "HLT_IsoMu24_eta2p1_v14", 
+                                     "HLT_IsoMu24_eta2p1_v15"};
+
+  for (int i=0; i<nTopTrigs; i++)
+    hltModP->AddTrigger(TString("!+"+topTriggers[i]),0,999999);
+
+  // photon triggers
+  const int nPhotonTrigs = 6;
+  TString photonTriggers[nPhotonTrigs] = { "HLT_Photon135_v4",
+                                           "HLT_Photon135_v5",
+                                           "HLT_Photon135_v6",
+                                           "HLT_Photon135_v7",
+                                           "HLT_Photon150_v3",
+                                           "HLT_Photon150_v4"};
+
+  for (int i=0; i<nPhotonTrigs; i++)
+    hltModP->AddTrigger(TString("!+"+photonTriggers[i]),0,999999);
 
   //------------------------------------------------------------------------------------------------
   // split pfcandidates to PFPU and PFnoPU
@@ -426,15 +444,19 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   jetplusmet->SetElectronsFromBranch(kFALSE);
   jetplusmet->SetMuonsName(muonId->GetOutputName());
   jetplusmet->SetMuonsFromBranch(kFALSE);
+  jetplusmet->SetPhotonsName(photonCleaningMod->GetOutputName());
+  jetplusmet->SetPhotonsFromBranch(kFALSE);
   jetplusmet->SetLeptonsName(merger->GetOutputName());
   jetplusmet->ApplyTopPresel(kTRUE); 
   jetplusmet->ApplyWlepPresel(kTRUE);
   jetplusmet->ApplyZlepPresel(kTRUE);
   jetplusmet->ApplyMetPresel(kTRUE);
   jetplusmet->ApplyVbfPresel(kFALSE);
+  jetplusmet->ApplyGjetPresel(kTRUE);
   jetplusmet->SetMinFatJetPt(200);
   jetplusmet->SetMinTagJetPt(100);
   jetplusmet->SetMinMet(200);    
+  jetplusmet->SetMinPhotonPt(150);    
 
   //------------------------------------------------------------------------------------------------
   // prepare the extended MVA met 
