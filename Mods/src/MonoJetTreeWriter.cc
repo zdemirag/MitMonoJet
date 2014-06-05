@@ -617,6 +617,8 @@ void MonoJetTreeWriter::Process()
   // Finally fill the tree
   fMitGPTree.tree_->Fill();
 
+  delete pfJets;
+
   return;
 }
 
@@ -642,6 +644,7 @@ void MonoJetTreeWriter::SlaveBegin()
   ReqEventObject(fTausName,          fPFTaus,        fTausFromBranch);
   ReqEventObject(fPFCandidatesName,  fPFCandidates,  fPFCandidatesFromBranch);
   ReqEventObject(fJetsName,          fJets,          fJetsFromBranch);
+  ReqEventObject(fRawJetsName,       fRawJets,       false);
   ReqEventObject(fRawMetName,        fRawMet,        true);
   ReqEventObject(fMetName,           fMet,           fMetFromBranch);
 
