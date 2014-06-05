@@ -17,6 +17,7 @@
 #include "MitAna/DataTree/interface/MetCol.h"
 #include "MitAna/DataTree/interface/MuonCol.h"
 #include "MitPhysics/Utils/interface/MuonTools.h"
+#include "MitAna/DataTree/interface/PhotonCol.h"
 #include "MitAna/DataTree/interface/PFMetCol.h"
 
 #include "MitMonoJet/DataTree/interface/XlEvtSelData.h"
@@ -39,6 +40,7 @@ namespace mithep
     void                  SetJetsName              (const char *n) { fJetsName = n;               } 
     void                  SetElectronsName         (const char *n) { fElectronsName = n;          }
     void                  SetMuonsName             (const char *n) { fMuonsName = n;              }
+    void                  SetPhotonsName           (const char *n) { fPhotonsName = n;            }
     void                  SetLeptonsName           (const char *n) { fLeptonsName = n;            }
 
     // decide whether to read from branch
@@ -47,6 +49,7 @@ namespace mithep
     void                  SetJetsFromBranch        (Bool_t b)      { fJetsFromBranch = b;         }
     void                  SetElectronsFromBranch   (Bool_t b)      { fElectronsFromBranch = b;    }
     void                  SetMuonsFromBranch       (Bool_t b)      { fMuonsFromBranch = b;        }
+    void                  SetPhotonsFromBranch     (Bool_t b)      { fPhotonsFromBranch = b;      }
 
     // decide whether to apply given preselections or not
     void                  ApplyTopPresel           (Bool_t b)      { fApplyTopPresel = b;         }
@@ -54,6 +57,7 @@ namespace mithep
     void                  ApplyZlepPresel          (Bool_t b)      { fApplyZlepPresel = b;        }
     void                  ApplyMetPresel           (Bool_t b)      { fApplyMetPresel = b;         }
     void                  ApplyVbfPresel           (Bool_t b)      { fApplyVbfPresel = b;         }
+    void                  ApplyGjetPresel          (Bool_t b)      { fApplyGjetPresel = b;        }
 
     // decide whether to to fill and publish the preseleciton word or not
     void                  FillAndPublishPresel     (Bool_t b)      { fFillAndPublishPresel = b;   }
@@ -64,6 +68,7 @@ namespace mithep
     void                  SetMinVbfJetPt           (Double_t x)    { fMinVbfJetPt = x;            }
     void                  SetMinMet                (Double_t x)    { fMinMet = x;                 }
     void                  SetMinVbfMass            (Double_t x)    { fMinVbfMass = x;             }
+    void                  SetMinPhotonPt           (Double_t x)    { fMinPhotonPt = x;            }
     
   protected:
     // Standard module methods
@@ -81,7 +86,8 @@ namespace mithep
                           bool passWlepPresel,
                           bool passZlepPresel,
                           bool passMetPresel, 
-                          bool passVbfPresel);
+                          bool passVbfPresel, 
+                          bool passGjetPresel);
                                      
     // names of the collections
     TString               fMetBranchName;
@@ -89,6 +95,7 @@ namespace mithep
     TString               fJetsName;
     TString               fElectronsName;
     TString               fMuonsName;
+    TString               fPhotonsName;
     TString               fLeptonsName;
     // logical whether to read from branch
     Bool_t                fMetFromBranch;
@@ -96,12 +103,14 @@ namespace mithep
     Bool_t                fJetsFromBranch;
     Bool_t                fElectronsFromBranch;
     Bool_t                fMuonsFromBranch;
+    Bool_t                fPhotonsFromBranch;
     // logical whether to apply given preselections or not
     Bool_t                fApplyTopPresel; 
     Bool_t                fApplyWlepPresel;
     Bool_t                fApplyZlepPresel;
     Bool_t                fApplyMetPresel; 
     Bool_t                fApplyVbfPresel; 
+    Bool_t                fApplyGjetPresel; 
     // logical whether to  to to fill and publish the preseleciton word or not
     Bool_t                fFillAndPublishPresel; 
     // hooks to the collections
@@ -110,6 +119,7 @@ namespace mithep
     const JetCol         *fJets; 
     const ElectronCol    *fElectrons;
     const MuonCol        *fMuons;
+    const PhotonCol      *fPhotons;
     const EvtSelData     *fEvtSelData;
     XlEvtSelData         *fXlEvtSelData;  //extended event selection data object
     // Cuts
@@ -118,11 +128,12 @@ namespace mithep
     Double_t              fMinVbfJetPt;
     Double_t              fMinMet;
     Double_t              fMinVbfMass;
+    Double_t              fMinPhotonPt;
     // Counters
     Long64_t              fAll;
     Long64_t              fPass;
         
-    ClassDef(BoostedVAnalysisMod,1) // MonJet Selection Module
+    ClassDef(BoostedVAnalysisMod,2) // MonJet Selection Module
   };
 }
 #endif
