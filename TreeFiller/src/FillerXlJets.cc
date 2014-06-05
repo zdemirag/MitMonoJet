@@ -148,7 +148,7 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   for (UInt_t j=0; j<pPFJet->NPFCands(); ++j) {
     const PFCandidate *pfCand = pPFJet->PFCand(j);
     fjParts.push_back(fastjet::PseudoJet(pfCand->Px(),pfCand->Py(),pfCand->Pz(),pfCand->E()));
-    fjParts.back().set_user_index(j);      
+    fjParts.back().set_user_index(j);
   }	
 
   // Setup the cluster for fastjet
@@ -166,7 +166,7 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
     return;
   }
   fastjet::PseudoJet fjJet = fjOutJets[0];
-  
+    
   // Compute the subjettiness
   fastjet::contrib::Njettiness::AxesMode axisMode = fastjet::contrib::Njettiness::onepass_wta_kt_axes;
   fastjet::contrib::Njettiness::MeasureMode measureMode = fastjet::contrib::Njettiness::unnormalized_measure;
@@ -295,19 +295,20 @@ void FillerXlJets::getJetConstituents(fastjet::PseudoJet &jet, std::vector <fast
 
 //--------------------------------------------------------------------------------------------------
 double FillerXlJets::getQjetVolatility(std::vector <fastjet::PseudoJet> constits, int QJetsN, int seed)
-{
+{  
   std::vector<float> qjetmasses;
   
   double zcut(0.1), dcut_fctr(0.5), exp_min(0.), exp_max(0.), rigidity(0.1), truncationFactor(0.01);
   
-  for(unsigned int ii = 0 ; ii < (unsigned int) QJetsN ; ii++){
-    QjetsPlugin qjet_plugin(zcut, dcut_fctr, exp_min, exp_max, rigidity, truncationFactor);
+  QjetsPlugin qjet_plugin(zcut, dcut_fctr, exp_min, exp_max, rigidity, truncationFactor);
+  fastjet::JetDefinition qjet_def(&qjet_plugin);
+  
+  for(unsigned int ii = 0 ; ii < (unsigned int) QJetsN ; ii++){    
     qjet_plugin.SetRandSeed(seed+ii); // new feature in Qjets to set the random seed
-    fastjet::JetDefinition qjet_def(&qjet_plugin);
     fastjet::ClusterSequence qjet_seq(constits, qjet_def);
+    
     vector<fastjet::PseudoJet> inclusive_jets2 = sorted_by_pt(qjet_seq.inclusive_jets(5.0));
-    if (inclusive_jets2.size()>0) { qjetmasses.push_back( inclusive_jets2[0].m() ); }
-      
+    if (inclusive_jets2.size()>0) { qjetmasses.push_back( inclusive_jets2[0].m() ); }          
   }
   
   // find RMS of a vector
