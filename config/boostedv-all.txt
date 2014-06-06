@@ -34,16 +34,16 @@ t2mit/filefi/032 s12-schb-v7a                    noskim         ~               
 t2mit/filefi/032 s12-tch-v7a                     noskim         ~                               47.0        1.0    -1.0    ~
 t2mit/filefi/032 s12-tchb-v7a                    noskim         ~                               25.0        1.0    -1.0    ~
 ### diboson ###
-t2mit/filefi/032 s12-diphoj-3-v7a                noskim         #gamma#gamma+jets               1111        1.0    -1.0    ~
+t2mit/filefi/032 s12-diphoj-3-v7a                noskim         #gamma#gamma+jets               93.15       1.0    -1.0    ~
 #
 t2mit/filefi/032 s12-ww-v7a                      noskim         WW                              33.61       1.0    -1.0    ~
 t2mit/filefi/032 s12-wz-v7a                      noskim         WZ                              1.0         1.0    -1.0    ~
 t2mit/filefi/032 s12-zz-v7a                      noskim         ZZ                              1.0         1.0    -1.0    ~
 #
-t2mit/filefi/032 s12-wgptg130-v7a                noskim         W#gamma->l#nu#gamma             0.2571      1.0    -1.0    ~
-t2mit/filefi/032 s12-zgllg-v7a                   noskim         Z#gamma->ll#gamma               1111        1.0    -1.0    ~
+t2mit/filefi/032 s12-zgllg-v7a                   noskim         Z#gamma->ll#gamma               159.12      1.0    -1.0    ~
 t2mit/filefi/032 s12-zgllgptg130-v7a             noskim         ~                               0.0478      1.0    -1.0    ~
 t2mit/filefi/032 s12-zgptg130-v7c                noskim         Z#gamma->#nu#nu#gamma           0.074       1.0    -1.0    ~
+t2mit/filefi/032 s12-wgptg130-v7a                noskim         W#gamma->l#nu#gamma             0.2571      1.0    -1.0    ~
 ##=============================================================================================================================================================
 ##=   DATA   ==================================================================================================================================================
 ##=============================================================================================================================================================
