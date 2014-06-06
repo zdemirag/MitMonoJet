@@ -41,6 +41,7 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fMuonsName              (Names::gkMuonBrn),
   fTausName               (Names::gkPFTauBrn),
   fJetsName               (Names::gkPFJetBrn),
+  fRawJetsName            (Names::gkPFJetBrn),
   fLeptonsName            (ModNames::gkMergedLeptonsName),
   fPFCandidatesName       (Names::gkPFCandidatesBrn),
   fVertexName             (ModNames::gkGoodVertexesName),
@@ -75,6 +76,7 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fMuons                  (0),
   fPFTaus                 (0),
   fJets                   (0),
+  fRawJets                (0),
   fTrigObj                (0),
   fPFCandidates           (0),
   fTracks                 (0),
@@ -123,10 +125,14 @@ void MonoJetTreeWriter::Process()
   LoadEventObject(fBeamspotName,      fBeamspot);
   LoadEventObject(fEvtSelDataName,    fEvtSelData,    true);
   LoadEventObject(fPileUpDenName,     fPileUpDen,     true);
+  MetOArr *GenMet = 0;
+  MCParticleOArr *GenLeptons = 0;
   if (!fIsData) {
     LoadBranch(fMCEvInfoName);
     LoadBranch(fPileUpName);
     LoadEventObject(fMCPartName,      fParticles);
+    GenMet = GetObjThisEvt<MetOArr>(ModNames::gkMCMETName);
+    GenLeptons = GetObjThisEvt<MCParticleOArr>(ModNames::gkMCLeptonsName);
   }
 
   LoadEventObject(fRawMetName,        fRawMet,        true);
@@ -136,6 +142,7 @@ void MonoJetTreeWriter::Process()
   LoadEventObject(fMuonsName,         fMuons,         fMuonsFromBranch);
   LoadEventObject(fTausName,          fPFTaus,        fTausFromBranch);
   LoadEventObject(fJetsName,          fJets,          fJetsFromBranch);
+  LoadEventObject(fRawJetsName,       fRawJets,       false);
   LoadEventObject(fPVName,            fPV,            fPVFromBranch);
 
   LoadEventObject(fPFCandidatesName,  fPFCandidates,  fPFCandidatesFromBranch);
@@ -147,7 +154,6 @@ void MonoJetTreeWriter::Process()
 
   const PFCandidateCol *fPFNoPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFNoPileUpName);    
   const PFCandidateCol *fPFPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFPileUpName);
-
 
   fNEventsSelected++;
 
@@ -174,10 +180,25 @@ void MonoJetTreeWriter::Process()
     pdf2      = fMCEventInfo->Pdf2();
     processId = fMCEventInfo->ProcessId();
 
+    // the Z
     for (UInt_t i=0; i<fParticles->GetEntries(); ++i) {
-      if (fParticles->At(i)->Status()==3 and fParticles->At(i)->Is(MCParticle::kZ))
+      if (fParticles->At(i)->Status()==3 and fParticles->At(i)->Is(MCParticle::kZ)) 
 	fMitGPTree.genZ_ = fParticles->At(i)->Mom();
     }
+
+    // the muons
+    if(GenLeptons){
+      if(GenLeptons->GetEntries() >= 1) {
+	if (GenLeptons->At(0)->AbsPdgId()==13) fMitGPTree.genMuon1_ = GenLeptons->At(0)->Mom();
+      }
+      if(GenLeptons->GetEntries() >= 2) {
+	if (GenLeptons->At(1)->AbsPdgId()==13) fMitGPTree.genMuon2_ = GenLeptons->At(1)->Mom();
+      }
+    }
+  
+    // the gen met
+    fMitGPTree.genmet_ = GenMet->At(0)->Pt();
+    fMitGPTree.genmetPhi_ = GenMet->At(0)->Phi();
   }
 
   fMitGPTree.Q_ = Q;
@@ -377,12 +398,12 @@ void MonoJetTreeWriter::Process()
   const TriggerObject *trigObj1 = 0;
   const TriggerObject *trigObj2 = 0;
 
+  // for mvamet (?)
   PFJetOArr *pfJets = new PFJetOArr;
   pfJets->SetOwner(kTRUE);
   // pfJets->SetName(fPFJetsName);
-
-  for (UInt_t i=0; i<fJets->GetEntries(); ++i) {
-    const Jet *inJet = fJets->At(i);
+  for (UInt_t i=0; i<fRawJets->GetEntries(); ++i) {
+    const Jet *inJet = fRawJets->At(i);
 
     // copy input jet, using special function to a deep copy (and own it)
     Jet *jet = inJet->MakeCopy();
@@ -598,6 +619,8 @@ void MonoJetTreeWriter::Process()
   // Finally fill the tree
   fMitGPTree.tree_->Fill();
 
+  delete pfJets;
+
   return;
 }
 
@@ -623,6 +646,7 @@ void MonoJetTreeWriter::SlaveBegin()
   ReqEventObject(fTausName,          fPFTaus,        fTausFromBranch);
   ReqEventObject(fPFCandidatesName,  fPFCandidates,  fPFCandidatesFromBranch);
   ReqEventObject(fJetsName,          fJets,          fJetsFromBranch);
+  ReqEventObject(fRawJetsName,       fRawJets,       false);
   ReqEventObject(fRawMetName,        fRawMet,        true);
   ReqEventObject(fMetName,           fMet,           fMetFromBranch);
 
