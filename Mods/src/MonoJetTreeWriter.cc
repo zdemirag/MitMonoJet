@@ -155,6 +155,8 @@ void MonoJetTreeWriter::Process()
   const PFCandidateCol *fPFNoPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFNoPileUpName);    
   const PFCandidateCol *fPFPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFPileUpName);
 
+  fNEventsSelected++;
+
   // initialize the tree variables
   fMitGPTree.InitVariables();
 
