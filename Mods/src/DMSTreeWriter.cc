@@ -156,6 +156,7 @@ void DMSTreeWriter::Process()
     bool hasGoodMET = 0;
     bool hasGoodMHT = 0;
     bool hasGoodMuons = 0;
+    bool hasGoodPhotons = 0;
     for (UInt_t i=0;i<fTrigObj->GetEntries();++i) {
       const TriggerObject *to = fTrigObj->At(i);
       //to->Print(); 
@@ -167,10 +168,9 @@ void DMSTreeWriter::Process()
         hasGoodMET = true;
       if (to->TriggerType() == 90)
         hasGoodMHT = true;
+      if (to->TriggerType() == 81 && to->Pt() > 130)
+        hasGoodPhotons = true;
     }
-    // skip the event if not triggered by single mu
-    if (!hasGoodMuons)
-      return;
     // default MonoJet
     if (nGoodCntJets > 0 && hasGoodMHT)
       fMitDMSTree.trigger_ |= 1 << 0;
@@ -179,10 +179,13 @@ void DMSTreeWriter::Process()
     // default single muon
     if (hasGoodMuons)
       fMitDMSTree.trigger_ |= 1 << 2;
+    // default single photon
+    if (hasGoodPhotons)
+      fMitDMSTree.trigger_ |= 1 << 3;
   }
 
   // SELECTION: should follow preselection and possibly be more stringent
-  bool fApplyTopSel = kTRUE;
+  bool fApplyTopSel = kFALSE;
   if (fApplyTopSel) {
     
     // Require the first bit of the preselection word to be on
