@@ -96,7 +96,6 @@ void runFlatBoostedV(const char *fileset    = "0000",
   inputFile += TString(dataset);
   inputFile += TString("/") +  TString(outputName) + "_";
   inputFile += TString(dataset) + "_*_ntuple_*.root";  
-  //inputFile += TString(dataset) + "_noskim_0036_ntuple_*.root";  
   ana->AddFile(inputFile);
 
   TString inputPUFile = "/scratch4/dimatteo/cms/hist/" + TString(outputName) + "/merged/";
@@ -116,7 +115,6 @@ void runFlatBoostedV(const char *fileset    = "0000",
   // prepare the tree writer 
   //------------------------------------------------------------------------------------------------
   DMSTreeWriter *treeWriter = new DMSTreeWriter();
-  //treeWriter->SetIsData(kFALSE);
   treeWriter->SetIsData(isData);
   treeWriter->SetMetName("SkmPFMetT0T1Shift");
   treeWriter->SetMetMVAName("PFMetMVA");
