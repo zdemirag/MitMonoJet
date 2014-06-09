@@ -22,7 +22,8 @@ FillerXlJets::FillerXlJets(const char *name, const char *title) :
   fFillVSubJets (kTRUE),
   fFillTopSubJets (kFALSE),
   fBTaggingActive (kFALSE),
-  fQGTaggingActive (kFALSE),
+  fQGTaggingActive (kTRUE),
+  fQGTaggerCHS (kFALSE),
   fPublishOutput (kTRUE),
   fProcessNJets (2),
   fJetsName (Names::gkPFJetBrn),
@@ -31,6 +32,12 @@ FillerXlJets::FillerXlJets(const char *name, const char *title) :
   fPfCandidatesName (Names::gkPFCandidatesBrn),
   fPfCandidatesFromBranch(kTRUE),
   fPfCandidates (0),
+  fPileUpDenName(Names::gkPileupEnergyDensityBrn),
+  fPileUpDenFromBranch(kTRUE),
+  fPileUpDen(0),
+  fVertexesName (ModNames::gkGoodVertexesName),
+  fVertexesFromBranch(kFALSE),
+  fVertexes(0),
   fXlFatJetsName ("XlFatJets"),
   fXlSubJetsName ("XlSubJets"),
   fSoftDropZCut (0.1),     
@@ -65,11 +72,19 @@ void FillerXlJets::Process()
   
   // Load the branches we want to work with
   LoadEventObject(fJetsName,fJets,fJetsFromBranch);
+  if (fQGTaggingActive) {
+    LoadEventObject(fPileUpDenName,fPileUpDen,fPileUpDenFromBranch);
+    LoadEventObject(fVertexesName,fVertexes,fVertexesFromBranch);
+  }
 
   // Loop over PFCandidates and unmark them : necessary for skimming
   for (UInt_t i=0; i<fPfCandidates->GetEntries(); ++i) 
     fPfCandidates->At(i)->UnmarkMe();
  
+  // Setup pileup density for QG computation
+  if (fQGTaggingActive)
+    fQGTagger->SetRhoIso(fPileUpDen->At(0)->RhoRandomLowEta());
+  
   // Loop over jets
   for (UInt_t i=0; i<fJets->GetEntries(); ++i) {
 
@@ -98,10 +113,13 @@ void FillerXlJets::Process()
 //--------------------------------------------------------------------------------------------------
 void FillerXlJets::SlaveBegin()
 {
-  // Run startup code on the computer (slave) doing the actual analysis. Here, we just request the
-  // particle flow collection branch.
+  // Run startup code on the computer (slave) doing the actual analysis. 
   ReqEventObject(fJetsName,fJets,fJetsFromBranch);
   ReqEventObject(fPfCandidatesName,fPfCandidates,fPfCandidatesFromBranch);
+  ReqEventObject(fPileUpDenName,fPileUpDen,fPileUpDenFromBranch);
+  ReqEventObject(fVertexesName,fVertexes,fVertexesFromBranch);
+
+  // Initialize area caculation (done with ghost particles)
 
   // Create the new output collection
   fXlFatJets = new XlFatJetArr(16,fXlFatJetsName);
@@ -129,7 +147,10 @@ void FillerXlJets::SlaveBegin()
   double ghostArea = 0.01;
   double ghostEtaMax = 7.0;
   fActiveArea = new fastjet::GhostedAreaSpec(ghostEtaMax,activeAreaRepeats,ghostArea);
-  fAreaDefinition = new fastjet::AreaDefinition(fastjet::active_area_explicit_ghosts,*fActiveArea);
+  fAreaDefinition = new fastjet::AreaDefinition(fastjet::active_area_explicit_ghosts,*fActiveArea);  
+  
+  // Initialize QGTagger class
+  fQGTagger = new QGTagger(fQGTaggerCHS);
   
   return;
 }
@@ -142,7 +163,18 @@ void FillerXlJets::SlaveTerminate()
 //--------------------------------------------------------------------------------------------------
 void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
 {
+  // Prepare and store in an array a new FatJet 
+  XlFatJet *fatJet = fXlFatJets->Allocate();
+  new (fatJet) XlFatJet(*pPFJet);
   
+  // Prepare and store QG tagging info
+  float qgValue = -1.;
+  if (fQGTaggingActive) {
+    fQGTagger->CalculateVariables(pPFJet, fVertexes);
+    qgValue = fQGTagger->QGValue();
+  }
+  fatJet->SetQGTag(qgValue);
+    
   std::vector<fastjet::PseudoJet> fjParts;
   // Push all particle flow candidates of the input PFjet into fastjet particle collection
   for (UInt_t j=0; j<pPFJet->NPFCands(); ++j) {
@@ -210,11 +242,7 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   double MassTrimmed = ((*fTrimmer)(fjOutJets[0]).m());
     
   // ---- Fastjet is done ----
-      
-  // Prepare and store in an array a new FatJet 
-  XlFatJet *fatJet = fXlFatJets->Allocate();
-  new (fatJet) XlFatJet(*pPFJet);
-    
+          
   // Store the subjettiness values
   fatJet->SetTau1(tau1);
   fatJet->SetTau2(tau2);
