@@ -488,9 +488,9 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   // keep the skimmed collections for further usage
   //------------------------------------------------------------------------------------------------
-  SkimMod<PFCandidate> *skmPFCandidates = new SkimMod<PFCandidate>;
-  skmPFCandidates->SetBranchName(Names::gkPFCandidatesBrn);
-  skmPFCandidates->SetPublishArray(kTRUE);
+  //SkimMod<PFCandidate> *skmPFCandidates = new SkimMod<PFCandidate>;
+  //skmPFCandidates->SetBranchName(Names::gkPFCandidatesBrn);
+  //skmPFCandidates->SetPublishArray(kTRUE);
 
   SkimMod<Photon> *skmPhotons = new SkimMod<Photon>;
   skmPhotons->SetBranchName(photonCleaningMod->GetOutputName());
@@ -549,7 +549,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   outMod->Keep(Names::gkPileupEnergyDensityBrn);
   outMod->Keep("PFMet");
   outMod->AddNewBranch("XlEvtSelData");
-  outMod->AddNewBranch(TString("Skm") + Names::gkPFCandidatesBrn);
+  //outMod->AddNewBranch(TString("Skm") + Names::gkPFCandidatesBrn);
   outMod->AddNewBranch(TString("Skm") + photonCleaningMod->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + electronCleaning->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + muonId->GetOutputName());
@@ -588,8 +588,8 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   fatJetCleaning           ->Add(jetplusmet);
   jetplusmet               ->Add(extendedMetFiller);
   extendedMetFiller        ->Add(boostedJetsFiller);
-  boostedJetsFiller        ->Add(skmPFCandidates);
-  skmPFCandidates          ->Add(skmPhotons);
+  //boostedJetsFiller        ->Add(skmPFCandidates);
+  boostedJetsFiller        ->Add(skmPhotons);
   skmPhotons               ->Add(skmElectrons);
   skmElectrons             ->Add(skmMuons);
   skmMuons                 ->Add(skmTaus);

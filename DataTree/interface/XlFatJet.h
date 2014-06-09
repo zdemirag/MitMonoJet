@@ -22,7 +22,8 @@ namespace mithep
   class XlFatJet : public PFJet
   {
     public:
-      XlFatJet() : 
+      XlFatJet() :
+                fQGTag(0), 
                 fTau1(0), fTau2(0), fTau3(0),
                 fC2b0(0), fC2b0p2(0), fC2b0p5(0), fC2b1(0), fC2b2(0),
                 fQJetVol(0), 
@@ -30,6 +31,7 @@ namespace mithep
                 fMassPruned(0), fMassFiltered(0), fMassTrimmed(0) {}                 
       XlFatJet(Double_t px, Double_t py, Double_t pz, Double_t e) : 
                 PFJet(px,py,pz,e),
+                fQGTag(0), 
                 fTau1(0), fTau2(0), fTau3(0),
                 fC2b0(0), fC2b0p2(0), fC2b0p5(0), fC2b1(0), fC2b2(0),
                 fQJetVol(0), 
@@ -37,6 +39,7 @@ namespace mithep
                 fMassPruned(0), fMassFiltered(0), fMassTrimmed(0) {}                 
       XlFatJet(const PFJet & p) : 
                 PFJet(p),
+                fQGTag(0), 
                 fTau1(0), fTau2(0), fTau3(0),
                 fC2b0(0), fC2b0p2(0), fC2b0p5(0), fC2b1(0), fC2b2(0),
                 fQJetVol(0), 
@@ -47,6 +50,7 @@ namespace mithep
       Bool_t                HasSubJet(const XlSubJet *p)    const { return fSubJets.HasObject(p);  }
       Jet                  *MakeCopy()                      const { return new XlFatJet(*this);    }
       UInt_t                NSubJets()                      const { return fSubJets.Entries();     }
+      Double_t              QGTag()                         const { return fQGTag;                 } 
       Double_t              Tau1()                          const { return fTau1;                  }
       Double_t              Tau2()                          const { return fTau2;                  }
       Double_t              Tau3()                          const { return fTau3;                  }
@@ -64,6 +68,7 @@ namespace mithep
       Double_t              MassTrimmed()                   const { return fMassTrimmed;           }
 
       const XlSubJet       *SubJet(UInt_t i)                const { return fSubJets.At(i);         }
+      void                  SetQGTag(Double_t t)                  { fQGTag       = t;              } 
       void                  SetTau1(Double_t t)                   { fTau1        = t;              }
       void                  SetTau2(Double_t t)                   { fTau2        = t;              }
       void                  SetTau3(Double_t t)                   { fTau3        = t;              }
@@ -85,6 +90,7 @@ namespace mithep
 
     protected:
 
+      Double32_t            fQGTag;        //QG tagging
       Double32_t            fTau1;         //1-subjettiness
       Double32_t            fTau2;         //2-subjettiness
       Double32_t            fTau3;         //3-subjettiness
@@ -102,7 +108,7 @@ namespace mithep
       Double32_t            fMassTrimmed;  //Groomed mass (trimming)
       RefArray<XlSubJet>    fSubJets;      //sub jets in the jet
 
-    ClassDef(XlFatJet, 1) // XlFatJet class
+    ClassDef(XlFatJet, 2) // XlFatJet class
   };
 }
 

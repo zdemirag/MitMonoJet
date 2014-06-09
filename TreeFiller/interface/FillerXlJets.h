@@ -34,6 +34,9 @@
 #include "MitAna/DataTree/interface/JetCol.h"
 #include "MitAna/DataTree/interface/PFCandidateCol.h"
 #include "MitAna/DataTree/interface/PFJet.h"
+#include "MitAna/DataTree/interface/PileupEnergyDensityCol.h"
+#include "MitAna/DataTree/interface/VertexCol.h"
+#include "MitPhysics/Utils/interface/QGTagger.h"
 
 namespace mithep
 {
@@ -49,6 +52,7 @@ namespace mithep
       void FillTopSubJets(Bool_t b)        { fFillTopSubJets = b; }
       void SetBtaggingOn(Bool_t b)         { fBTaggingActive = b; }
       void SetfQGTaggingOn(Bool_t b)       { fQGTaggingActive = b;}
+      void SetQGTaggerCHS(bool b)          { fQGTaggerCHS = b;    }
       void PublishOutput(Bool_t b)         { fPublishOutput = b;  }
 
       void SetProcessNJets(UInt_t n)       { fProcessNJets = n;  } 
@@ -68,6 +72,7 @@ namespace mithep
       void SetTrimRad(double d)            { fTrimRad = d;        }
       void SetTrimPtFrac(double d)         { fTrimPtFrac = d;     }
       void SetConeSize(double d)           { fConeSize = d;       }
+
  
     protected:
       void Process();
@@ -90,6 +95,7 @@ namespace mithep
       Bool_t fFillTopSubJets;              //=true if top-subjets are stored (3-prom structure)
       Bool_t fBTaggingActive;              //=true if BTagging info is filled
       Bool_t fQGTaggingActive;             //=true if QGTagging info is filled
+      Bool_t fQGTaggerCHS;                 //=true if QGTagging weights are taken from CHS
       Bool_t fPublishOutput;               //=true if output collection are published
 
       UInt_t  fProcessNJets;               //number of input jets processed by fastjet
@@ -101,6 +107,14 @@ namespace mithep
       TString fPfCandidatesName;           //(i) name of PF candidates coll
       Bool_t fPfCandidatesFromBranch;      //are PF candidates from Branch?
       const PFCandidateCol *fPfCandidates; //particle flow candidates coll handle
+
+      TString fPileUpDenName;              //(i) name of PU energy density coll
+      Bool_t fPileUpDenFromBranch;         //is PU energy density from Branch?
+      const PileupEnergyDensityCol *fPileUpDen; //PU energy density coll handle
+
+      TString fVertexesName;               //(i) name of vertex coll
+      Bool_t fVertexesFromBranch;          //are vertexex from Branch?
+      const VertexCol *fVertexes;          //vertex coll handle
  
       TString fXlFatJetsName;              //name of output fXlFatJets collection
       XlFatJetArr *fXlFatJets;             //array of fXlFatJets
@@ -123,6 +137,9 @@ namespace mithep
       fastjet::JetDefinition *fCAJetDef;   //fastjet clustering definition
       fastjet::GhostedAreaSpec *fActiveArea;
       fastjet::AreaDefinition *fAreaDefinition;
+      
+      // QG tagger 
+      QGTagger *fQGTagger;                 //QGTagger calculator
       
       // Counters : used to initialize seed for QJets volatility
       Long64_t fCounter;
