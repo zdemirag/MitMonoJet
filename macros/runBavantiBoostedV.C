@@ -36,6 +36,7 @@
 #include "MitMonoJet/SelMods/interface/BoostedVAnalysisMod.h"
 #include "MitMonoJet/TreeFiller/interface/FillerXlJets.h"
 #include "MitMonoJet/TreeFiller/interface/FillerXlMet.h"
+#include "MitMonoJet/Mods/interface/SkimJetsMod.h"
 
 TString getCatalogDir(const char* dir);
 TString getJsonFile(const char* dir);
@@ -515,7 +516,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   skmTaus->SetColMarkFilter(kFALSE);
   skmTaus->SetPublishArray(kTRUE);
 
-  SkimMod<Jet> *skmJets = new SkimMod<Jet>;
+  SkimJetsMod *skmJets = new SkimJetsMod;
   skmJets->SetBranchName(jetCleaning->GetOutputName());
   skmJets->SetColFromBranch(kFALSE);
   skmJets->SetColMarkFilter(kFALSE);

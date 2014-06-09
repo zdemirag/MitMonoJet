@@ -4,6 +4,7 @@
 #include "MitMonoJet/Mods/interface/MonoJetTreeWriter.h"
 #include "MitMonoJet/Mods/interface/BoostedVTreeWriter.h"
 #include "MitMonoJet/Mods/interface/DMSTreeWriter.h"
+#include "MitMonoJet/Mods/interface/SkimJetsMod.h"
 #endif
 
 #ifdef __CINT__
@@ -19,4 +20,5 @@
 #pragma link C++ class mithep::MonoJetTreeWriter+;
 #pragma link C++ class mithep::BoostedVTreeWriter+;
 #pragma link C++ class mithep::DMSTreeWriter+;
+#pragma link C++ class mithep::SkimJetsMod+;
 #endif
