@@ -16,8 +16,8 @@ void basicBoostedVPlots(double lumi = 19600.0)
 
   // set the folder containing the input ntuples properly
   // here you can change the plot sources, these are the defaults
-  gSystem->Setenv("MIT_PROD_CFG","boostedv");
-  gSystem->Setenv("MIT_ANA_HIST","/scratch4/$USER/cms/hist/boostedv/merged");
+  gSystem->Setenv("MIT_PROD_CFG","boostedv-v3");
+  gSystem->Setenv("MIT_ANA_HIST","/scratch4/dimatteo/cms/hist/boostedv-v3/merged");
 
   // setup graphics stuff before starting
   MitStyle::Init();
