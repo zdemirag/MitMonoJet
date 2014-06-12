@@ -266,9 +266,9 @@ void DMSTreeWriter::Process()
   if (fFatJets->GetEntries() >= 1) {
     const XlFatJet *fjet = fFatJets->At(0);    
     fMitDMSTree.tjet_       = fjet->Mom();
-    fMitDMSTree.tjetCHF_    = fjet->ChargedHadronEnergy();
-    fMitDMSTree.tjetNHF_    = fjet->NeutralHadronEnergy();
-    fMitDMSTree.tjetNEMF_   = fjet->NeutralEmEnergy();
+    fMitDMSTree.tjetCHF_    = fjet->ChargedHadronEnergy()/fjet->RawMom().E();
+    fMitDMSTree.tjetNHF_    = fjet->NeutralHadronEnergy()/fjet->RawMom().E();
+    fMitDMSTree.tjetNEMF_   = fjet->NeutralEmEnergy()/fjet->RawMom().E();
     fMitDMSTree.tjetBtag_    = GetFatJetBtag(fMitDMSTree.tjet_, 0.5);
     fMitDMSTree.tjetQGtag_   = fjet->QGTag();
     fMitDMSTree.tjetTau1_    = fjet->Tau1();
