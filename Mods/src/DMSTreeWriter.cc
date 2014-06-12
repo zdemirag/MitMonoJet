@@ -38,6 +38,7 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   fPileUpDenName          (Names::gkPileupEnergyDensityBrn),
   fPileUpName             (Names::gkPileupInfoBrn),
   fMCEventInfoName        (Names::gkMCEvtInfoBrn),
+  fMCParticlesName        (Names::gkMCPartBrn),
   fTriggerObjectsName     ("MyHltPhotObjs"),
   fIsData                 (false),
   fMetFromBranch          (kTRUE),
@@ -65,6 +66,7 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   fPileUp                 (0),
   fPileUpDen              (0),
   fMCEventInfo            (0),
+  fMCParticles            (0),
   fEvtSelData             (0),
   fTrigObj                (0),
   fPUInputFileName        ("MyInputPUFile"),       
@@ -100,6 +102,7 @@ void DMSTreeWriter::Process()
   if (!fIsData) {
     LoadBranch(fPileUpName);
     LoadBranch(fMCEventInfoName);
+    LoadBranch(fMCParticlesName);
   }
   LoadEventObject(fTriggerObjectsName,fTrigObj,       true);
 
@@ -160,42 +163,32 @@ void DMSTreeWriter::Process()
     for (UInt_t i=0;i<fTrigObj->GetEntries();++i) {
       const TriggerObject *to = fTrigObj->At(i);
       //to->Print(); 
-      if (to->TriggerType() == 83 && to->Pt() > 24 && fabs(to->Eta()) < 2.1)
-        hasGoodMuons = true;
-      if (to->TriggerType() == 85 && to->Pt() > 80 && fabs(to->Eta()) < 2.4)
+      if (to->TriggerType() == TriggerObject::TriggerJet 
+       && to->Pt() > 80 && fabs(to->Eta()) < 2.4)
         nGoodCntJets++;
-      if (to->TriggerType() == 87)
-        hasGoodMET = true;
-      if (to->TriggerType() == 90)
+      if (to->TriggerType() == TriggerObject::TriggerMHT)
         hasGoodMHT = true;
-      if (to->TriggerType() == 81 && to->Pt() > 130)
+      if (to->TriggerType() == TriggerObject::TriggerMET)
+        hasGoodMET = true;
+      if (to->TriggerType() == TriggerObject::TriggerMuon 
+       && to->Pt() > 24 && fabs(to->Eta()) < 2.1)
+        hasGoodMuons = true;
+      if (to->TriggerType() == TriggerObject::TriggerPhoton
+       && to->Pt() > 130)
         hasGoodPhotons = true;
     }
     // default MonoJet
     if (nGoodCntJets > 0 && hasGoodMHT)
-      fMitDMSTree.trigger_ |= 1 << 0;
+      fMitDMSTree.trigger_ |= MitDMSTree::HLTJetMet;
     if (hasGoodMET)
-      fMitDMSTree.trigger_ |= 1 << 1;
+      fMitDMSTree.trigger_ |= MitDMSTree::HLTMet;
     // default single muon
     if (hasGoodMuons)
-      fMitDMSTree.trigger_ |= 1 << 2;
+      fMitDMSTree.trigger_ |= MitDMSTree::HLTMuon;
     // default single photon
     if (hasGoodPhotons)
-      fMitDMSTree.trigger_ |= 1 << 3;
+      fMitDMSTree.trigger_ |= MitDMSTree::HLTPhoton;
   }
-
-  // SELECTION: should follow preselection and possibly be more stringent
-  bool fApplyTopSel = kFALSE;
-  if (fApplyTopSel) {
-    
-    // Require the first bit of the preselection word to be on
-    bool theDecision = fMitDMSTree.preselWord_ & (1 << 0);
-    // skip events if not passing top preselection
-    if (!theDecision)
-      return;
-    
-  }
-
 
   // MET BASICS
 
@@ -240,6 +233,13 @@ void DMSTreeWriter::Process()
     fMitDMSTree.lep1_ = fElectrons->At(0)->Mom();
     fMitDMSTree.lid1_ = 13;
   }    
+  // Make Muon-HLT matching 
+  if (fMitDMSTree.nlep_ && fMitDMSTree.lid1_ == 13
+   && IsHLTMatched(fMitDMSTree.lep1_, 
+                   TriggerObject::TriggerMuon,
+                   0.3, 
+                   24., 2.1))
+    fMitDMSTree.HLTmatch_ |= MitDMSTree::MuonMatch;         
 
   // TAUS
 
@@ -254,13 +254,23 @@ void DMSTreeWriter::Process()
   if (fPhotons->GetEntries() >= 1) {
     const Photon *photon = fPhotons->At(0);
     fMitDMSTree.pho1_ = photon->Mom();
+    // Make Photon-HLT matching 
+    if (IsHLTMatched(fMitDMSTree.pho1_, 
+                     TriggerObject::TriggerPhoton,
+                     0.3, 
+                     130.))
+      fMitDMSTree.HLTmatch_ |= MitDMSTree::PhotonMatch;         
   }
 
   // FAT JET (select highest in pt)
   if (fFatJets->GetEntries() >= 1) {
     const XlFatJet *fjet = fFatJets->At(0);    
-    fMitDMSTree.tjet_        = fjet->Mom();
-    fMitDMSTree.tjetBtag_    = fjet->CombinedSecondaryVertexBJetTagsDisc();
+    fMitDMSTree.tjet_       = fjet->Mom();
+    fMitDMSTree.tjetCHF_    = fjet->ChargedHadronEnergy();
+    fMitDMSTree.tjetNHF_    = fjet->NeutralHadronEnergy();
+    fMitDMSTree.tjetNEMF_   = fjet->NeutralEmEnergy();
+    fMitDMSTree.tjetBtag_    = GetFatJetBtag(fMitDMSTree.tjet_, 0.5);
+    fMitDMSTree.tjetQGtag_   = fjet->QGTag();
     fMitDMSTree.tjetTau1_    = fjet->Tau1();
     fMitDMSTree.tjetTau2_    = fjet->Tau2();
     fMitDMSTree.tjetTau3_    = fjet->Tau3();
@@ -275,8 +285,17 @@ void DMSTreeWriter::Process()
     fMitDMSTree.tjetMassSDbm1_   = fjet->MassSDbm1();   
     fMitDMSTree.tjetMassPruned_  = fjet->MassPruned();  
     fMitDMSTree.tjetMassFiltered_= fjet->MassFiltered();
-    fMitDMSTree.tjetMassTrimmed_ = fjet->MassTrimmed();  
-    fMitDMSTree.tjetPartonId_= -1;
+    fMitDMSTree.tjetMassTrimmed_ = fjet->MassTrimmed();
+    if (!fIsData)  
+      fMitDMSTree.tjetPartonId_  = JetPartonMatch(fMitDMSTree.tjet_, 0.5);
+
+    // Make Jet-HLT matching 
+    if (IsHLTMatched(fMitDMSTree.tjet_, 
+                     TriggerObject::TriggerJet,
+                     0.5, 
+                     80., 2.4))
+      fMitDMSTree.HLTmatch_ |= MitDMSTree::JetMatch;         
+
   
     fMitDMSTree.nsjets_ = fjet->NSubJets();
     if (fMitDMSTree.nsjets_ >= 1) {
@@ -305,6 +324,14 @@ void DMSTreeWriter::Process()
     if (i == 3) {
       fMitDMSTree.jet3_        = jet->Mom();
       fMitDMSTree.jet3Btag_    = btag;
+    }
+    if (i == 4) {
+      fMitDMSTree.jet4_        = jet->Mom();
+      fMitDMSTree.jet4Btag_    = btag;
+    }
+    if (i == 5) {
+      fMitDMSTree.jet5_        = jet->Mom();
+      fMitDMSTree.jet5Btag_    = btag;
     }
   }
  
@@ -368,6 +395,7 @@ void DMSTreeWriter::SlaveBegin()
   if (! fIsData) {
     ReqBranch(fPileUpName,           fPileUp);
     ReqBranch(fMCEventInfoName,      fMCEventInfo);
+    ReqEventObject(fMCParticlesName, fMCParticles,   true);
   }
   ReqEventObject(fPileUpDenName,     fPileUpDen,     true);
   ReqEventObject(fPVName,            fPV,            fPVFromBranch);
@@ -449,7 +477,7 @@ void DMSTreeWriter::CorrectMet(const float met, const float metPhi,
 }
 
 //--------------------------------------------------------------------------------------------------
-float DMSTreeWriter::PUWeight(Float_t npu)
+Float_t DMSTreeWriter::PUWeight(Float_t npu)
 {
   if (npu<0)
     return 1.0;
@@ -457,4 +485,91 @@ float DMSTreeWriter::PUWeight(Float_t npu)
     return 1.0;
   
   return fPUWeight->GetBinContent(fPUWeight->FindFixBin(npu));
+}
+
+//--------------------------------------------------------------------------------------------------
+Bool_t DMSTreeWriter::IsHLTMatched(LorentzVector& v,
+                                   TriggerObject::ETriggerObject type,
+                                   Float_t deltaR,
+                                   Float_t minPt,
+                                   Float_t maxEta)
+{
+  float minDr = 999.;
+  
+  // Loop on the selected trigger object collection 
+  // and find a matched object
+  for (UInt_t i=0; i<fTrigObj->GetEntries(); ++i) {
+    const TriggerObject *to = fTrigObj->At(i);
+    if (to->TriggerType() != type)
+      continue; 
+    // check trigger object pt,eta
+    if (to->Pt() < minPt || fabs(to->Eta()) > maxEta)
+      continue; 
+    // compute the dR
+    float thisDr = MathUtils::DeltaR(v, *to);
+    if (thisDr < minDr) 
+      minDr = thisDr;
+    // check if user match condition is met
+    if (minDr < deltaR)
+      return true;
+  } // end loop on trigger objects
+
+  return false;
+}
+
+//--------------------------------------------------------------------------------------------------
+Int_t DMSTreeWriter::JetPartonMatch(LorentzVector& v,
+                                    Float_t deltaR)
+{
+  float minDr = 999.;
+  unsigned int pId = 0;
+      
+  // Loop on all stable MC particles and perform the matching
+  for (UInt_t i=0; i<fMCParticles->GetEntries(); ++i) {
+    const MCParticle *p = fMCParticles->At(i);
+    if (p->Status()!=3)
+      continue;
+    // compute the dR    
+    float thisDr = MathUtils::DeltaR(v, *p);
+    // standard check for any parton    
+    if (thisDr < minDr) {
+      minDr = thisDr;
+      pId = p->AbsPdgId();
+    }
+    // special check: if quark inside matching cone and mother is W/Z
+    // return the mother id
+    if (thisDr < deltaR && p->AbsPdgId() < 6 
+     && (p->Mother()->Is(MCParticle::kZ) || p->Mother()->Is(MCParticle::kW))) {
+      return p->Mother()->AbsPdgId();
+    }
+  }
+
+  // return matched parton only if minDr less that user dr limit
+  if (minDr < deltaR)
+    return pId;
+  else 
+    return 0;  
+}
+
+//--------------------------------------------------------------------------------------------------
+Float_t DMSTreeWriter::GetFatJetBtag(LorentzVector& v,
+                                     Float_t deltaR)
+{
+  float minDr = 999.;
+    
+  // Loop on standard jet collection, find the best matched jet 
+  // and get the btagging
+  for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
+    const Jet *jet = fJets->At(i);
+    // compute the dR
+    float thisDr = MathUtils::DeltaR(v, *jet);
+    if (thisDr < minDr) 
+      minDr = thisDr;
+    // if the fat jet is matched to standard jet return the btagging
+    // of the standard jet
+    if (minDr < deltaR)
+      return jet->CombinedSecondaryVertexBJetTagsDisc();  
+  }
+      
+  return -1;
 }
