@@ -23,6 +23,7 @@
 #include "MitAna/DataTree/interface/ElectronCol.h"
 #include "MitAna/DataTree/interface/MuonCol.h"
 #include "MitAna/DataTree/interface/PFTauCol.h"
+#include "MitAna/DataTree/interface/MCParticleCol.h"
 #include "MitAna/DataTree/interface/MetCol.h"
 #include "MitAna/DataTree/interface/PFMetCol.h"
 #include "MitAna/DataTree/interface/JetCol.h"
@@ -45,6 +46,8 @@ namespace mithep
   class DMSTreeWriter : public BaseMod
   {
   public:
+    typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LorentzVector;
+
     DMSTreeWriter(const char *name  = "DMSTreeWriter", 
                   const char *title = "DMS Tree writer");
     
@@ -108,6 +111,7 @@ namespace mithep
     TString                        fPileUpDenName;    
     TString                        fPileUpName;
     TString                        fMCEventInfoName;
+    TString                        fMCParticlesName;
     TString                        fTriggerObjectsName;
 			           
     Bool_t                         fIsData;
@@ -129,13 +133,14 @@ namespace mithep
     const ElectronCol             *fElectrons;
     const MuonCol                 *fMuons;
     const PFTauCol                *fPFTaus;
-    const JetCol                  *fJets;
+    const PFJetCol                *fJets;
     const XlFatJetCol             *fFatJets;
     const XlSubJetCol             *fSubJets;
     const VertexCol               *fPV;
     const PileupInfoCol           *fPileUp;    
     const PileupEnergyDensityCol  *fPileUpDen;
     const MCEventInfo             *fMCEventInfo;
+    const MCParticleCol           *fMCParticles;
     const XlEvtSelData            *fEvtSelData;
     const TriggerObjectCol        *fTrigObj;
 
@@ -145,8 +150,22 @@ namespace mithep
     TH1D                          *fPUInput;             // input PU histo
     TH1D                          *fPUTarget;            // target PU histo
     const TH1D                    *fPUWeight;            // target PU histo
-    float                          PUWeight(Float_t npu);// PU reweighting function
+    Float_t                        PUWeight(Float_t npu);// PU reweighting function
 
+    // Hlt Objects Matcher   
+    Bool_t                         IsHLTMatched(LorentzVector& v,
+                                                TriggerObject::ETriggerObject,
+                                                Float_t deltaR = 0.5,
+                                                Float_t minPt = 0.,
+                                                Float_t maxEta = 99.);
+    // Jet-Parton Id Matcher   
+    Int_t                          JetPartonMatch(LorentzVector& v,
+                                                  Float_t deltaR = 0.5);
+
+    // Get B-tag via FatJet-Standard Jet matching   
+    Float_t                        GetFatJetBtag(LorentzVector& v,
+                                                 Float_t deltaR = 0.3);
+                                                
     TFile                         *fOutputFile;
     MitDMSTree                     fMitDMSTree;
 

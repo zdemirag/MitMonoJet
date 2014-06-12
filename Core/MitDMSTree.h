@@ -17,12 +17,32 @@ class MitDMSTree {
   /// float doesn't have dictionary by default, so use double
   typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LorentzVector;
 
+  /// bit map
   /// DON'T CHANGE ORDER
-  enum Selection {
+  enum Trigger {
+    HLTJetMet   = 1UL<<0,    // event passes jet+met trigger
+    HLTMet      = 1UL<<1,    // event passes met trigger
+    HLTMuon     = 1UL<<2,    // event passes single muon trigger
+    HLTPhoton   = 1UL<<3     // event passes single photon trigger
+  };
+
+  /// bit map
+  /// DON'T CHANGE ORDER
+  enum HLTMatch {
+    JetMatch    = 1UL<<0,    // hardest jet is matched to HLT jet
+    MuonMatch   = 1UL<<1,    // hardest lepton is matched to HLT muon
+    PhotonMatch = 1UL<<2      // hardest photon is matched to HLT photon
+  };
+
+  /// bit map
+  /// DON'T CHANGE ORDER
+  enum Presel {
     Top      = 1UL<<0,    // event passes top preselection
     Wlep     = 1UL<<1,    // event passes W>lv preselection
     Zlep     = 1UL<<2,    // event passes Z>ll preselection
-    Net      = 1UL<<3     // event passes MET preselection
+    Met      = 1UL<<3,    // event passes MET preselection
+    Vbf      = 1UL<<4,    // event passes VBF preselection
+    Gjet     = 1UL<<5     // event passes G+jets preselection
   };
 
   /// variables
@@ -58,7 +78,11 @@ class MitDMSTree {
 
   // here comes the tag jet (can contain substructure)
   LorentzVector  tjet_;
+  float          tjetCHF_;  
+  float          tjetNHF_;  
+  float          tjetNEMF_; 
   float          tjetBtag_;
+  float          tjetQGtag_;
   float          tjetTau1_;
   float          tjetTau2_;
   float          tjetTau3_;
@@ -87,6 +111,10 @@ class MitDMSTree {
   float          jet2Btag_;
   LorentzVector  jet3_;
   float          jet3Btag_;
+  LorentzVector  jet4_;
+  float          jet4Btag_;
+  LorentzVector  jet5_;
+  float          jet5Btag_;
   unsigned int   nbjets_;
  
   float          Q_;
@@ -101,8 +129,8 @@ class MitDMSTree {
   float          npu_;
   float          npuPlusOne_;
   float          npuMinusOne_;
-  int            metFiltersWord_;
-  int            preselWord_;
+  unsigned int   metFiltersWord_;
+  unsigned int   preselWord_;
 
  public:
   /// this is the main element
@@ -118,7 +146,7 @@ class MitDMSTree {
     tauPtr1_(&tau1_),phoPtr1_(&pho1_),
     tjetPtr_(&tjet_),
     sjetPtr1_(&sjet1_),sjetPtr2_(&sjet2_),
-    jetPtr1_(&jet1_),jetPtr2_(&jet2_),jetPtr3_(&jet3_){}
+    jetPtr1_(&jet1_),jetPtr2_(&jet2_),jetPtr3_(&jet3_),jetPtr4_(&jet4_),jetPtr5_(&jet5_){}
   /// default destructor
   ~MitDMSTree(){
     if (f_) f_->Close();  
@@ -189,7 +217,11 @@ class MitDMSTree {
     tree_->Branch("pho1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &phoPtr1_);
 
     tree_->Branch("tjet"          , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &tjetPtr_);
+    tree_->Branch("tjetCHF"       , &tjetCHF_      ,   "tjetCHF/F");  
+    tree_->Branch("tjetNHF"       , &tjetNHF_      ,   "tjetNHF/F");  
+    tree_->Branch("tjetNEMF"      , &tjetNEMF_     ,   "tjetNEMF/F"); 
     tree_->Branch("tjetBtag"      , &tjetBtag_     ,   "tjetBtag/F");
+    tree_->Branch("tjetQGtag"     , &tjetQGtag_    ,   "tjetQGtag/F");
     tree_->Branch("tjetTau1"      , &tjetTau1_     ,   "tjetTau1/F");
     tree_->Branch("tjetTau2"      , &tjetTau2_     ,   "tjetTau2/F");
     tree_->Branch("tjetTau3"      , &tjetTau3_     ,   "tjetTau3/F");
@@ -218,6 +250,10 @@ class MitDMSTree {
     tree_->Branch("jet2Btag"      , &jet2Btag_      ,   "jet2Btag/F");
     tree_->Branch("jet3"          , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr3_);
     tree_->Branch("jet3Btag"      , &jet3Btag_      ,   "jet3Btag/F");
+    tree_->Branch("jet4"          , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr4_);
+    tree_->Branch("jet4Btag"      , &jet4Btag_      ,   "jet4Btag/F");
+    tree_->Branch("jet5"          , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr5_);
+    tree_->Branch("jet5Btag"      , &jet5Btag_      ,   "jet5Btag/F");
     tree_->Branch("nbjets"        , &nbjets_        ,   "nbjets/i");
 
     tree_->Branch("Q",             &Q_	  ,     "Q/F");
@@ -279,7 +315,11 @@ class MitDMSTree {
     tree_->SetBranchAddress("pho1"                      , &phoPtr1_);
 
     tree_->SetBranchAddress("tjet"          , &tjetPtr_       );
+    tree_->SetBranchAddress("tjetCHF"       , &tjetCHF_       );  
+    tree_->SetBranchAddress("tjetNHF"       , &tjetNHF_       );  
+    tree_->SetBranchAddress("tjetNEMF"      , &tjetNEMF_      ); 
     tree_->SetBranchAddress("tjetBtag"      , &tjetBtag_      );
+    tree_->SetBranchAddress("tjetQGtag"     , &tjetQGtag_     );
     tree_->SetBranchAddress("tjetTau1"      , &tjetTau1_      );
     tree_->SetBranchAddress("tjetTau2"      , &tjetTau2_      );
     tree_->SetBranchAddress("tjetTau3"      , &tjetTau3_      );
@@ -308,6 +348,10 @@ class MitDMSTree {
     tree_->SetBranchAddress("jet2Btag"      , &jet2Btag_      );
     tree_->SetBranchAddress("jet3"          , &jetPtr3_       );
     tree_->SetBranchAddress("jet3Btag"      , &jet3Btag_      );
+    tree_->SetBranchAddress("jet4"          , &jetPtr4_       );
+    tree_->SetBranchAddress("jet4Btag"      , &jet4Btag_      );
+    tree_->SetBranchAddress("jet5"          , &jetPtr5_       );
+    tree_->SetBranchAddress("jet5Btag"      , &jet5Btag_      );
     tree_->SetBranchAddress("nbjets"        , &nbjets_        );
 
     tree_->SetBranchAddress("Q"             ,	&Q_             );
@@ -341,6 +385,8 @@ class MitDMSTree {
   LorentzVector* jetPtr1_;
   LorentzVector* jetPtr2_;
   LorentzVector* jetPtr3_;
+  LorentzVector* jetPtr4_;
+  LorentzVector* jetPtr5_;
 }; 
 
 inline void 
@@ -377,7 +423,11 @@ MitDMSTree::InitVariables(){
   pho1_       	 = LorentzVector();
 
   tjet_          = LorentzVector();
+  tjetCHF_       = -999.;
+  tjetNHF_       = -999.;
+  tjetNEMF_      = -999.;
   tjetBtag_      = -999.;
+  tjetQGtag_     = -999.;
   tjetTau1_      = -999.;
   tjetTau2_      = -999.;
   tjetTau3_      = -999.;
@@ -406,6 +456,10 @@ MitDMSTree::InitVariables(){
   jet2Btag_      = 0;
   jet3_          = LorentzVector();
   jet3Btag_      = 0; 
+  jet4_          = LorentzVector();
+  jet4Btag_      = 0; 
+  jet5_          = LorentzVector();
+  jet5Btag_      = 0; 
   nbjets_        = 0; 
   
   Q_		         = -999.;
@@ -420,8 +474,8 @@ MitDMSTree::InitVariables(){
   npu_           = -999.;
   npuPlusOne_    = -999.;
   npuMinusOne_   = -999.;
-  metFiltersWord_= -1.;  
-  preselWord_    = -1.;  
+  metFiltersWord_= 0;  
+  preselWord_    = 0;  
 }
 
 #endif
