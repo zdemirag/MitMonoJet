@@ -262,78 +262,122 @@ void DMSTreeWriter::Process()
       fMitDMSTree.HLTmatch_ |= MitDMSTree::PhotonMatch;         
   }
 
-  // FAT JET (select highest in pt)
-  if (fFatJets->GetEntries() >= 1) {
-    const XlFatJet *fjet = fFatJets->At(0);    
-    fMitDMSTree.tjet_       = fjet->Mom();
-    fMitDMSTree.tjetCHF_    = fjet->ChargedHadronEnergy()/fjet->RawMom().E();
-    fMitDMSTree.tjetNHF_    = fjet->NeutralHadronEnergy()/fjet->RawMom().E();
-    fMitDMSTree.tjetNEMF_   = fjet->NeutralEmEnergy()/fjet->RawMom().E();
-    fMitDMSTree.tjetBtag_    = GetFatJetBtag(fMitDMSTree.tjet_, 0.5);
-    fMitDMSTree.tjetQGtag_   = fjet->QGTag();
-    fMitDMSTree.tjetTau1_    = fjet->Tau1();
-    fMitDMSTree.tjetTau2_    = fjet->Tau2();
-    fMitDMSTree.tjetTau3_    = fjet->Tau3();
-    fMitDMSTree.tjetC2b0_    = fjet->C2b0();
-    fMitDMSTree.tjetC2b0p2_      = fjet->C2b0p2();      
-    fMitDMSTree.tjetC2b0p5_      = fjet->C2b0p5();      
-    fMitDMSTree.tjetC2b1_        = fjet->C2b1();        
-    fMitDMSTree.tjetC2b2_        = fjet->C2b2();        
-    fMitDMSTree.tjetQJetVol_     = fjet->QJetVol();     
-    fMitDMSTree.tjetMassSDb0_    = fjet->MassSDb0();    
-    fMitDMSTree.tjetMassSDb2_    = fjet->MassSDb2();    
-    fMitDMSTree.tjetMassSDbm1_   = fjet->MassSDbm1();   
-    fMitDMSTree.tjetMassPruned_  = fjet->MassPruned();  
-    fMitDMSTree.tjetMassFiltered_= fjet->MassFiltered();
-    fMitDMSTree.tjetMassTrimmed_ = fjet->MassTrimmed();
-    if (!fIsData)  
-      fMitDMSTree.tjetPartonId_  = JetPartonMatch(fMitDMSTree.tjet_, 0.5);
+  // FAT JETS
+  fMitDMSTree.nfjets_ = fFatJets->GetEntries();
+  for (UInt_t i = 0; i < fFatJets->GetEntries(); ++i) {
 
-    // Make Jet-HLT matching 
-    if (IsHLTMatched(fMitDMSTree.tjet_, 
-                     TriggerObject::TriggerJet,
-                     0.5, 
-                     80., 2.4))
-      fMitDMSTree.HLTmatch_ |= MitDMSTree::JetMatch;         
+    if (i == 0) {
+      const XlFatJet *fjet = fFatJets->At(i);    
+      fMitDMSTree.fjet1_       = fjet->Mom();
+      fMitDMSTree.fjet1CHF_    = fjet->ChargedHadronEnergy()/fjet->RawMom().E();
+      fMitDMSTree.fjet1NHF_    = fjet->NeutralHadronEnergy()/fjet->RawMom().E();
+      fMitDMSTree.fjet1NEMF_   = fjet->NeutralEmEnergy()/fjet->RawMom().E();
+      fMitDMSTree.fjet1Btag_    = GetFatJetBtag(fMitDMSTree.fjet1_, 0.5);
+      fMitDMSTree.fjet1QGtag_   = fjet->QGTag();
+      fMitDMSTree.fjet1Tau1_    = fjet->Tau1();
+      fMitDMSTree.fjet1Tau2_    = fjet->Tau2();
+      fMitDMSTree.fjet1Tau3_    = fjet->Tau3();
+      fMitDMSTree.fjet1C2b0_    = fjet->C2b0();
+      fMitDMSTree.fjet1C2b0p2_      = fjet->C2b0p2();      
+      fMitDMSTree.fjet1C2b0p5_      = fjet->C2b0p5();      
+      fMitDMSTree.fjet1C2b1_        = fjet->C2b1();        
+      fMitDMSTree.fjet1C2b2_        = fjet->C2b2();        
+      fMitDMSTree.fjet1QJetVol_     = fjet->QJetVol();     
+      fMitDMSTree.fjet1MassSDb0_    = fjet->MassSDb0();    
+      fMitDMSTree.fjet1MassSDb2_    = fjet->MassSDb2();    
+      fMitDMSTree.fjet1MassSDbm1_   = fjet->MassSDbm1();   
+      fMitDMSTree.fjet1MassPruned_  = fjet->MassPruned();  
+      fMitDMSTree.fjet1MassFiltered_= fjet->MassFiltered();
+      fMitDMSTree.fjet1MassTrimmed_ = fjet->MassTrimmed();
+      if (!fIsData)  
+        fMitDMSTree.fjet1PartonId_  = JetPartonMatch(fMitDMSTree.fjet1_, 0.5);  
+    
+      fMitDMSTree.nsjets_ = fjet->NSubJets();
+      if (fMitDMSTree.nsjets_ >= 1) {
+        fMitDMSTree.sjet1_        = fjet->SubJet(0)->Mom();
+        fMitDMSTree.sjet2_        = fjet->SubJet(1)->Mom();
+      }
+    }// end filling of first fat jet
 
+    if (i == 1) {
+      const XlFatJet *fjet = fFatJets->At(i);    
+      fMitDMSTree.fjet2_       = fjet->Mom();
+      fMitDMSTree.fjet2CHF_    = fjet->ChargedHadronEnergy()/fjet->RawMom().E();
+      fMitDMSTree.fjet2NHF_    = fjet->NeutralHadronEnergy()/fjet->RawMom().E();
+      fMitDMSTree.fjet2NEMF_   = fjet->NeutralEmEnergy()/fjet->RawMom().E();
+      fMitDMSTree.fjet2Btag_    = GetFatJetBtag(fMitDMSTree.fjet2_, 0.5);
+      fMitDMSTree.fjet2QGtag_   = fjet->QGTag();
+      fMitDMSTree.fjet2Tau1_    = fjet->Tau1();
+      fMitDMSTree.fjet2Tau2_    = fjet->Tau2();
+      fMitDMSTree.fjet2Tau3_    = fjet->Tau3();
+      fMitDMSTree.fjet2C2b0_    = fjet->C2b0();
+      fMitDMSTree.fjet2C2b0p2_      = fjet->C2b0p2();      
+      fMitDMSTree.fjet2C2b0p5_      = fjet->C2b0p5();      
+      fMitDMSTree.fjet2C2b1_        = fjet->C2b1();        
+      fMitDMSTree.fjet2C2b2_        = fjet->C2b2();        
+      fMitDMSTree.fjet2QJetVol_     = fjet->QJetVol();     
+      fMitDMSTree.fjet2MassSDb0_    = fjet->MassSDb0();    
+      fMitDMSTree.fjet2MassSDb2_    = fjet->MassSDb2();    
+      fMitDMSTree.fjet2MassSDbm1_   = fjet->MassSDbm1();   
+      fMitDMSTree.fjet2MassPruned_  = fjet->MassPruned();  
+      fMitDMSTree.fjet2MassFiltered_= fjet->MassFiltered();
+      fMitDMSTree.fjet2MassTrimmed_ = fjet->MassTrimmed();
+      if (!fIsData)  
+        fMitDMSTree.fjet2PartonId_  = JetPartonMatch(fMitDMSTree.fjet2_, 0.5);
   
-    fMitDMSTree.nsjets_ = fjet->NSubJets();
-    if (fMitDMSTree.nsjets_ >= 1) {
-      fMitDMSTree.sjet1_        = fjet->SubJet(0)->Mom();
-      fMitDMSTree.sjet2_        = fjet->SubJet(1)->Mom();
-    }
+    }// end filling of second fat jet
+
   }
   
-  // JETS : careful since the hardest overlaps with the tag jet
+  // JETS : careful since the hardest could overlap with the fat jets
   fMitDMSTree.njets_ = fJets->GetEntries();
+  for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
+    const Jet *jet = fJets->At(i);
+
+    if (i == 0) {
+      fMitDMSTree.jet1_        = jet->Mom();
+      // Make Jet-HLT matching: this is used for preselection
+      if (IsHLTMatched(fMitDMSTree.jet1_, 
+                       TriggerObject::TriggerJet,
+                       0.5, 
+                       80., 2.4))
+        fMitDMSTree.HLTmatch_ |= MitDMSTree::JetMatch;         
+    }
+    if (i == 1)
+      fMitDMSTree.jet2_        = jet->Mom();
+    if (i == 2)
+      fMitDMSTree.jet3_        = jet->Mom();
+    if (i == 3)
+      fMitDMSTree.jet4_        = jet->Mom();
+    if (i == 4)
+      fMitDMSTree.jet5_        = jet->Mom();
+  }
+
+  // B-JETS : careful since the hardest could overlap with the fat jets
   fMitDMSTree.nbjets_ = 0;
   for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
     const Jet *jet = fJets->At(i);
+    
+    // Check that the jet is b-tagged
     float btag = jet->CombinedSecondaryVertexBJetTagsDisc();  
-    if (btag > 0.244)
-      fMitDMSTree.nbjets_ ++;
+    if (btag < 0.244)
+      continue;
 
-    if (i == 1) {
-      fMitDMSTree.jet1_        = jet->Mom();
-      fMitDMSTree.jet1Btag_    = btag;
+    // Fill the information for the two hardest b-jets
+    if (fMitDMSTree.nbjets_ == 0) {
+      fMitDMSTree.bjet1_        = jet->Mom();
+      fMitDMSTree.bjet1Btag_    = btag;
     }
-    if (i == 2) {
-      fMitDMSTree.jet2_        = jet->Mom();
-      fMitDMSTree.jet2Btag_    = btag;
-    }
-    if (i == 3) {
-      fMitDMSTree.jet3_        = jet->Mom();
-      fMitDMSTree.jet3Btag_    = btag;
-    }
-    if (i == 4) {
-      fMitDMSTree.jet4_        = jet->Mom();
-      fMitDMSTree.jet4Btag_    = btag;
-    }
-    if (i == 5) {
-      fMitDMSTree.jet5_        = jet->Mom();
-      fMitDMSTree.jet5Btag_    = btag;
-    }
+    if (fMitDMSTree.nbjets_ == 1) {
+      fMitDMSTree.bjet2_        = jet->Mom();
+      fMitDMSTree.bjet2Btag_    = btag;
+    }  
+
+    // Increment the b-jet counter
+    fMitDMSTree.nbjets_ ++;
+
   }
+
  
   // MC INFORMATION
 
