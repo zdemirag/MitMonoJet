@@ -152,6 +152,8 @@ namespace mithep
     const TH1D                    *fPUWeight;            // target PU histo
     Float_t                        PUWeight(Float_t npu);// PU reweighting function
 
+    // Gen Level Info Analysis   
+    void                           getGenLevelInfo(MitDMSTree& tree);
     // Hlt Objects Matcher   
     Bool_t                         IsHLTMatched(LorentzVector& v,
                                                 TriggerObject::ETriggerObject,
