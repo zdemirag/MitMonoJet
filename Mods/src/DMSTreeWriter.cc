@@ -381,7 +381,6 @@ void DMSTreeWriter::Process()
 
  
   // MC INFORMATION
-  getGenLevelInfo(fMitDMSTree);
 
   Double_t Q = 0.0;
   Int_t    id1 = 0;
@@ -392,6 +391,8 @@ void DMSTreeWriter::Process()
   Double_t pdf2 = 0.0;
   Int_t    processId = 0;
   if (! fIsData) {
+    getGenLevelInfo(fMitDMSTree);
+
     Q         = fMCEventInfo->Scale();
     id1       = fMCEventInfo->Id1();
     x1        = fMCEventInfo->X1();
