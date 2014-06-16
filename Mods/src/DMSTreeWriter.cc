@@ -207,6 +207,7 @@ void DMSTreeWriter::Process()
 
   fMitDMSTree.nlep_ = fMuons->GetEntries() + fElectrons->GetEntries();
   if (fMuons->GetEntries() > 1) {
+    //mu mu
     fMitDMSTree.lep1_ = fMuons->At(0)->Mom();
     fMitDMSTree.lid1_ = 13;
     fMitDMSTree.lep2_ = fMuons->At(1)->Mom();
@@ -229,7 +230,7 @@ void DMSTreeWriter::Process()
     fMitDMSTree.lid2_ = 13;
   }
   else if (fElectrons->GetEntries() > 0) {
-    //e e
+    //e
     fMitDMSTree.lep1_ = fElectrons->At(0)->Mom();
     fMitDMSTree.lid1_ = 13;
   }    
@@ -390,6 +391,8 @@ void DMSTreeWriter::Process()
   Double_t pdf2 = 0.0;
   Int_t    processId = 0;
   if (! fIsData) {
+    getGenLevelInfo(fMitDMSTree);
+
     Q         = fMCEventInfo->Scale();
     id1       = fMCEventInfo->Id1();
     x1        = fMCEventInfo->X1();
@@ -531,6 +534,28 @@ Float_t DMSTreeWriter::PUWeight(Float_t npu)
   return fPUWeight->GetBinContent(fPUWeight->FindFixBin(npu));
 }
 
+//--------------------------------------------------------------------------------------------------
+void DMSTreeWriter::getGenLevelInfo(MitDMSTree& tree)
+{
+  // Loop on all stable MC particles
+  for (UInt_t i=0; i<fMCParticles->GetEntries(); ++i) {
+    const MCParticle *p = fMCParticles->At(i);
+    if (p->Status()!=3)
+      continue;
+    
+    // Check if the particle is a Boson
+    if (p->Is(MCParticle::kZ) || p->Is(MCParticle::kW)) {
+      tree.genV_   = p->Mom();      
+      tree.genVid_ = p->AbsPdgId();      
+
+      // Check the daughters of the Boson
+      if (p->NDaughters() > 0)
+        tree.genVdaughterId_ = p->Daughter(0)->AbsPdgId();
+     return; 
+    } 
+  } // end loop on MC Particles
+}
+ 
 //--------------------------------------------------------------------------------------------------
 Bool_t DMSTreeWriter::IsHLTMatched(LorentzVector& v,
                                    TriggerObject::ETriggerObject type,

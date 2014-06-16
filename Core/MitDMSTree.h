@@ -141,6 +141,10 @@ class MitDMSTree {
   LorentzVector  bjet2_;
   float          bjet2Btag_;
  
+  LorentzVector  genV_;
+  unsigned int   genVid_;
+  unsigned int   genVdaughterId_;
+ 
   float          Q_;
   float          id1_;
   float          x1_;
@@ -171,7 +175,8 @@ class MitDMSTree {
     fjet1Ptr_(&fjet1_),fjet2Ptr_(&fjet2_),
     sjetPtr1_(&sjet1_),sjetPtr2_(&sjet2_),
     jetPtr1_(&jet1_),jetPtr2_(&jet2_),jetPtr3_(&jet3_),jetPtr4_(&jet4_),jetPtr5_(&jet5_),
-    bjetPtr1_(&bjet1_),bjetPtr2_(&bjet2_){}
+    bjetPtr1_(&bjet1_),bjetPtr2_(&bjet2_),
+    genVPtr_(&genV_) {}
   /// default destructor
   ~MitDMSTree(){
     if (f_) f_->Close();  
@@ -304,20 +309,24 @@ class MitDMSTree {
     tree_->Branch("bjet2", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &bjetPtr2_);
     tree_->Branch("bjet2Btag", &bjet2Btag_, "bjet2Btag/F");
 
-    tree_->Branch("Q",             &Q_	  ,     "Q/F");
-    tree_->Branch("id1",           &id1_  ,     "id1/F");
-    tree_->Branch("x1",            &x1_	  ,     "x1/F");
-    tree_->Branch("pdf1",          &pdf1_ ,     "pdf1/F");
-    tree_->Branch("id2",           &id2_  ,     "id2/F");
-    tree_->Branch("x2",            &x2_	  ,     "x2/F");
-    tree_->Branch("pdf2",          &pdf2_ ,     "pdf2/F");
-    tree_->Branch("processId",     &processId_  , "processId/I");
-    tree_->Branch("puweight",      &puweight_   , "puweight/F");
-    tree_->Branch("npu",           &npu_        , "npu/F");
-    tree_->Branch("npuPlusOne",    &npuPlusOne_ , "npuPlusOne/F");
-    tree_->Branch("npuMinusOne",   &npuMinusOne_, "npuMinusOne/F");
-    tree_->Branch("metFiltersWord",&metFiltersWord_, "metFiltersWord/I");
-    tree_->Branch("preselWord",    &preselWord_, "preselWord/I");
+    tree_->Branch("genV", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genVPtr_);
+    tree_->Branch("genVid",            &genVid_,             "genVid/i");
+    tree_->Branch("genVdaughterId",    &genVdaughterId_,     "genVdaughterId/i");
+
+    tree_->Branch("Q",              &Q_	  ,     "Q/F");
+    tree_->Branch("id1",            &id1_  ,     "id1/F");
+    tree_->Branch("x1",             &x1_	  ,     "x1/F");
+    tree_->Branch("pdf1",           &pdf1_ ,     "pdf1/F");
+    tree_->Branch("id2",            &id2_  ,     "id2/F");
+    tree_->Branch("x2",             &x2_	  ,     "x2/F");
+    tree_->Branch("pdf2",           &pdf2_ ,     "pdf2/F");
+    tree_->Branch("processId",      &processId_  , "processId/I");
+    tree_->Branch("puweight",       &puweight_   , "puweight/F");
+    tree_->Branch("npu",            &npu_        , "npu/F");
+    tree_->Branch("npuPlusOne",     &npuPlusOne_ , "npuPlusOne/F");
+    tree_->Branch("npuMinusOne",    &npuMinusOne_, "npuMinusOne/F");
+    tree_->Branch("metFiltersWord", &metFiltersWord_, "metFiltersWord/I");
+    tree_->Branch("preselWord",     &preselWord_, "preselWord/I");
 
   }
 
@@ -425,6 +434,10 @@ class MitDMSTree {
     tree_->SetBranchAddress("bjet2"            , &bjetPtr2_         );
     tree_->SetBranchAddress("bjet2Btag"        , &bjet2Btag_        );
 
+    tree_->SetBranchAddress("genV"             , &genVPtr_          );
+    tree_->SetBranchAddress("genVid "          , &genVid_           );
+    tree_->SetBranchAddress("genVdaughterId"   , &genVdaughterId_   );
+
     tree_->SetBranchAddress("Q"             ,	&Q_             );
     tree_->SetBranchAddress("id1"           ,	&id1_           );
     tree_->SetBranchAddress("x1"            ,	&x1_            );
@@ -463,6 +476,8 @@ class MitDMSTree {
 
   LorentzVector* bjetPtr1_;
   LorentzVector* bjetPtr2_;
+
+  LorentzVector* genVPtr_;
 }; 
 
 inline void 
@@ -556,10 +571,14 @@ MitDMSTree::InitVariables(){
   jet5_          = LorentzVector();
 
   nbjets_        = 0; 
-  bjet1_          = LorentzVector();
-  bjet1Btag_      = 0;
-  bjet2_          = LorentzVector();
-  bjet2Btag_      = 0;
+  bjet1_         = LorentzVector();
+  bjet1Btag_     = 0;
+  bjet2_         = LorentzVector();
+  bjet2Btag_     = 0;
+
+  genV_          = LorentzVector();
+  genVid_        = 0;
+  genVdaughterId_= 0;
   
   Q_		         = -999.;
   id1_  	       = -999.;
