@@ -551,9 +551,20 @@ void DMSTreeWriter::getGenLevelInfo(MitDMSTree& tree)
       // Check the daughters of the Boson
       if (p->NDaughters() > 0)
         tree.genVdaughterId_ = p->Daughter(0)->AbsPdgId();
-     return; 
-    } 
+        
+      // Special case: top->Wb. Check if the mother is a top
+      if (p->Mother()->Is(MCParticle::kTop)) {
+        if (p->Mother()->PdgId()==6)      
+          tree.topPt_    = p->Pt();
+        else 
+          tree.topBarPt_ = p->Pt();
+      } // end top scope
+      
+    } // end boson scope 
+    
   } // end loop on MC Particles
+
+  return;
 }
  
 //--------------------------------------------------------------------------------------------------
