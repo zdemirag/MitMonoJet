@@ -315,7 +315,7 @@ class MitDMSTree {
     tree_->Branch("genVid",            &genVid_,             "genVid/i");
     tree_->Branch("genVdaughterId",    &genVdaughterId_,     "genVdaughterId/i");
     tree_->Branch("topPt",             &topPt_    ,          "topPt/F");
-    tree_->Branch("topBarPt",          &topBarPt_	,          "topBarPt/F");
+    tree_->Branch("topBarPt",          &topBarPt_ ,          "topBarPt/F");
 
     tree_->Branch("Q",              &Q_	  ,     "Q/F");
     tree_->Branch("id1",            &id1_  ,     "id1/F");
