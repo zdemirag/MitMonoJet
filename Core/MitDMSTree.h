@@ -314,7 +314,7 @@ class MitDMSTree {
     tree_->Branch("genV", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genVPtr_);
     tree_->Branch("genVid",            &genVid_,             "genVid/i");
     tree_->Branch("genVdaughterId",    &genVdaughterId_,     "genVdaughterId/i");
-    tree_->Branch("topPt",             &topPt_	  ,          "topPt/F");
+    tree_->Branch("topPt",             &topPt_    ,          "topPt/F");
     tree_->Branch("topBarPt",          &topBarPt_	,          "topBarPt/F");
 
     tree_->Branch("Q",              &Q_	  ,     "Q/F");
@@ -441,8 +441,8 @@ class MitDMSTree {
     tree_->SetBranchAddress("genV"             , &genVPtr_          );
     tree_->SetBranchAddress("genVid "          , &genVid_           );
     tree_->SetBranchAddress("genVdaughterId"   , &genVdaughterId_   );
-    tree_->SetBranchAddress("topPt"            , &topPt_	          );
-    tree_->SetBranchAddress("topBarPt"         , &topBarPt_	        );
+    tree_->SetBranchAddress("topPt"            , &topPt_            );
+    tree_->SetBranchAddress("topBarPt"         , &topBarPt_         );
 
     tree_->SetBranchAddress("Q"             ,	&Q_             );
     tree_->SetBranchAddress("id1"           ,	&id1_           );
