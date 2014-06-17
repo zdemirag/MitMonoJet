@@ -194,8 +194,8 @@ class MitDMSTree {
     // type = -1 (default) if a minimum set of variables was added with tree as name
     f_ = TFile::Open(file);
     assert(f_);
-    if     (type == 0) tree_ = dynamic_cast<TTree*>(f_->Get("DMSTree"));
-    else	             tree_ = dynamic_cast<TTree*>(f_->Get("tree"));
+    if     (type == 0) tree_ = dynamic_cast<TTree*>(f_->FindObjectAny("DMSTree"));
+    else               tree_ = dynamic_cast<TTree*>(f_->FindObjectAny("tree"));
     assert(tree_);
   }
 
@@ -203,7 +203,7 @@ class MitDMSTree {
   void LoadTree(const char* file, const char* treeName){
     f_ = TFile::Open(file);
     assert(f_);
-    tree_ = dynamic_cast<TTree*>(f_->Get(treeName));
+    tree_ = dynamic_cast<TTree*>(f_->FindObjectAny(treeName));
     assert(tree_);
   }
 
