@@ -20,6 +20,10 @@ t2mit/filefi/032 s12-pj1400_1800-v7a             noskim         ~               
 t2mit/filefi/032 s12-pj1800-v7a                  noskim         ~                               0.000001867 1.0    -1.0    ~
 #
 t2mit/filefi/032 s12-wjets-ptw100-v7c            noskim         W+Jets                          221.3       1.0    -1.0    ~
+t2mit/filefi/032 s12-wjets-1-v7a                 noskim         ~                               6601.5      1.0    -1.0    ~
+t2mit/filefi/032 s12-wjets-2-v7a                 noskim         ~                               2110.3      1.0    -1.0    ~
+t2mit/filefi/032 s12-wjets-3-v7a                 noskim         ~                               633.6       1.0    -1.0    ~
+t2mit/filefi/032 s12-wjets-4-v7a                 noskim         ~                               214.6       1.0    -1.0    ~
 t2mit/filefi/032 s12-zjets-ptz70-100-v7c         noskim         Z+Jets                          40.00       1.0    -1.0    ~
 t2mit/filefi/032 s12-zjets-ptz100-v7a            noskim         ~                               21.44       1.0    -1.0    ~
 t2mit/filefi/032 s12-zll-ptz70-100-v7c           noskim         Z->ll                           40.00       1.0    -1.0    ~
