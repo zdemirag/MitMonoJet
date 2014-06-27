@@ -44,11 +44,11 @@ TString getJsonFile(const char* dir);
 //--------------------------------------------------------------------------------------------------
 void runBavantiBoostedV(const char *fileset    = "0000",
                         const char *skim       = "noskim",
-                        const char *dataset    = "s12-pj300_470-v7a",     
+                        const char *dataset    = "s12-h125invqq-zh-v19",     
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 20)
+                        int         nEvents    = 10000)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -345,7 +345,8 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   PFTauIDMod *pftauIdMod = new PFTauIDMod;
   pftauIdMod->SetPFTausName("HPSTaus");
   pftauIdMod->SetIsLooseId(kFALSE);
-
+  pftauIdMod->SetIsHPSSel(kTRUE); // to get >= 5_3_14 samples running
+  
   PFTauCleaningMod *pftauCleaningMod = new PFTauCleaningMod;
   pftauCleaningMod->SetGoodPFTausName(pftauIdMod->GetGoodPFTausName());
   pftauCleaningMod->SetCleanMuonsName(muonId->GetOutputName());
