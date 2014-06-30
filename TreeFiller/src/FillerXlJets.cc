@@ -296,12 +296,19 @@ void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, std
     // Store the subjet axis 
     ThreeVector subAxis(fjSubAxes[iSJet].px(),fjSubAxes[iSJet].py(),fjSubAxes[iSJet].pz());
     subJet->SetAxis(subAxis);
+
+    // Store the QG tagging variables
+    if (fQGTaggingActive) {
+      float qgValue = getSubjetQGTagging(fjSubJets[iSJet], 0.01, pFatJet);
+      subJet->SetQGTag(qgValue);
+    }
     
     // Store the subjet type value 
     subJet->SetSubJetType(subJetType);
                           
     // Add the subjet to the fatjet
-    pFatJet->AddSubJet(subJet);
+    pFatJet->AddSubJet(subJet);    
+
   }
     
   return;    
@@ -322,7 +329,7 @@ void FillerXlJets::getJetConstituents(fastjet::PseudoJet &jet, std::vector <fast
 }
 
 //--------------------------------------------------------------------------------------------------
-double FillerXlJets::getQjetVolatility(std::vector <fastjet::PseudoJet> constits, int QJetsN, int seed)
+double FillerXlJets::getQjetVolatility(std::vector <fastjet::PseudoJet> &constits, int QJetsN, int seed)
 {  
   std::vector<float> qjetmasses;
   
@@ -376,4 +383,26 @@ double FillerXlJets::FindMean(std::vector<float> qjetmasses)
       ctr++;
   }
   return total/ctr;
+}
+
+//--------------------------------------------------------------------------------------------------
+double FillerXlJets::getSubjetQGTagging(fastjet::PseudoJet &jet, float constitsPtMin, XlFatJet *pFatJet)
+{
+  // Prepare a PFJet to compute the QGTagging
+  PFJet pfJet(jet.px(),jet.py(),jet.pz(),jet.e());
+
+  // Loop on input jet constituents vector and discard very soft particles (ghosts)
+  for (unsigned int iPart = 0; iPart < jet.constituents().size(); iPart++) {
+    if (jet.constituents()[iPart].perp() < constitsPtMin)
+      continue;
+    int thisPFCandIndex = jet.constituents()[iPart].user_index();
+    // Add the constituent to the PF subjet
+    pfJet.AddPFCand(pFatJet->PFCand(thisPFCandIndex));      
+  }
+
+  // Compute the subjet QGTagging
+  fQGTagger->CalculateVariables(&pfJet, fVertexes);
+  float qgValue = fQGTagger->QGValue();
+  
+  return qgValue;
 }
