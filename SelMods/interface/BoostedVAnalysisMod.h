@@ -128,6 +128,7 @@ namespace mithep
     Double_t              fMinVbfJetPt;
     Double_t              fMinMet;
     Double_t              fMinVbfMass;
+    Double_t              fMinVbfMet;
     Double_t              fMinPhotonPt;
     // Counters
     Long64_t              fAll;

@@ -44,11 +44,11 @@ TString getJsonFile(const char* dir);
 //--------------------------------------------------------------------------------------------------
 void runBavantiBoostedV(const char *fileset    = "0000",
                         const char *skim       = "noskim",
-                        const char *dataset    = "s12-h125invqq-zh-v19",     
+                        const char *dataset    = "s12-h125inv-vbf-v7a",     
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 10000)
+                        int         nEvents    = 100)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -191,6 +191,19 @@ void runBavantiBoostedV(const char *fileset    = "0000",
 
   for (int i=0; i<nPhotonTrigs; i++)
     hltModP->AddTrigger(TString("!+"+photonTriggers[i]),0,999999);
+
+  // VBF triggers
+  const int nVbfTrigs = 7;
+  TString vbfTriggers[nVbfTrigs] = { "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v9",
+                                     "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v8",
+                                     "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v6",
+                                     "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v5",
+                                     "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v4",
+                                     "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v3",
+                                     "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v2" };
+
+  for (int i=0; i<nVbfTrigs; i++)
+    hltModP->AddTrigger((TString("!+")+vbfTriggers[i]).Data(),0,999999);
 
   //------------------------------------------------------------------------------------------------
   // split pfcandidates to PFPU and PFnoPU
@@ -453,7 +466,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   jetplusmet->ApplyWlepPresel(kTRUE);
   jetplusmet->ApplyZlepPresel(kTRUE);
   jetplusmet->ApplyMetPresel(kTRUE);
-  jetplusmet->ApplyVbfPresel(kFALSE);
+  jetplusmet->ApplyVbfPresel(kTRUE);
   jetplusmet->ApplyGjetPresel(kTRUE);
   jetplusmet->SetMinFatJetPt(200);
   jetplusmet->SetMinTagJetPt(100);

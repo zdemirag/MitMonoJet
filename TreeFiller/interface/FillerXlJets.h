@@ -81,13 +81,15 @@ namespace mithep
  
       void FillXlFatJet (const PFJet *pPFJet);
       void FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets,std::vector<fastjet::PseudoJet> &fjSubAxes,
-                          XlFatJet *pFatJet,XlSubJet::ESubJetType t);
+                         XlFatJet *pFatJet,XlSubJet::ESubJetType t);
       // QJets volatility helpers
       void   getJetConstituents(fastjet::PseudoJet &jet, std::vector <fastjet::PseudoJet> &constits,  
                                 float constitsPtMin);
-      double getQjetVolatility (std::vector<fastjet::PseudoJet> constits, int QJetsN = 25, int seed = 12345);
+      double getQjetVolatility (std::vector<fastjet::PseudoJet> &constits, int QJetsN = 25, int seed = 12345);
       double FindRMS           (std::vector<float> qjetmasses);
       double FindMean          (std::vector<float> qjetmasses); 
+      // Subjet QGTagging helpers
+      double getSubjetQGTagging(fastjet::PseudoJet &jet, float constitsPtMin, XlFatJet *pFatJet);
 
     private:
       Bool_t fIsData;                      //is this data or MC?
