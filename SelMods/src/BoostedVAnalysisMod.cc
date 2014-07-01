@@ -59,6 +59,7 @@ ClassImp(mithep::BoostedVAnalysisMod)
     fMinVbfJetPt           (40),
     fMinMet                (200),
     fMinVbfMass            (800),
+    fMinVbfMet             (110),
     fMinPhotonPt           (150),
     // counters
     fAll                   (0),
@@ -280,14 +281,14 @@ void BoostedVAnalysisMod::Process()
   }
 
   if (fApplyVbfPresel) {
-    // Vbf Preselection: require VBF jets + MET
+    // Vbf Preselection: require VBF jets + METnoMu
     int nGoodVbfPairs = 0;
 
     // Jets
     for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
       const Jet *jetOne = fJets->At(i);
       // Pt and eta cuts
-      if (jetOne->Pt() < fMinVbfJetPt || fabs(jetOne->Eta()) > 2.5)
+      if (jetOne->Pt() < fMinVbfJetPt)
         continue;
       // Jet mulitplicity cut (at least need second jet)
       if (fJets->GetEntries() < 2) 
@@ -295,14 +296,28 @@ void BoostedVAnalysisMod::Process()
       // di-jet mass cut                
       for (UInt_t j = i+1; j < fJets->GetEntries(); ++j) {
         const Jet *jetTwo = fJets->At(j);
-        if (jetTwo->Pt() < fMinVbfJetPt) continue;
+        if (jetTwo->Pt() < fMinVbfJetPt) 
+          continue;
         if ((jetOne->Mom() + jetTwo->Mom()).M() > fMinVbfMass)
           nGoodVbfPairs++;
       }
                 
     }
+    
+    // METnoMu
+    float METnoMuPt, METnoMuPhi;
+    if (fMuons->GetEntries() > 1) {
+      CorrectMet(fMet->At(0)->Pt(), fMet->At(0)->Phi(),fMuons->At(0),fMuons->At(1),
+                 METnoMuPt,METnoMuPhi);
+    }
+    else if (fMuons->GetEntries() == 1) {
+      CorrectMet(fMet->At(0)->Pt(), fMet->At(0)->Phi(),fMuons->At(0),0,
+                 METnoMuPt,METnoMuPhi);
+    }
+    else 
+      METnoMuPt = fMet->At(0)->Pt();                      
         
-    if (nGoodVbfPairs > 0 && fMet->At(0)->Pt() > fMinMet)
+    if (nGoodVbfPairs > 0 && METnoMuPt > fMinVbfMet)
       passVbfPresel = kTRUE;
   }
 

@@ -297,7 +297,7 @@ void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, std
     ThreeVector subAxis(fjSubAxes[iSJet].px(),fjSubAxes[iSJet].py(),fjSubAxes[iSJet].pz());
     subJet->SetAxis(subAxis);
 
-    // Store the QG tagging variables
+    // Store the QG tagging variable
     if (fQGTaggingActive) {
       float qgValue = getSubjetQGTagging(fjSubJets[iSJet], 0.01, pFatJet);
       subJet->SetQGTag(qgValue);
