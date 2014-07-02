@@ -28,6 +28,8 @@ treename = 'MJetTree'
 
 #_______________________________________________________________________________
 def main():
+    ## Make the tree global so that it can be accessed in an interactive
+    ## session.
     global tree
     print '%s:%s/%s' % (filename, dirname, treename)
     tree = get_tree(filename, dirname, treename)
@@ -38,6 +40,9 @@ def main():
 
 #_______________________________________________________________________________
 def get_tree(filename, dirname, treename):
+    ## Make the source file object global to prevent its garbage collection,
+    ## which destroys the tree as a side effect.
+    global source
     source = ROOT.TFile(filename)
     tree = source.FindObjectAny(dirname).Get(treename)
     return tree
