@@ -263,7 +263,7 @@ void runMonoJet(const char *fileset    = "0000",
   PhotonMvaMod *photreg = new PhotonMvaMod;
   photreg->SetRegressionVersion(3);
   photreg->SetRegressionWeights(std::string(
-    (gSystem->Getenv("MIT_DATA") + TString("gbrv3ph_52x.root")).Data()
+    (gSystem->Getenv("MIT_DATA") + TString("/gbrv3ph_52x.root")).Data()
     ));
   photreg->SetOutputName("GoodPhotonsRegr");
   photreg->SetApplyShowerRescaling(kTRUE);
