@@ -290,6 +290,8 @@ void DMSTreeWriter::Process()
       fMitDMSTree.fjet1MassPruned_  = fjet->MassPruned();  
       fMitDMSTree.fjet1MassFiltered_= fjet->MassFiltered();
       fMitDMSTree.fjet1MassTrimmed_ = fjet->MassTrimmed();
+      fMitDMSTree.fjet1Pull_        = fjet->Pull();
+      fMitDMSTree.fjet1PullAngle_   = fjet->PullAngle();
       if (!fIsData)  
         fMitDMSTree.fjet1PartonId_  = JetPartonMatch(fMitDMSTree.fjet1_, 0.5);  
     
@@ -297,6 +299,8 @@ void DMSTreeWriter::Process()
       if (fMitDMSTree.nsjets_ >= 1) {
         fMitDMSTree.sjet1_        = fjet->SubJet(0)->Mom();
         fMitDMSTree.sjet2_        = fjet->SubJet(1)->Mom();
+        fMitDMSTree.fjet1QGtagSub1_   = fjet->SubJet(0)->QGTag();
+        fMitDMSTree.fjet1QGtagSub2_   = fjet->SubJet(1)->QGTag();
       }
     }// end filling of first fat jet
 
@@ -323,8 +327,15 @@ void DMSTreeWriter::Process()
       fMitDMSTree.fjet2MassPruned_  = fjet->MassPruned();  
       fMitDMSTree.fjet2MassFiltered_= fjet->MassFiltered();
       fMitDMSTree.fjet2MassTrimmed_ = fjet->MassTrimmed();
+      fMitDMSTree.fjet2Pull_        = fjet->Pull();
+      fMitDMSTree.fjet2PullAngle_   = fjet->PullAngle();
       if (!fIsData)  
         fMitDMSTree.fjet2PartonId_  = JetPartonMatch(fMitDMSTree.fjet2_, 0.5);
+
+      if (fjet->NSubJets() >= 1) {
+        fMitDMSTree.fjet2QGtagSub1_   = fjet->SubJet(0)->QGTag();
+        fMitDMSTree.fjet2QGtagSub2_   = fjet->SubJet(1)->QGTag();
+      }
   
     }// end filling of second fat jet
 
