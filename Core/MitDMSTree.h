@@ -100,6 +100,10 @@ class MitDMSTree {
   float          fjet1MassPruned_;  
   float          fjet1MassFiltered_;
   float          fjet1MassTrimmed_; 
+  float          fjet1Pull_;
+  float          fjet1PullAngle_;   
+  float          fjet1QGtagSub1_;
+  float          fjet1QGtagSub2_;
   unsigned int   fjet1PartonId_;
   LorentzVector  fjet2_;
   float          fjet2CHF_;  
@@ -122,6 +126,10 @@ class MitDMSTree {
   float          fjet2MassPruned_;  
   float          fjet2MassFiltered_;
   float          fjet2MassTrimmed_; 
+  float          fjet2Pull_;
+  float          fjet2PullAngle_;   
+  float          fjet2QGtagSub1_;
+  float          fjet2QGtagSub2_;
   unsigned int   fjet2PartonId_;
  
   unsigned int   nsjets_;
@@ -270,6 +278,10 @@ class MitDMSTree {
     tree_->Branch("fjet1MassPruned"  , &fjet1MassPruned_  , "fjet1MassPruned/F"); 
     tree_->Branch("fjet1MassFiltered", &fjet1MassFiltered_, "fjet1MassFiltered/F");
     tree_->Branch("fjet1MassTrimmed" , &fjet1MassTrimmed_ , "fjet1MassTrimmed/F");
+    tree_->Branch("fjet1Pull"        , &fjet1Pull_        , "fjet1Pull/F");  
+    tree_->Branch("fjet1PullAngle"   , &fjet1PullAngle_   , "fjet1PullAngle/F"); 
+    tree_->Branch("fjet1QGtagSub1"   , &fjet1QGtagSub1_   , "fjet1QGtagSub1/F");
+    tree_->Branch("fjet1QGtagSub2"   , &fjet1QGtagSub2_   , "fjet1QGtagSub2/F");
     tree_->Branch("fjet1PartonId"    , &fjet1PartonId_    , "fjet1PartonId/i");
     tree_->Branch("fjet2", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &fjet2Ptr_);
     tree_->Branch("fjet2CHF"         , &fjet2CHF_         , "fjet2CHF/F");  
@@ -292,8 +304,11 @@ class MitDMSTree {
     tree_->Branch("fjet2MassPruned"  , &fjet2MassPruned_  , "fjet2MassPruned/F"); 
     tree_->Branch("fjet2MassFiltered", &fjet2MassFiltered_, "fjet2MassFiltered/F");
     tree_->Branch("fjet2MassTrimmed" , &fjet2MassTrimmed_ , "fjet2MassTrimmed/F");
+    tree_->Branch("fjet2Pull"        , &fjet2Pull_        , "fjet2Pull/F");  
+    tree_->Branch("fjet2PullAngle"   , &fjet2PullAngle_   , "fjet2PullAngle/F"); 
+    tree_->Branch("fjet2QGtagSub1"   , &fjet2QGtagSub1_   , "fjet2QGtagSub1/F");
+    tree_->Branch("fjet2QGtagSub2"   , &fjet2QGtagSub2_   , "fjet2QGtagSub2/F");
     tree_->Branch("fjet2PartonId"    , &fjet2PartonId_    , "fjet2PartonId/i");
-
     tree_->Branch("nsjets", &nsjets_, "nsjets/i");
     tree_->Branch("sjet1", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &sjetPtr1_);
     tree_->Branch("sjet2", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &sjetPtr2_);
@@ -397,6 +412,10 @@ class MitDMSTree {
     tree_->SetBranchAddress("fjet1MassPruned"  , &fjet1MassPruned_  ); 
     tree_->SetBranchAddress("fjet1MassFiltered", &fjet1MassFiltered_);
     tree_->SetBranchAddress("fjet1MassTrimmed" , &fjet1MassTrimmed_ );
+    tree_->SetBranchAddress("fjet1Pull"        , &fjet1Pull_        );  
+    tree_->SetBranchAddress("fjet1PullAngle"   , &fjet1PullAngle_   ); 
+    tree_->SetBranchAddress("fjet1QGtagSub1"   , &fjet1QGtagSub1_   );
+    tree_->SetBranchAddress("fjet1QGtagSub2"   , &fjet1QGtagSub2_   );
     tree_->SetBranchAddress("fjet1PartonId"    , &fjet1PartonId_    );
     tree_->SetBranchAddress("fjet2"            , &fjet2Ptr_         );
     tree_->SetBranchAddress("fjet2CHF"         , &fjet2CHF_         );  
@@ -419,6 +438,10 @@ class MitDMSTree {
     tree_->SetBranchAddress("fjet2MassPruned"  , &fjet2MassPruned_  ); 
     tree_->SetBranchAddress("fjet2MassFiltered", &fjet2MassFiltered_);
     tree_->SetBranchAddress("fjet2MassTrimmed" , &fjet2MassTrimmed_ );
+    tree_->SetBranchAddress("fjet2Pull"        , &fjet2Pull_        );  
+    tree_->SetBranchAddress("fjet2PullAngle"   , &fjet2PullAngle_   ); 
+    tree_->SetBranchAddress("fjet2QGtagSub1"   , &fjet2QGtagSub1_   );
+    tree_->SetBranchAddress("fjet2QGtagSub2"   , &fjet2QGtagSub2_   );
     tree_->SetBranchAddress("fjet2PartonId"    , &fjet2PartonId_    );
 
     tree_->SetBranchAddress("nsjets"           , &nsjets_           );
@@ -541,6 +564,10 @@ MitDMSTree::InitVariables(){
   fjet1MassPruned_  = -999.;
   fjet1MassFiltered_= -999.;
   fjet1MassTrimmed_ = -999.;
+  fjet1Pull_        = -999.;
+  fjet1PullAngle_   = -999.;
+  fjet1QGtagSub1_   = -999.;
+  fjet1QGtagSub2_   = -999.;
   fjet1PartonId_  = 0;
   fjet2_          = LorentzVector();
   fjet2CHF_       = -999.;
@@ -563,6 +590,10 @@ MitDMSTree::InitVariables(){
   fjet2MassPruned_  = -999.;
   fjet2MassFiltered_= -999.;
   fjet2MassTrimmed_ = -999.;
+  fjet2Pull_        = -999.;
+  fjet2PullAngle_   = -999.;
+  fjet2QGtagSub1_   = -999.;
+  fjet2QGtagSub2_   = -999.;
   fjet2PartonId_  = 0;
   
   nsjets_        = 0;
