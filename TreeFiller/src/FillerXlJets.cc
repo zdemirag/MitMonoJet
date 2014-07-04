@@ -7,6 +7,7 @@
 #include "MitCommon/DataFormats/interface/Vect4M.h"
 #include "MitCommon/DataFormats/interface/Vect3.h"
 #include "MitCommon/DataFormats/interface/Types.h"
+#include "MitCommon/MathTools/interface/MathUtils.h"
 
 #include "QjetsPlugin.h"
 #include "Qjets.h"
@@ -224,8 +225,8 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
 
   // Compute Q-jets volatility
   std::vector<fastjet::PseudoJet> constits;
-  getJetConstituents(fjJet, constits, 0.01);
-  double QJetVol = getQjetVolatility(constits, 25, fCounter*25);
+  GetJetConstituents(fjJet, constits, 0.01);
+  double QJetVol = GetQjetVolatility(constits, 25, fCounter*25);
   fCounter++;
   constits.clear();
 
@@ -237,9 +238,9 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   double MassSDb2 = (softDropSDb2(fjJet)).m();
   double MassSDbm1 = (softDropSDbm1(fjJet)).m();
 
-  double MassPruned = ((*fPruner)(fjOutJets[0])).m();
-  double MassFiltered = ((*fFilterer)(fjOutJets[0]).m());
-  double MassTrimmed = ((*fTrimmer)(fjOutJets[0]).m());
+  double MassPruned = ((*fPruner)(fjJet)).m();
+  double MassFiltered = ((*fFilterer)(fjJet)).m();
+  double MassTrimmed = ((*fTrimmer)(fjJet)).m();
     
   // ---- Fastjet is done ----
           
@@ -266,17 +267,26 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   fatJet->SetMassFiltered(MassFiltered);  
   fatJet->SetMassTrimmed(MassTrimmed);  
 
+  // Store the color pull
+  fatJet->SetPull(GetPull(fjJet,0.01).Pt());   
+ 
   // Loop on the subjets and fill the subjet Xl collections - do it according to the user request
   if (fFillVSubJets) {
     std::vector<fastjet::PseudoJet> fjVSubJets = nSub2.currentSubjets();
     std::vector<fastjet::PseudoJet> fjVSubAxes = nSub2.currentAxes();
+    std::vector<fastjet::PseudoJet> fjSubJetsSorted = sorted_by_pt(fjVSubJets);    
+    // Store the color pull angle: either choose 2-prong or 3-prong subclustering!
+    fatJet->SetPullAngle(GetPullAngle(fjSubJetsSorted,0.01));   
     FillXlSubJets(fjVSubJets,fjVSubAxes,fatJet,XlSubJet::ESubJetType::eV);
-  } // End scope of V-subjets filling
+  } 
   if (fFillTopSubJets) {
     std::vector<fastjet::PseudoJet> fjTopSubJets = nSub3.currentSubjets();
     std::vector<fastjet::PseudoJet> fjTopSubAxes = nSub3.currentAxes();
+    std::vector<fastjet::PseudoJet> fjSubJetsSorted = sorted_by_pt(fjTopSubJets);    
+    // Store the color pull angle: either choose 2-prong or 3-prong subclustering!
+    fatJet->SetPullAngle(GetPullAngle(fjSubJetsSorted,0.01));   
     FillXlSubJets(fjTopSubJets,fjTopSubAxes,fatJet,XlSubJet::ESubJetType::eTop);
-  } // End scope of Top-subjets filling
+  } 
   
   return;
 }
@@ -299,7 +309,7 @@ void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, std
 
     // Store the QG tagging variable
     if (fQGTaggingActive) {
-      float qgValue = getSubjetQGTagging(fjSubJets[iSJet], 0.01, pFatJet);
+      float qgValue = GetSubjetQGTagging(fjSubJets[iSJet], 0.01, pFatJet);
       subJet->SetQGTag(qgValue);
     }
     
@@ -315,7 +325,7 @@ void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, std
 }
 
 //--------------------------------------------------------------------------------------------------
-void FillerXlJets::getJetConstituents(fastjet::PseudoJet &jet, std::vector <fastjet::PseudoJet> &constits,  
+void FillerXlJets::GetJetConstituents(fastjet::PseudoJet &jet, std::vector <fastjet::PseudoJet> &constits,  
                                       float constitsPtMin)
 {
   // Loop on input jet constituents vector and discard very soft particles (ghosts)
@@ -329,7 +339,7 @@ void FillerXlJets::getJetConstituents(fastjet::PseudoJet &jet, std::vector <fast
 }
 
 //--------------------------------------------------------------------------------------------------
-double FillerXlJets::getQjetVolatility(std::vector <fastjet::PseudoJet> &constits, int QJetsN, int seed)
+double FillerXlJets::GetQjetVolatility(std::vector <fastjet::PseudoJet> &constits, int QJetsN, int seed)
 {  
   std::vector<float> qjetmasses;
   
@@ -386,7 +396,7 @@ double FillerXlJets::FindMean(std::vector<float> qjetmasses)
 }
 
 //--------------------------------------------------------------------------------------------------
-double FillerXlJets::getSubjetQGTagging(fastjet::PseudoJet &jet, float constitsPtMin, XlFatJet *pFatJet)
+double FillerXlJets::GetSubjetQGTagging(fastjet::PseudoJet &jet, float constitsPtMin, XlFatJet *pFatJet)
 {
   // Prepare a PFJet to compute the QGTagging
   PFJet pfJet(jet.px(),jet.py(),jet.pz(),jet.e());
@@ -405,4 +415,35 @@ double FillerXlJets::getSubjetQGTagging(fastjet::PseudoJet &jet, float constitsP
   float qgValue = fQGTagger->QGValue();
   
   return qgValue;
+}
+
+//--------------------------------------------------------------------------------------------------
+TLorentzVector FillerXlJets::GetPull(fastjet::PseudoJet &jet, float constitsPtMin)
+{
+  TLorentzVector lPull;
+  // Loop on input jet constituents vector and discard very soft particles (ghosts)
+  for (unsigned int iPart = 0; iPart < jet.constituents().size(); iPart++) {
+    if (jet.constituents()[iPart].perp() < constitsPtMin)
+      continue;
+    double dEta = jet.constituents()[iPart].eta()-jet.eta();
+    double dPhi = MathUtils::DeltaPhi(jet.constituents()[iPart].phi(),jet.phi());
+    double dR2 = dEta*dEta + dPhi*dPhi;
+    TLorentzVector pVec; 
+    pVec.SetPtEtaPhiM((jet.constituents()[iPart].pt()/jet.pt()) *dR2 ,dEta,dPhi,0);
+    lPull += pVec;
+  }
+
+  return lPull;
+}
+
+//--------------------------------------------------------------------------------------------------
+double FillerXlJets::GetPullAngle(std::vector<fastjet::PseudoJet> &fjSubJets, float constitsPtMin)
+{
+  // Subject collection already sorted by pt
+  // Consider only the leading and the subleading for the pull angle computation
+  TLorentzVector lPull = GetPull(fjSubJets[0],0.01);
+  TLorentzVector lJet; 
+  lJet.SetPtEtaPhiM(fjSubJets[1].pt(),fjSubJets[1].eta(),fjSubJets[1].phi(),fjSubJets[1].m());
+  double lPhi = lJet.DeltaPhi(lPull);
+  return lPhi;
 }

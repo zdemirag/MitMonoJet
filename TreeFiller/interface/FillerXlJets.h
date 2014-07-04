@@ -12,6 +12,8 @@
 #ifndef MITMONOJET_TREEFILLER_FILLERXLJETS_H
 #define MITMONOJET_TREEFILLER_FILLERXLJETS_H
 
+#include <TLorentzVector.h>
+
 #include "fastjet/PseudoJet.hh"
 #include "fastjet/JetDefinition.hh"
 #include "fastjet/GhostedAreaSpec.hh"
@@ -83,13 +85,16 @@ namespace mithep
       void FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets,std::vector<fastjet::PseudoJet> &fjSubAxes,
                          XlFatJet *pFatJet,XlSubJet::ESubJetType t);
       // QJets volatility helpers
-      void   getJetConstituents(fastjet::PseudoJet &jet, std::vector <fastjet::PseudoJet> &constits,  
+      void   GetJetConstituents(fastjet::PseudoJet &jet, std::vector <fastjet::PseudoJet> &constits,  
                                 float constitsPtMin);
-      double getQjetVolatility (std::vector<fastjet::PseudoJet> &constits, int QJetsN = 25, int seed = 12345);
+      double GetQjetVolatility (std::vector<fastjet::PseudoJet> &constits, int QJetsN = 25, int seed = 12345);
       double FindRMS           (std::vector<float> qjetmasses);
       double FindMean          (std::vector<float> qjetmasses); 
       // Subjet QGTagging helpers
-      double getSubjetQGTagging(fastjet::PseudoJet &jet, float constitsPtMin, XlFatJet *pFatJet);
+      double GetSubjetQGTagging(fastjet::PseudoJet &jet, float constitsPtMin, XlFatJet *pFatJet);
+      // Color pull helpers
+      TLorentzVector GetPull(fastjet::PseudoJet &jet, float constitsPtMin);
+      double GetPullAngle(std::vector<fastjet::PseudoJet> &fjSubJets, float constitsPtMin);
 
     private:
       Bool_t fIsData;                      //is this data or MC?
