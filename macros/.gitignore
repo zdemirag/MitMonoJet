@@ -1,0 +1,4 @@
+*_C.so
+*_C.d
+*.root
+.rootlogon.C
