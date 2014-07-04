@@ -349,9 +349,9 @@ void runMonoJet(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
 
   // VBF
-//   float minLeadingJetEt = 40;
-//   float maxJetEta = 4.7;
-//   float minMet = 110;
+  float minLeadingJetEt = 40;
+  float maxJetEta = 4.7;
+  float minMet = 110;
 
   // Monojet
 //   float minLeadingJetEt = 40;
@@ -359,9 +359,9 @@ void runMonoJet(const char *fileset    = "0000",
 //   float minMet = 200;
 
   // Photon ID commissioning
-  float minLeadingJetEt = 40;
-  float maxJetEta = 4.7;
-  float minMet = 0;
+//   float minLeadingJetEt = 40;
+//   float maxJetEta = 4.7;
+//   float minMet = 0;
 
   MonoJetAnalysisMod         *jetplusmet = new MonoJetAnalysisMod("MonoJetSelector");
   jetplusmet->SetInputMetName(metCorrT0T1Shift->GetOutputName()); //corrected met
