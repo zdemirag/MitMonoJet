@@ -628,10 +628,14 @@ Int_t DMSTreeWriter::JetPartonMatch(LorentzVector& v,
       pId = p->AbsPdgId();
     }
     // special check: if quark inside matching cone and mother is W/Z
-    // return the mother id
+    // make extra checks and if true return the mother id
     if (thisDr < deltaR && p->AbsPdgId() < 6 
      && (p->Mother()->Is(MCParticle::kZ) || p->Mother()->Is(MCParticle::kW))) {
-      return p->Mother()->AbsPdgId();
+      // check that both the quarks are inside the matching cone
+      float q1Dr = MathUtils::DeltaR(v, *(p->Mother()->Daughter(0)));
+      float q2Dr = MathUtils::DeltaR(v, *(p->Mother()->Daughter(1)));
+      if (q1Dr < deltaR && q2Dr < deltaR)
+        return p->Mother()->AbsPdgId();
     }
   }
 
