@@ -293,7 +293,7 @@ void DMSTreeWriter::Process()
       fMitDMSTree.fjet1Pull_        = fjet->Pull();
       fMitDMSTree.fjet1PullAngle_   = fjet->PullAngle();
       if (!fIsData)  
-        fMitDMSTree.fjet1PartonId_  = JetPartonMatch(fMitDMSTree.fjet1_, 0.5);  
+        fMitDMSTree.fjet1PartonId_  = JetPartonMatch(fMitDMSTree.fjet1_, 0.7);  
     
       fMitDMSTree.nsjets_ = fjet->NSubJets();
       if (fMitDMSTree.nsjets_ >= 1) {
@@ -330,7 +330,7 @@ void DMSTreeWriter::Process()
       fMitDMSTree.fjet2Pull_        = fjet->Pull();
       fMitDMSTree.fjet2PullAngle_   = fjet->PullAngle();
       if (!fIsData)  
-        fMitDMSTree.fjet2PartonId_  = JetPartonMatch(fMitDMSTree.fjet2_, 0.5);
+        fMitDMSTree.fjet2PartonId_  = JetPartonMatch(fMitDMSTree.fjet2_, 0.7);
 
       if (fjet->NSubJets() >= 1) {
         fMitDMSTree.fjet2QGtagSub1_   = fjet->SubJet(0)->QGTag();

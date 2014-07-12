@@ -12,7 +12,7 @@
 #ifndef MITMONOJET_TREEFILLER_FILLERXLJETS_H
 #define MITMONOJET_TREEFILLER_FILLERXLJETS_H
 
-#include <TLorentzVector.h>
+#include <TVector2.h>
 
 #include "fastjet/PseudoJet.hh"
 #include "fastjet/JetDefinition.hh"
@@ -49,31 +49,32 @@ namespace mithep
                    const char *title = "XlJets Filler module");
       ~FillerXlJets();
 
-      void IsData(Bool_t b)                { fIsData = b;         }
-      void FillVSubJets(Bool_t b)          { fFillVSubJets = b;   }
-      void FillTopSubJets(Bool_t b)        { fFillTopSubJets = b; }
-      void SetBtaggingOn(Bool_t b)         { fBTaggingActive = b; }
-      void SetfQGTaggingOn(Bool_t b)       { fQGTaggingActive = b;}
-      void SetQGTaggerCHS(bool b)          { fQGTaggerCHS = b;    }
-      void PublishOutput(Bool_t b)         { fPublishOutput = b;  }
-
-      void SetProcessNJets(UInt_t n)       { fProcessNJets = n;  } 
-      
-      void SetJetsName(const char *n)      { fJetsName = n;       }
-      void SetJetsFromBranch(Bool_t b)     { fJetsFromBranch = b; }
-
-      void SetFatJetsName(const char *n)   { fXlFatJetsName = n;  }
-      void SetSubJetsName(const char *n)   { fXlSubJetsName = n;  }
-             
-      void SetSoftDropZCut(double d)       { fSoftDropZCut = d;   }
-      void SetSoftDropMuCut(double d)      { fSoftDropMuCut = d;  }
-      void SetPruneZCut(double d)          { fPruneZCut = d;      }
-      void SetPruneDistCut(double d)       { fPruneDistCut = d;   }
-      void SetFilterN(int n)               { fFilterN = n;        }
-      void SetFilterRad(double d)          { fFilterRad = d;      }
-      void SetTrimRad(double d)            { fTrimRad = d;        }
-      void SetTrimPtFrac(double d)         { fTrimPtFrac = d;     }
-      void SetConeSize(double d)           { fConeSize = d;       }
+      void IsData(Bool_t b)                { fIsData = b;           }
+      void FillVSubJets(Bool_t b)          { fFillVSubJets = b;     }
+      void FillTopSubJets(Bool_t b)        { fFillTopSubJets = b;   }
+      void NSubDeclustering(Bool_t b)      { fNSubDeclustering = b; }
+      void SetBtaggingOn(Bool_t b)         { fBTaggingActive = b;   }
+      void SetfQGTaggingOn(Bool_t b)       { fQGTaggingActive = b;  }
+      void SetQGTaggerCHS(bool b)          { fQGTaggerCHS = b;      }
+      void PublishOutput(Bool_t b)         { fPublishOutput = b;    }
+                                                                    
+      void SetProcessNJets(UInt_t n)       { fProcessNJets = n;     } 
+                                                                    
+      void SetJetsName(const char *n)      { fJetsName = n;         }
+      void SetJetsFromBranch(Bool_t b)     { fJetsFromBranch = b;   }
+                                                                    
+      void SetFatJetsName(const char *n)   { fXlFatJetsName = n;    }
+      void SetSubJetsName(const char *n)   { fXlSubJetsName = n;    }
+                                                                    
+      void SetSoftDropZCut(double d)       { fSoftDropZCut = d;     }
+      void SetSoftDropMuCut(double d)      { fSoftDropMuCut = d;    }
+      void SetPruneZCut(double d)          { fPruneZCut = d;        }
+      void SetPruneDistCut(double d)       { fPruneDistCut = d;     }
+      void SetFilterN(int n)               { fFilterN = n;          }
+      void SetFilterRad(double d)          { fFilterRad = d;        }
+      void SetTrimRad(double d)            { fTrimRad = d;          }
+      void SetTrimPtFrac(double d)         { fTrimPtFrac = d;       }
+      void SetConeSize(double d)           { fConeSize = d;         }
 
  
     protected:
@@ -91,15 +92,18 @@ namespace mithep
       double FindRMS           (std::vector<float> qjetmasses);
       double FindMean          (std::vector<float> qjetmasses); 
       // Subjet QGTagging helpers
-      double GetSubjetQGTagging(fastjet::PseudoJet &jet, float constitsPtMin, XlFatJet *pFatJet);
+      void   FillSubjetQGTagging(fastjet::PseudoJet &jet, float constitsPtMin, 
+                                 XlSubJet *pSubJet, XlFatJet *pFatJet);
       // Color pull helpers
-      TLorentzVector GetPull(fastjet::PseudoJet &jet, float constitsPtMin);
+      TVector2 GetPull(fastjet::PseudoJet &jet, float constitsPtMin);
       double GetPullAngle(std::vector<fastjet::PseudoJet> &fjSubJets, float constitsPtMin);
 
     private:
       Bool_t fIsData;                      //is this data or MC?
       Bool_t fFillVSubJets;                //=true if V-subjets are stored (2-prom structure)
       Bool_t fFillTopSubJets;              //=true if top-subjets are stored (3-prom structure)
+      Bool_t fNSubDeclustering;            //=true if subjets declustering via n-subjettiness
+                                           //=false if subjets declustering via pruned CA (CMS standard)
       Bool_t fBTaggingActive;              //=true if BTagging info is filled
       Bool_t fQGTaggingActive;             //=true if QGTagging info is filled
       Bool_t fQGTaggerCHS;                 //=true if QGTagging weights are taken from CHS

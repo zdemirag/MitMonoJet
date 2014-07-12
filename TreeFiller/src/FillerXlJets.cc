@@ -22,6 +22,7 @@ FillerXlJets::FillerXlJets(const char *name, const char *title) :
   fIsData (kTRUE),
   fFillVSubJets (kTRUE),
   fFillTopSubJets (kFALSE),
+  fNSubDeclustering (kFALSE),
   fBTaggingActive (kFALSE),
   fQGTaggingActive (kTRUE),
   fQGTaggerCHS (kFALSE),
@@ -212,11 +213,11 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   double tau3 = nSub3(fjJet);
 
   // Compute the energy correlation function ratios
-  fastjet::contrib::EnergyCorrelatorRatio ECR2b0  (2,0. ,fastjet::contrib::EnergyCorrelator::pt_R);
-  fastjet::contrib::EnergyCorrelatorRatio ECR2b0p2(2,0.2,fastjet::contrib::EnergyCorrelator::pt_R);
-  fastjet::contrib::EnergyCorrelatorRatio ECR2b0p5(2,0.5,fastjet::contrib::EnergyCorrelator::pt_R);
-  fastjet::contrib::EnergyCorrelatorRatio ECR2b1  (2,1.0,fastjet::contrib::EnergyCorrelator::pt_R);
-  fastjet::contrib::EnergyCorrelatorRatio ECR2b2  (2,2.0,fastjet::contrib::EnergyCorrelator::pt_R);
+  fastjet::contrib::EnergyCorrelatorDoubleRatio ECR2b0  (2,0. ,fastjet::contrib::EnergyCorrelator::pt_R);
+  fastjet::contrib::EnergyCorrelatorDoubleRatio ECR2b0p2(2,0.2,fastjet::contrib::EnergyCorrelator::pt_R);
+  fastjet::contrib::EnergyCorrelatorDoubleRatio ECR2b0p5(2,0.5,fastjet::contrib::EnergyCorrelator::pt_R);
+  fastjet::contrib::EnergyCorrelatorDoubleRatio ECR2b1  (2,1.0,fastjet::contrib::EnergyCorrelator::pt_R);
+  fastjet::contrib::EnergyCorrelatorDoubleRatio ECR2b2  (2,2.0,fastjet::contrib::EnergyCorrelator::pt_R);
   double C2b0   = ECR2b0(fjJet);
   double C2b0p2 = ECR2b0p2(fjJet);
   double C2b0p5 = ECR2b0p5(fjJet);
@@ -238,7 +239,8 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   double MassSDb2 = (softDropSDb2(fjJet)).m();
   double MassSDbm1 = (softDropSDbm1(fjJet)).m();
 
-  double MassPruned = ((*fPruner)(fjJet)).m();
+  fastjet::PseudoJet fjJetPruned = (*fPruner)(fjJet);
+  double MassPruned = fjJetPruned.m();
   double MassFiltered = ((*fFilterer)(fjJet)).m();
   double MassTrimmed = ((*fTrimmer)(fjJet)).m();
     
@@ -268,26 +270,47 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   fatJet->SetMassTrimmed(MassTrimmed);  
 
   // Store the color pull
-  fatJet->SetPull(GetPull(fjJet,0.01).Pt());   
+  fatJet->SetPull(GetPull(fjJet,0.01).Mod());   
  
   // Loop on the subjets and fill the subjet Xl collections - do it according to the user request
+  // In case of CA declustering subjet axis = subjet 
   if (fFillVSubJets) {
-    std::vector<fastjet::PseudoJet> fjVSubJets = nSub2.currentSubjets();
-    std::vector<fastjet::PseudoJet> fjVSubAxes = nSub2.currentAxes();
+    std::vector<fastjet::PseudoJet> fjVSubJets;
+    std::vector<fastjet::PseudoJet> fjVSubAxes;
+    if (fNSubDeclustering) {
+      fjVSubJets = nSub2.currentSubjets();
+      fjVSubAxes = nSub2.currentAxes();
+    }
+    else {
+      fjVSubJets = fjJetPruned.associated_cluster_sequence()->exclusive_subjets(fjJetPruned,2);
+      fjVSubAxes = fjVSubJets;    
+    }
     std::vector<fastjet::PseudoJet> fjSubJetsSorted = sorted_by_pt(fjVSubJets);    
     // Store the color pull angle: either choose 2-prong or 3-prong subclustering!
     fatJet->SetPullAngle(GetPullAngle(fjSubJetsSorted,0.01));   
     FillXlSubJets(fjVSubJets,fjVSubAxes,fatJet,XlSubJet::ESubJetType::eV);
   } 
   if (fFillTopSubJets) {
-    std::vector<fastjet::PseudoJet> fjTopSubJets = nSub3.currentSubjets();
-    std::vector<fastjet::PseudoJet> fjTopSubAxes = nSub3.currentAxes();
+    std::vector<fastjet::PseudoJet> fjTopSubJets;
+    std::vector<fastjet::PseudoJet> fjTopSubAxes;
+    if (fNSubDeclustering) {
+      fjTopSubJets = nSub3.currentSubjets();
+      fjTopSubAxes = nSub3.currentAxes();
+    }
+    else {
+      fjTopSubJets = fjJetPruned.associated_cluster_sequence()->exclusive_subjets(fjJetPruned,3);
+      fjTopSubAxes = fjTopSubJets;    
+    }
     std::vector<fastjet::PseudoJet> fjSubJetsSorted = sorted_by_pt(fjTopSubJets);    
     // Store the color pull angle: either choose 2-prong or 3-prong subclustering!
     fatJet->SetPullAngle(GetPullAngle(fjSubJetsSorted,0.01));   
     FillXlSubJets(fjTopSubJets,fjTopSubAxes,fatJet,XlSubJet::ESubJetType::eTop);
   } 
-  
+  // Sort subjets according to pt and add the subjets to the fat jet
+  fXlSubJets->Sort();
+  for (UInt_t iSubJ=0; iSubJ<fXlSubJets->GetEntries(); ++iSubJ)
+    fatJet->AddSubJet(fXlSubJets->At(iSubJ));    
+   
   return;
 }
 
@@ -308,17 +331,12 @@ void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, std
     subJet->SetAxis(subAxis);
 
     // Store the QG tagging variable
-    if (fQGTaggingActive) {
-      float qgValue = GetSubjetQGTagging(fjSubJets[iSJet], 0.01, pFatJet);
-      subJet->SetQGTag(qgValue);
-    }
+    if (fQGTaggingActive)
+      FillSubjetQGTagging(fjSubJets[iSJet], 0.01, subJet, pFatJet);
     
     // Store the subjet type value 
     subJet->SetSubJetType(subJetType);
                           
-    // Add the subjet to the fatjet
-    pFatJet->AddSubJet(subJet);    
-
   }
     
   return;    
@@ -396,7 +414,8 @@ double FillerXlJets::FindMean(std::vector<float> qjetmasses)
 }
 
 //--------------------------------------------------------------------------------------------------
-double FillerXlJets::GetSubjetQGTagging(fastjet::PseudoJet &jet, float constitsPtMin, XlFatJet *pFatJet)
+void FillerXlJets::FillSubjetQGTagging(fastjet::PseudoJet &jet, float constitsPtMin, 
+                                       XlSubJet *pSubJet, XlFatJet *pFatJet)
 {
   // Prepare a PFJet to compute the QGTagging
   PFJet pfJet(jet.px(),jet.py(),jet.pz(),jet.e());
@@ -411,29 +430,34 @@ double FillerXlJets::GetSubjetQGTagging(fastjet::PseudoJet &jet, float constitsP
   }
 
   // Compute the subjet QGTagging
-  fQGTagger->CalculateVariables(&pfJet, fVertexes);
-  float qgValue = fQGTagger->QGValue();
-  
-  return qgValue;
+  if (fQGTaggingActive) {
+    fQGTagger->CalculateVariables(&pfJet, fVertexes);
+    pSubJet->SetQGTag(fQGTagger->QGValue());
+    pSubJet->SetQGPtD(fQGTagger->GetPtD());
+    pSubJet->SetQGAxis1(fQGTagger->GetAxis1());
+    pSubJet->SetQGAxis2(fQGTagger->GetAxis2());
+    pSubJet->SetQGMult(fQGTagger->GetMult());
+  }
+
+  return;
 }
 
 //--------------------------------------------------------------------------------------------------
-TLorentzVector FillerXlJets::GetPull(fastjet::PseudoJet &jet, float constitsPtMin)
+TVector2 FillerXlJets::GetPull(fastjet::PseudoJet &jet, float constitsPtMin)
 {
-  TLorentzVector lPull;
+  double dYSum   = 0;
+  double dPhiSum = 0;
   // Loop on input jet constituents vector and discard very soft particles (ghosts)
   for (unsigned int iPart = 0; iPart < jet.constituents().size(); iPart++) {
     if (jet.constituents()[iPart].perp() < constitsPtMin)
       continue;
-    double dEta = jet.constituents()[iPart].eta()-jet.eta();
-    double dPhi = MathUtils::DeltaPhi(jet.constituents()[iPart].phi(),jet.phi());
-    double dR2 = dEta*dEta + dPhi*dPhi;
-    TLorentzVector pVec; 
-    pVec.SetPtEtaPhiM((jet.constituents()[iPart].pt()/jet.pt()) *dR2 ,dEta,dPhi,0);
-    lPull += pVec;
+    double dY     = jet.constituents()[iPart].rapidity()-jet.rapidity();
+    double dPhi   = MathUtils::DeltaPhi(jet.constituents()[iPart].phi(),jet.phi());
+    double weight = jet.constituents()[iPart].pt()*sqrt(dY*dY + dPhi*dPhi);
+    dYSum   += weight*dY;
+    dPhiSum += weight*dPhi;
   }
-
-  return lPull;
+  return TVector2(dYSum/jet.pt(), dPhiSum/jet.pt());
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -441,9 +465,10 @@ double FillerXlJets::GetPullAngle(std::vector<fastjet::PseudoJet> &fjSubJets, fl
 {
   // Subject collection already sorted by pt
   // Consider only the leading and the subleading for the pull angle computation
-  TLorentzVector lPull = GetPull(fjSubJets[0],0.01);
-  TLorentzVector lJet; 
-  lJet.SetPtEtaPhiM(fjSubJets[1].pt(),fjSubJets[1].eta(),fjSubJets[1].phi(),fjSubJets[1].m());
-  double lPhi = lJet.DeltaPhi(lPull);
-  return lPhi;
+  // work in dy-dphi space of leading subjet
+  TVector2 lPull = GetPull(fjSubJets[0],constitsPtMin);
+  TVector2 lJet(fjSubJets[1].rapidity()-fjSubJets[0].rapidity(), 
+                MathUtils::DeltaPhi(fjSubJets[1].phi(), fjSubJets[0].phi()));
+  double lThetaP = lPull.DeltaPhi(lJet);
+  return lThetaP;
 }
