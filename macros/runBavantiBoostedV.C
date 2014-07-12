@@ -44,11 +44,12 @@ TString getJsonFile(const char* dir);
 //--------------------------------------------------------------------------------------------------
 void runBavantiBoostedV(const char *fileset    = "0000",
                         const char *skim       = "noskim",
-                        const char *dataset    = "s12-pj300_470-v7a",     
+                        //const char *dataset    = "s12-pj300_470-v7a",     
+                        const char *dataset    = "w13-h125dm-aa-v1",     
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 40)
+                        int         nEvents    = 400)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -460,7 +461,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   // prepare the extended jets with substructure information
   //------------------------------------------------------------------------------------------------
   FillerXlJets *boostedJetsFiller = new FillerXlJets;  
-  boostedJetsFiller->FillTopSubJets(kTRUE);
+  boostedJetsFiller->FillTopSubJets(kFALSE);
   boostedJetsFiller->SetJetsName(fatJetCleaning->GetOutputName());
   boostedJetsFiller->SetJetsFromBranch(kFALSE);
   boostedJetsFiller->SetConeSize(0.7);      

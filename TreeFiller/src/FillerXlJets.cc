@@ -282,7 +282,8 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
       fjVSubAxes = nSub2.currentAxes();
     }
     else {
-      fjVSubJets = fjJetPruned.associated_cluster_sequence()->exclusive_subjets(fjJetPruned,2);
+      int nSubJPruned = std::min<unsigned int>(fjJetPruned.constituents().size(),2);
+      fjVSubJets = fjJetPruned.associated_cluster_sequence()->exclusive_subjets(fjJetPruned,nSubJPruned);
       fjVSubAxes = fjVSubJets;    
     }
     std::vector<fastjet::PseudoJet> fjSubJetsSorted = sorted_by_pt(fjVSubJets);    
@@ -298,7 +299,8 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
       fjTopSubAxes = nSub3.currentAxes();
     }
     else {
-      fjTopSubJets = fjJetPruned.associated_cluster_sequence()->exclusive_subjets(fjJetPruned,3);
+      int nSubJPruned = std::min<unsigned int>(fjJetPruned.constituents().size(),3);
+      fjTopSubJets = fjJetPruned.associated_cluster_sequence()->exclusive_subjets(fjJetPruned,nSubJPruned);
       fjTopSubAxes = fjTopSubJets;    
     }
     std::vector<fastjet::PseudoJet> fjSubJetsSorted = sorted_by_pt(fjTopSubJets);    
