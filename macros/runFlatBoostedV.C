@@ -150,7 +150,7 @@ void runFlatBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   // copy the file to its final destination
   //------------------------------------------------------------------------------------------------
-  //gSystem->Exec("mv " + rootFile + TString(" /scratch4/dimatteo/cms/hist/") + TString(outputName) + TString("/merged-p2/")); 
+  gSystem->Exec("mv " + rootFile + TString(" /scratch4/dimatteo/cms/hist/") + TString(outputName) + TString("/merged-p2/")); 
 
   return;
 }
