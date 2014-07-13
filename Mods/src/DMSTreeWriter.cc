@@ -296,12 +296,23 @@ void DMSTreeWriter::Process()
         fMitDMSTree.fjet1PartonId_  = JetPartonMatch(fMitDMSTree.fjet1_, 0.7);  
     
       fMitDMSTree.nsjets_ = fjet->NSubJets();
-      if (fMitDMSTree.nsjets_ >= 1) {
-        fMitDMSTree.sjet1_        = fjet->SubJet(0)->Mom();
-        fMitDMSTree.sjet2_        = fjet->SubJet(1)->Mom();
+      if (fMitDMSTree.nsjets_ > 0) {
+        fMitDMSTree.sjet1_            = fjet->SubJet(0)->Mom();
         fMitDMSTree.fjet1QGtagSub1_   = fjet->SubJet(0)->QGTag();
-        fMitDMSTree.fjet1QGtagSub2_   = fjet->SubJet(1)->QGTag();
+        fMitDMSTree.fjet1QGPtDSub1_   = fjet->SubJet(0)->QGPtD();
+        fMitDMSTree.fjet1QGAxis1Sub1_ = fjet->SubJet(0)->QGAxis1();
+        fMitDMSTree.fjet1QGAxis2Sub1_ = fjet->SubJet(0)->QGAxis2();
+        fMitDMSTree.fjet1QGMultSub1_  = fjet->SubJet(0)->QGMult();
       }
+      if (fMitDMSTree.nsjets_ > 1) {
+        fMitDMSTree.sjet2_            = fjet->SubJet(1)->Mom();
+        fMitDMSTree.fjet1QGtagSub2_   = fjet->SubJet(1)->QGTag();
+        fMitDMSTree.fjet1QGPtDSub2_   = fjet->SubJet(1)->QGPtD();
+        fMitDMSTree.fjet1QGAxis1Sub2_ = fjet->SubJet(1)->QGAxis1();
+        fMitDMSTree.fjet1QGAxis2Sub2_ = fjet->SubJet(1)->QGAxis2();
+        fMitDMSTree.fjet1QGMultSub2_  = fjet->SubJet(1)->QGMult();
+      }
+      
     }// end filling of first fat jet
 
     if (i == 1) {
@@ -332,11 +343,21 @@ void DMSTreeWriter::Process()
       if (!fIsData)  
         fMitDMSTree.fjet2PartonId_  = JetPartonMatch(fMitDMSTree.fjet2_, 0.7);
 
-      if (fjet->NSubJets() >= 1) {
+      if (fjet->NSubJets() > 0) {
         fMitDMSTree.fjet2QGtagSub1_   = fjet->SubJet(0)->QGTag();
-        fMitDMSTree.fjet2QGtagSub2_   = fjet->SubJet(1)->QGTag();
+        fMitDMSTree.fjet2QGPtDSub1_   = fjet->SubJet(0)->QGPtD();
+        fMitDMSTree.fjet2QGAxis1Sub1_ = fjet->SubJet(0)->QGAxis1();
+        fMitDMSTree.fjet2QGAxis2Sub1_ = fjet->SubJet(0)->QGAxis2();
+        fMitDMSTree.fjet2QGMultSub1_  = fjet->SubJet(0)->QGMult();
       }
-  
+      if (fjet->NSubJets() > 1) {
+        fMitDMSTree.fjet2QGtagSub2_   = fjet->SubJet(1)->QGTag();
+        fMitDMSTree.fjet2QGPtDSub2_   = fjet->SubJet(1)->QGPtD();
+        fMitDMSTree.fjet2QGAxis1Sub2_ = fjet->SubJet(1)->QGAxis1();
+        fMitDMSTree.fjet2QGAxis2Sub2_ = fjet->SubJet(1)->QGAxis2();
+        fMitDMSTree.fjet2QGMultSub2_  = fjet->SubJet(1)->QGMult();
+      }
+        
     }// end filling of second fat jet
 
   }
