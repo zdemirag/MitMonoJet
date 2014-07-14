@@ -44,12 +44,11 @@ TString getJsonFile(const char* dir);
 //--------------------------------------------------------------------------------------------------
 void runBavantiBoostedV(const char *fileset    = "0000",
                         const char *skim       = "noskim",
-                        //const char *dataset    = "s12-pj300_470-v7a",     
-                        const char *dataset    = "w13-h125dm-aa-v1",     
+                        const char *dataset    = "s12-pj1800-v7a",     
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 400)
+                        int         nEvents    = -1)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
