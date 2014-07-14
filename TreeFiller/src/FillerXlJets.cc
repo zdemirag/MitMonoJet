@@ -450,6 +450,9 @@ TVector2 FillerXlJets::GetPull(fastjet::PseudoJet &jet, float constitsPtMin)
   double dYSum   = 0;
   double dPhiSum = 0;
   // Loop on input jet constituents vector and discard very soft particles (ghosts)
+
+
+  // Loop on input jet constituents vector and discard very soft particles (ghosts)
   for (unsigned int iPart = 0; iPart < jet.constituents().size(); iPart++) {
     if (jet.constituents()[iPart].perp() < constitsPtMin)
       continue;
@@ -468,6 +471,11 @@ double FillerXlJets::GetPullAngle(std::vector<fastjet::PseudoJet> &fjSubJets, fl
   // Subject collection already sorted by pt
   // Consider only the leading and the subleading for the pull angle computation
   // work in dy-dphi space of leading subjet
+
+  // Exclude cases where there is no second subjet (input jet made by one particle)
+  if (fjSubJets.size() < 2)
+    return -20.;
+
   TVector2 lPull = GetPull(fjSubJets[0],constitsPtMin);
   TVector2 lJet(fjSubJets[1].rapidity()-fjSubJets[0].rapidity(), 
                 MathUtils::DeltaPhi(fjSubJets[1].phi(), fjSubJets[0].phi()));
