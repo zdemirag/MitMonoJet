@@ -450,9 +450,6 @@ TVector2 FillerXlJets::GetPull(fastjet::PseudoJet &jet, float constitsPtMin)
   double dYSum   = 0;
   double dPhiSum = 0;
   // Loop on input jet constituents vector and discard very soft particles (ghosts)
-
-
-  // Loop on input jet constituents vector and discard very soft particles (ghosts)
   for (unsigned int iPart = 0; iPart < jet.constituents().size(); iPart++) {
     if (jet.constituents()[iPart].perp() < constitsPtMin)
       continue;
