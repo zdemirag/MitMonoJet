@@ -168,6 +168,9 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   // Prepare and store in an array a new FatJet 
   XlFatJet *fatJet = fXlFatJets->Allocate();
   new (fatJet) XlFatJet(*pPFJet);
+
+  // Compute and store weighted charge
+  fatJet->SetCharge();
   
   // Prepare and store QG tagging info
   float qgValue = -1.;
