@@ -23,6 +23,7 @@ namespace mithep
   {
     public:
       XlFatJet() :
+                fCharge (0),
                 fQGTag(0), 
                 fTau1(0), fTau2(0), fTau3(0),
                 fC2b0(0), fC2b0p2(0), fC2b0p5(0), fC2b1(0), fC2b2(0),
@@ -32,6 +33,7 @@ namespace mithep
                 fPull(0), fPullAngle(0) {}                 
       XlFatJet(Double_t px, Double_t py, Double_t pz, Double_t e) : 
                 PFJet(px,py,pz,e),
+                fCharge (0),
                 fQGTag(0), 
                 fTau1(0), fTau2(0), fTau3(0),
                 fC2b0(0), fC2b0p2(0), fC2b0p5(0), fC2b1(0), fC2b2(0),
@@ -41,6 +43,7 @@ namespace mithep
                 fPull(0), fPullAngle(0) {}                 
       XlFatJet(const PFJet & p) : 
                 PFJet(p),
+                fCharge (0),
                 fQGTag(0), 
                 fTau1(0), fTau2(0), fTau3(0),
                 fC2b0(0), fC2b0p2(0), fC2b0p5(0), fC2b1(0), fC2b2(0),
@@ -49,10 +52,11 @@ namespace mithep
                 fMassPruned(0), fMassFiltered(0), fMassTrimmed(0),                 
                 fPull(0), fPullAngle(0) {}                 
 
-      void                  AddSubJet(const XlSubJet *p)          { fSubJets.Add(p);               }
+      const XlSubJet       *SubJet(UInt_t i)                const { return fSubJets.At(i);         }
       Bool_t                HasSubJet(const XlSubJet *p)    const { return fSubJets.HasObject(p);  }
       Jet                  *MakeCopy()                      const { return new XlFatJet(*this);    }
       UInt_t                NSubJets()                      const { return fSubJets.Entries();     }
+      Double_t              Charge()                        const { return fCharge;                } 
       Double_t              QGTag()                         const { return fQGTag;                 } 
       Double_t              Tau1()                          const { return fTau1;                  }
       Double_t              Tau2()                          const { return fTau2;                  }
@@ -72,7 +76,8 @@ namespace mithep
       Double_t              Pull()                          const { return fPull;                  }
       Double_t              PullAngle()                     const { return fPullAngle;             }
 
-      const XlSubJet       *SubJet(UInt_t i)                const { return fSubJets.At(i);         }
+      void                  AddSubJet(const XlSubJet *p)          { fSubJets.Add(p);               }
+      void                  SetCharge()                           { fCharge  = this->GetCharge();  } 
       void                  SetQGTag(Double_t t)                  { fQGTag       = t;              } 
       void                  SetTau1(Double_t t)                   { fTau1        = t;              }
       void                  SetTau2(Double_t t)                   { fTau2        = t;              }
@@ -96,7 +101,9 @@ namespace mithep
       void                  Mark(UInt_t i=1)                const;
 
     protected:
-
+      Double32_t            GetCharge()                     const; 
+      
+      Double32_t            fCharge;       //Pt-weighted jet charge
       Double32_t            fQGTag;        //QG tagging
       Double32_t            fTau1;         //1-subjettiness
       Double32_t            fTau2;         //2-subjettiness
@@ -131,6 +138,16 @@ inline void mithep::XlFatJet::Mark(UInt_t ib) const
   fSubJets.Mark(ib);
 }
 
+//--------------------------------------------------------------------------------------------------
+inline Double32_t mithep::XlFatJet::GetCharge() const
+{
+  // Return the sum of constituents PFCandidates weighted by their pt
+  
+  Double_t charge = 0;
+  for (UInt_t i=0; i<NPFCands(); ++i)
+    charge += PFCand(i)->Charge()*PFCand(i)->Pt();
+
+  return charge/this->Pt();
+}
+
 #endif
-
-
