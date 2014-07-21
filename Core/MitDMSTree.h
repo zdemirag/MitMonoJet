@@ -84,6 +84,7 @@ class MitDMSTree {
   float          fjet1NHF_;  
   float          fjet1NEMF_; 
   float          fjet1Btag_;
+  float          fjet1Charge_;
   float          fjet1QGtag_;
   float          fjet1Tau1_;
   float          fjet1Tau2_;
@@ -118,6 +119,7 @@ class MitDMSTree {
   float          fjet2NHF_;  
   float          fjet2NEMF_; 
   float          fjet2Btag_;
+  float          fjet2Charge_;
   float          fjet2QGtag_;
   float          fjet2Tau1_;
   float          fjet2Tau2_;
@@ -278,6 +280,7 @@ class MitDMSTree {
     tree_->Branch("fjet1NHF"         , &fjet1NHF_         , "fjet1NHF/F");  
     tree_->Branch("fjet1NEMF"        , &fjet1NEMF_        , "fjet1NEMF/F"); 
     tree_->Branch("fjet1Btag"        , &fjet1Btag_        , "fjet1Btag/F");
+    tree_->Branch("fjet1Charge"      , &fjet1Charge_      , "fjet1Charge/F");
     tree_->Branch("fjet1QGtag"       , &fjet1QGtag_       , "fjet1QGtag/F");
     tree_->Branch("fjet1Tau1"        , &fjet1Tau1_        , "fjet1Tau1/F");
     tree_->Branch("fjet1Tau2"        , &fjet1Tau2_        , "fjet1Tau2/F");
@@ -312,6 +315,7 @@ class MitDMSTree {
     tree_->Branch("fjet2NHF"         , &fjet2NHF_         , "fjet2NHF/F");  
     tree_->Branch("fjet2NEMF"        , &fjet2NEMF_        , "fjet2NEMF/F"); 
     tree_->Branch("fjet2Btag"        , &fjet2Btag_        , "fjet2Btag/F");
+    tree_->Branch("fjet2Charge"      , &fjet2Charge_      , "fjet2Charge/F");
     tree_->Branch("fjet2QGtag"       , &fjet2QGtag_       , "fjet2QGtag/F");
     tree_->Branch("fjet2Tau1"        , &fjet2Tau1_        , "fjet2Tau1/F");
     tree_->Branch("fjet2Tau2"        , &fjet2Tau2_        , "fjet2Tau2/F");
@@ -428,6 +432,7 @@ class MitDMSTree {
     tree_->SetBranchAddress("fjet1NHF"         , &fjet1NHF_         );  
     tree_->SetBranchAddress("fjet1NEMF"        , &fjet1NEMF_        ); 
     tree_->SetBranchAddress("fjet1Btag"        , &fjet1Btag_        );
+    tree_->SetBranchAddress("fjet1Charge"      , &fjet1Charge_      );
     tree_->SetBranchAddress("fjet1QGtag"       , &fjet1QGtag_       );
     tree_->SetBranchAddress("fjet1Tau1"        , &fjet1Tau1_        );
     tree_->SetBranchAddress("fjet1Tau2"        , &fjet1Tau2_        );
@@ -462,6 +467,7 @@ class MitDMSTree {
     tree_->SetBranchAddress("fjet2NHF"         , &fjet2NHF_         );  
     tree_->SetBranchAddress("fjet2NEMF"        , &fjet2NEMF_        ); 
     tree_->SetBranchAddress("fjet2Btag"        , &fjet2Btag_        );
+    tree_->SetBranchAddress("fjet2Charge"      , &fjet2Charge_      );
     tree_->SetBranchAddress("fjet2QGtag"       , &fjet2QGtag_       );
     tree_->SetBranchAddress("fjet2Tau1"        , &fjet2Tau1_        );
     tree_->SetBranchAddress("fjet2Tau2"        , &fjet2Tau2_        );
@@ -596,6 +602,7 @@ MitDMSTree::InitVariables(){
   fjet1NHF_       = -999.;
   fjet1NEMF_      = -999.;
   fjet1Btag_      = -999.;
+  fjet1Charge_    = -999.;
   fjet1QGtag_     = -999.;
   fjet1Tau1_      = -999.;
   fjet1Tau2_      = -999.;
@@ -630,6 +637,7 @@ MitDMSTree::InitVariables(){
   fjet2NHF_       = -999.;
   fjet2NEMF_      = -999.;
   fjet2Btag_      = -999.;
+  fjet2Charge_    = -999.;
   fjet2QGtag_     = -999.;
   fjet2Tau1_      = -999.;
   fjet2Tau2_      = -999.;

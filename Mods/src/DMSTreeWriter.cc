@@ -274,6 +274,7 @@ void DMSTreeWriter::Process()
       fMitDMSTree.fjet1NHF_    = fjet->NeutralHadronEnergy()/fjet->RawMom().E();
       fMitDMSTree.fjet1NEMF_   = fjet->NeutralEmEnergy()/fjet->RawMom().E();
       fMitDMSTree.fjet1Btag_    = GetFatJetBtag(fMitDMSTree.fjet1_, 0.5);
+      fMitDMSTree.fjet1Charge_  = fjet->Charge();
       fMitDMSTree.fjet1QGtag_   = fjet->QGTag();
       fMitDMSTree.fjet1Tau1_    = fjet->Tau1();
       fMitDMSTree.fjet1Tau2_    = fjet->Tau2();
@@ -322,6 +323,7 @@ void DMSTreeWriter::Process()
       fMitDMSTree.fjet2NHF_    = fjet->NeutralHadronEnergy()/fjet->RawMom().E();
       fMitDMSTree.fjet2NEMF_   = fjet->NeutralEmEnergy()/fjet->RawMom().E();
       fMitDMSTree.fjet2Btag_    = GetFatJetBtag(fMitDMSTree.fjet2_, 0.5);
+      fMitDMSTree.fjet2Charge_  = fjet->Charge();
       fMitDMSTree.fjet2QGtag_   = fjet->QGTag();
       fMitDMSTree.fjet2Tau1_    = fjet->Tau1();
       fMitDMSTree.fjet2Tau2_    = fjet->Tau2();
