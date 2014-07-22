@@ -119,7 +119,8 @@ void runBavantiBoostedV(const char *fileset    = "0000",
     d = c->FindDataset(bookstr,dataset,fileset,local);
   else 
     d = c->FindDataset(bookstr,skimdataset.Data(),fileset,local);
-  ana->AddDataset(d);
+//  ana->AddDataset(d);
+  ana->AddFile("/scratch/snarayan/mc/softl_signal/2l_1/XX-MITDATASET-XX_000.root");
   
   //------------------------------------------------------------------------------------------------
   // organize output
