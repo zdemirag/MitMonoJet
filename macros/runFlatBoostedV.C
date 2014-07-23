@@ -19,7 +19,8 @@ TString getCatalogDir(const char* dir);
 TString getJsonFile(const char* dir);
 
 //--------------------------------------------------------------------------------------------------
-void runFlatBoostedV(const char *fileset    = "0000",
+void runFlatBoostedV(const char *infilename = "",
+                     const char *fileset    = "0000",
                      const char *skim       = "noskim",
                      const char *dataset    = "s12-sch-v7a",     
                      const char *book       = "t2mit/filefi/032",
@@ -92,10 +93,12 @@ void runFlatBoostedV(const char *fileset    = "0000",
   TString skimdataset = TString(dataset)+TString("/") +TString(skim);
   Dataset *d = NULL;
   TString bookstr = book;
-  TString inputFile = "/scratch4/dimatteo/cms/hist/" + TString(outputName) + "/t2mit/filefi/032/";
+/*  TString inputFile = "/scratch4/dimatteo/cms/hist/" + TString(outputName) + "/t2mit/filefi/032/";
   inputFile += TString(dataset);
   inputFile += TString("/") +  TString(outputName) + "_";
-  inputFile += TString(dataset) + "_*_ntuple_*.root";  
+  inputFile += TString(dataset) + "_*_ntuple_*.root";  */
+  TString inputFile("file:");
+  inputFile+=infilename;
   ana->AddFile(inputFile);
 
   TString inputPUFile = "/scratch4/dimatteo/cms/hist/" + TString(outputName) + "/merged/";
