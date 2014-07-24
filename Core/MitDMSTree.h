@@ -150,9 +150,12 @@ class MitDMSTree {
   float          fjet2QGMultSub2_;
   unsigned int   fjet2PartonId_;
  
-  unsigned int   nsjets_;
-  LorentzVector  sjet1_;
-  LorentzVector  sjet2_;
+  unsigned int   fjet1nsj_;
+  LorentzVector  fjet1sj1_;
+  LorentzVector  fjet1sj2_;
+  unsigned int   fjet2nsj_;
+  LorentzVector  fjet2sj1_;
+  LorentzVector  fjet2sj2_;
 
   unsigned int   njets_;
   LorentzVector  jet1_;
@@ -201,7 +204,8 @@ class MitDMSTree {
     lepPtr1_(&lep1_),lepPtr2_(&lep2_),
     tauPtr1_(&tau1_),phoPtr1_(&pho1_),
     fjet1Ptr_(&fjet1_),fjet2Ptr_(&fjet2_),
-    sjetPtr1_(&sjet1_),sjetPtr2_(&sjet2_),
+    fjet1sjPtr1_(&fjet1sj1_),fjet1sjPtr2_(&fjet1sj2_),
+    fjet2sjPtr1_(&fjet2sj1_),fjet2sjPtr2_(&fjet2sj2_),
     jetPtr1_(&jet1_),jetPtr2_(&jet2_),jetPtr3_(&jet3_),jetPtr4_(&jet4_),jetPtr5_(&jet5_),
     bjetPtr1_(&bjet1_),bjetPtr2_(&bjet2_),
     genVPtr_(&genV_) {}
@@ -345,9 +349,12 @@ class MitDMSTree {
     tree_->Branch("fjet2QGAxis2Sub2" , &fjet2QGAxis2Sub2_ , "fjet2QGAxis2Sub2/F");
     tree_->Branch("fjet2QGMultSub2"  , &fjet2QGMultSub2_  , "fjet2QGMultSub2/F");
     tree_->Branch("fjet2PartonId"    , &fjet2PartonId_    , "fjet2PartonId/i");
-    tree_->Branch("nsjets", &nsjets_, "nsjets/i");
-    tree_->Branch("sjet1", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &sjetPtr1_);
-    tree_->Branch("sjet2", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &sjetPtr2_);
+    tree_->Branch("fjet1nsj", &fjet1nsj_, "fjet1nsj/i");
+    tree_->Branch("fjet1sj1", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &fjet1sjPtr1_);
+    tree_->Branch("fjet1sj2", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &fjet1sjPtr2_);
+    tree_->Branch("fjet2nsj", &fjet2nsj_, "fjet2nsj/i");
+    tree_->Branch("fjet2sj1", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &fjet2sjPtr1_);
+    tree_->Branch("fjet2sj2", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &fjet2sjPtr2_);
 
     tree_->Branch("njets", &njets_, "njets/i");
     tree_->Branch("jet1", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr1_);
@@ -498,9 +505,12 @@ class MitDMSTree {
     tree_->SetBranchAddress("fjet2QGMultSub2"  , &fjet2QGMultSub2_  );
     tree_->SetBranchAddress("fjet2PartonId"    , &fjet2PartonId_    );
 
-    tree_->SetBranchAddress("nsjets"           , &nsjets_           );
-    tree_->SetBranchAddress("sjet1"            , &sjetPtr1_         );
-    tree_->SetBranchAddress("sjet2"            , &sjetPtr2_         );
+    tree_->SetBranchAddress("fjet1nsj"         , &fjet1nsj_         );
+    tree_->SetBranchAddress("fjet1sj1"         , &fjet1sjPtr1_      );
+    tree_->SetBranchAddress("fjet1sj2"         , &fjet1sjPtr2_      );
+    tree_->SetBranchAddress("fjet2nsj"         , &fjet2nsj_         );
+    tree_->SetBranchAddress("fjet2sj1"         , &fjet2sjPtr1_      );
+    tree_->SetBranchAddress("fjet2sj2"         , &fjet2sjPtr2_      );
 
     tree_->SetBranchAddress("njets"            , &njets_            );
     tree_->SetBranchAddress("jet1"             , &jetPtr1_          );
@@ -550,6 +560,11 @@ class MitDMSTree {
   LorentzVector* fjet2Ptr_;
   LorentzVector* sjetPtr1_;
   LorentzVector* sjetPtr2_;
+
+  LorentzVector* fjet1sjPtr1_;
+  LorentzVector* fjet1sjPtr2_;
+  LorentzVector* fjet2sjPtr1_;
+  LorentzVector* fjet2sjPtr2_;
 
   LorentzVector* jetPtr1_;
   LorentzVector* jetPtr2_;
@@ -667,10 +682,13 @@ MitDMSTree::InitVariables(){
   fjet2QGAxis2Sub2_ = -999.;
   fjet2QGMultSub2_  = -999.;
   fjet2PartonId_  = 0;
-  
-  nsjets_        = 0;
-  sjet1_         = LorentzVector();
-  sjet2_         = LorentzVector();
+
+  fjet1nsj_      = 0;
+  fjet1sj1_      = LorentzVector();
+  fjet1sj2_      = LorentzVector();
+  fjet2nsj_      = 0;
+  fjet2sj1_      = LorentzVector();
+  fjet2sj2_      = LorentzVector();
   
   njets_         = 0;
   jet1_          = LorentzVector();
