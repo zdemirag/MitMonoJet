@@ -78,6 +78,7 @@ class MitGPTree {
   DataType       dstype_;
 
   LorentzVector  genZ_;
+  LorentzVector  genH_;
   LorentzVector  genMuon1_;
   LorentzVector  genMuon2_;
 
@@ -165,6 +166,7 @@ class MitGPTree {
   /// default constructor  
   MitGPTree():
     genZPtr_(&genZ_),
+    genHPtr_(&genH_),
     genMuon1Ptr_(&genMuon1_),genMuon2Ptr_(&genMuon2_),
     lepPtr1_(&lep1_),lepPtr2_(&lep2_),lepPtr3_(&lep3_),
     tauPtr1_(&tau1_),tauPtr2_(&tau2_),
@@ -250,6 +252,7 @@ class MitGPTree {
     tree_->Branch("dstype"       , &dstype_       ,   "dstype/I");
 
     tree_->Branch("genZ"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genZPtr_);
+    tree_->Branch("genH"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genHPtr_);
     tree_->Branch("genMuon1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genMuon1Ptr_);
     tree_->Branch("genMuon2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genMuon2Ptr_);
 
@@ -377,6 +380,7 @@ class MitGPTree {
     tree_->SetBranchAddress("dstype",        &dstype_);
 
     tree_->SetBranchAddress("genZ",          &genZPtr_);
+    tree_->SetBranchAddress("genH",          &genHPtr_);
     tree_->SetBranchAddress("genMuon1",      &genMuon1Ptr_);
     tree_->SetBranchAddress("genMuon2",      &genMuon2Ptr_);
 
@@ -460,6 +464,7 @@ class MitGPTree {
   private:
 
   LorentzVector* genZPtr_;
+  LorentzVector* genHPtr_;
   LorentzVector* genMuon1Ptr_;
   LorentzVector* genMuon2Ptr_;
   LorentzVector* lepPtr1_;
@@ -520,6 +525,7 @@ MitGPTree::InitVariables(){
   dstype_        = data;
 
   genZ_       	 = LorentzVector();
+  genH_       	 = LorentzVector();
   genMuon1_      = LorentzVector();
   genMuon2_      = LorentzVector();
 

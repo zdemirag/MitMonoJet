@@ -184,6 +184,9 @@ void MonoJetTreeWriter::Process()
     for (UInt_t i=0; i<fParticles->GetEntries(); ++i) {
       if (fParticles->At(i)->Status()==3 and fParticles->At(i)->Is(MCParticle::kZ)) 
 	fMitGPTree.genZ_ = fParticles->At(i)->Mom();
+      if (fParticles->At(i)->Status()==3 and fParticles->At(i)->Is(MCParticle::kH)) 
+	fMitGPTree.genH_ = fParticles->At(i)->Mom();
+
     }
 
     // the muons
