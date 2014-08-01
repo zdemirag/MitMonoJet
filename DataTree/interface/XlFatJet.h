@@ -28,7 +28,7 @@ namespace mithep
                 fTau1(0), fTau2(0), fTau3(0),
                 fC2b0(0), fC2b0p2(0), fC2b0p5(0), fC2b1(0), fC2b2(0),
                 fQJetVol(0), 
-                fMassSDb0(0), fMassSDb2(0), fMassSDbm1(0),
+                fMassSDb0(0), fMassSDb1(0), fMassSDb2(0), fMassSDbm1(0),
                 fMassPruned(0), fMassFiltered(0), fMassTrimmed(0),                 
                 fPull(0), fPullAngle(0) {}                 
       XlFatJet(Double_t px, Double_t py, Double_t pz, Double_t e) : 
@@ -38,7 +38,7 @@ namespace mithep
                 fTau1(0), fTau2(0), fTau3(0),
                 fC2b0(0), fC2b0p2(0), fC2b0p5(0), fC2b1(0), fC2b2(0),
                 fQJetVol(0), 
-                fMassSDb0(0), fMassSDb2(0), fMassSDbm1(0),
+                fMassSDb0(0), fMassSDb1(0), fMassSDb2(0), fMassSDbm1(0),
                 fMassPruned(0), fMassFiltered(0), fMassTrimmed(0),                 
                 fPull(0), fPullAngle(0) {}                 
       XlFatJet(const PFJet & p) : 
@@ -48,7 +48,7 @@ namespace mithep
                 fTau1(0), fTau2(0), fTau3(0),
                 fC2b0(0), fC2b0p2(0), fC2b0p5(0), fC2b1(0), fC2b2(0),
                 fQJetVol(0), 
-                fMassSDb0(0), fMassSDb2(0), fMassSDbm1(0),
+                fMassSDb0(0), fMassSDb1(0), fMassSDb2(0), fMassSDbm1(0),
                 fMassPruned(0), fMassFiltered(0), fMassTrimmed(0),                 
                 fPull(0), fPullAngle(0) {}                 
 
@@ -68,6 +68,7 @@ namespace mithep
       Double_t              C2b2()                          const { return fC2b2;                  }
       Double_t              QJetVol()                       const { return fQJetVol;               }
       Double_t              MassSDb0()                      const { return fMassSDb0;              }
+      Double_t              MassSDb1()                      const { return fMassSDb1;              }
       Double_t              MassSDb2()                      const { return fMassSDb2;              }
       Double_t              MassSDbm1()                     const { return fMassSDbm1;             }
       Double_t              MassPruned()                    const { return fMassPruned;            }
@@ -89,6 +90,7 @@ namespace mithep
       void                  SetC2b2(Double_t t)                   { fC2b2        = t;              }
       void                  SetQJetVol(Double_t t)                { fQJetVol     = t;              }
       void                  SetMassSDb0(Double_t t)               { fMassSDb0    = t;              }
+      void                  SetMassSDb1(Double_t t)               { fMassSDb1    = t;              }
       void                  SetMassSDb2(Double_t t)               { fMassSDb2    = t;              }
       void                  SetMassSDbm1(Double_t t)              { fMassSDbm1   = t;              }
       void                  SetMassPruned(Double_t t)             { fMassPruned  = t;              }
@@ -115,6 +117,7 @@ namespace mithep
       Double32_t            fC2b2;         //ECF ratio order 2, beta 2      
       Double32_t            fQJetVol;      //QJets volatility
       Double32_t            fMassSDb0;     //Groomed mass (soft drop b 0)
+      Double32_t            fMassSDb1;     //Groomed mass (soft drop b 1)
       Double32_t            fMassSDb2;     //Groomed mass (soft drop b 2)
       Double32_t            fMassSDbm1;    //Groomed mass (soft drop b-1)
       Double32_t            fMassPruned;   //Groomed mass (pruning)
@@ -125,7 +128,7 @@ namespace mithep
                                            //either choose 2-prong or 3-prong subclustering!
       RefArray<XlSubJet>    fSubJets;      //sub jets in the jet
 
-    ClassDef(XlFatJet, 2) // XlFatJet class
+    ClassDef(XlFatJet, 3) // XlFatJet class
   };
 }
 

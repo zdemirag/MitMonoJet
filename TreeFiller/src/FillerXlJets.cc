@@ -48,7 +48,7 @@ FillerXlJets::FillerXlJets(const char *name, const char *title) :
   fPruneDistCut (0.5),  
   fFilterN (3),      
   fFilterRad (0.2),     
-  fTrimRad (0.05),       
+  fTrimRad (0.1),       
   fTrimPtFrac (0.03),    
   fConeSize (0.6),
   fCounter (0)
@@ -236,9 +236,11 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
 
   // Compute groomed masses
   fastjet::contrib::SoftDropTagger softDropSDb0(0.0, fSoftDropZCut, fSoftDropMuCut);
+  fastjet::contrib::SoftDropTagger softDropSDb1(1.0, fSoftDropZCut, fSoftDropMuCut);
   fastjet::contrib::SoftDropTagger softDropSDb2(2.0, fSoftDropZCut, fSoftDropMuCut);
   fastjet::contrib::SoftDropTagger softDropSDbm1(-1.0, fSoftDropZCut, fSoftDropMuCut);
   double MassSDb0 = (softDropSDb0(fjJet)).m();
+  double MassSDb1 = (softDropSDb1(fjJet)).m();
   double MassSDb2 = (softDropSDb2(fjJet)).m();
   double MassSDbm1 = (softDropSDbm1(fjJet)).m();
 
@@ -266,6 +268,7 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   
   // Store the groomed masses
   fatJet->SetMassSDb0(MassSDb0);     
+  fatJet->SetMassSDb1(MassSDb1);     
   fatJet->SetMassSDb2(MassSDb2);     
   fatJet->SetMassSDbm1(MassSDbm1);    
   fatJet->SetMassPruned(MassPruned);   
