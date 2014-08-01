@@ -36,19 +36,21 @@
 #include "MitMonoJet/SelMods/interface/BoostedVAnalysisMod.h"
 #include "MitMonoJet/TreeFiller/interface/FillerXlJets.h"
 #include "MitMonoJet/TreeFiller/interface/FillerXlMet.h"
+#include "MitMonoJet/Mods/interface/FastJetMod.h"
 #include "MitMonoJet/Mods/interface/SkimJetsMod.h"
 
 TString getCatalogDir(const char* dir);
 TString getJsonFile(const char* dir);
 
 //--------------------------------------------------------------------------------------------------
-void runBavantiBoostedV(const char *fileset    = "0000",
+void runBavantiBoostedV_CHS
+                       (const char *fileset    = "0000",
                         const char *skim       = "noskim",
                         const char *dataset    = "s12-pj1800-v7a",     
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 10)
+                        int         nEvents    = 40)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -333,10 +335,13 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   PublisherMod<PFJet,Jet> *pubJet = new PublisherMod<PFJet,Jet>("JetPub");
   pubJet->SetInputName("AKt5PFJets");
   pubJet->SetOutputName("PubAKt5PFJets");
-
-  PublisherMod<PFJet,Jet> *pubFatJet = new PublisherMod<PFJet,Jet>("FatJetPub");
-  pubFatJet->SetInputName("AKt7PFJets");
-  pubFatJet->SetOutputName("PubAKt7PFJets");
+  
+  FastJetMod *pubFastJet = new FastJetMod;
+  pubFastJet->MakeSmallJets(kFALSE);
+  pubFastJet->MakeFatJets(kTRUE);
+  pubFastJet->SetPfCandidatesName("pfnopileupcands");
+  pubFastJet->SetPfCandidatesFromBranch(kFALSE);
+  pubFastJet->SetFatConeSize(0.8);
 
   JetCorrectionMod *jetCorr = new JetCorrectionMod;
   if (isData){ 
@@ -355,17 +360,17 @@ void runBavantiBoostedV(const char *fileset    = "0000",
 
   JetCorrectionMod *fatJetCorr = new JetCorrectionMod;
   if (isData){ 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L1FastJet_AK5PF.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L2Relative_AK5PF.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L3Absolute_AK5PF.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L2L3Residual_AK5PF.txt")).Data());
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L1FastJet_AK5PFchs.txt")).Data()); 
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L2Relative_AK5PFchs.txt")).Data()); 
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L3Absolute_AK5PFchs.txt")).Data()); 
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L2L3Residual_AK5PFchs.txt")).Data());
   }                                                                                      
   else {                                                                                 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_MC_L1FastJet_AK5PF.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_MC_L2Relative_AK5PF.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_MC_L3Absolute_AK5PF.txt")).Data()); 
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_MC_L1FastJet_AK5PFchs.txt")).Data()); 
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_MC_L2Relative_AK5PFchs.txt")).Data()); 
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_MC_L3Absolute_AK5PFchs.txt")).Data()); 
   }
-  fatJetCorr->SetInputName(pubFatJet->GetOutputName());
+  fatJetCorr->SetInputName(pubFastJet->GetOutputFatJetsName());
   fatJetCorr->SetCorrectedName("CorrectedFatJets");    
         
   MetCorrectionMod *metCorrT0T1Shift = new MetCorrectionMod;
@@ -396,6 +401,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   fatJetId->SetOutputName("GoodFatJets");
   fatJetId->SetApplyBetaCut(kFALSE);
   fatJetId->SetApplyMVACut(kTRUE);
+  fatJetId->SetApplyMVACHS(kTRUE);
 
   JetCleaningMod *jetCleaning = new JetCleaningMod;
   jetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());
@@ -463,7 +469,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   boostedJetsFiller->FillTopSubJets(kFALSE);
   boostedJetsFiller->SetJetsName(fatJetCleaning->GetOutputName());
   boostedJetsFiller->SetJetsFromBranch(kFALSE);
-  boostedJetsFiller->SetConeSize(0.7);      
+  boostedJetsFiller->SetConeSize(0.8);      
 
   //------------------------------------------------------------------------------------------------
   // keep the skimmed collections for further usage
@@ -557,8 +563,8 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   photonCleaningMod        ->Add(pftauIdMod);
   pftauIdMod               ->Add(pftauCleaningMod);
   pftauCleaningMod         ->Add(pubJet);
-  pubJet                   ->Add(pubFatJet);
-  pubFatJet                ->Add(jetCorr);
+  pubJet                   ->Add(pubFastJet);
+  pubFastJet               ->Add(jetCorr);
   jetCorr                  ->Add(fatJetCorr);
   fatJetCorr               ->Add(metCorrT0T1Shift);
   metCorrT0T1Shift         ->Add(jetId);
