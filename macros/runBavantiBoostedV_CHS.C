@@ -50,7 +50,7 @@ void runBavantiBoostedV_CHS
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 40)
+                        int         nEvents    = 200)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -337,11 +337,9 @@ void runBavantiBoostedV_CHS
   pubJet->SetOutputName("PubAKt5PFJets");
   
   FastJetMod *pubFastJet = new FastJetMod;
-  pubFastJet->MakeSmallJets(kFALSE);
-  pubFastJet->MakeFatJets(kTRUE);
   pubFastJet->SetPfCandidatesName("pfnopileupcands");
   pubFastJet->SetPfCandidatesFromBranch(kFALSE);
-  pubFastJet->SetFatConeSize(0.8);
+  pubFastJet->SetConeSize(0.8);
 
   JetCorrectionMod *jetCorr = new JetCorrectionMod;
   if (isData){ 
@@ -360,17 +358,17 @@ void runBavantiBoostedV_CHS
 
   JetCorrectionMod *fatJetCorr = new JetCorrectionMod;
   if (isData){ 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L1FastJet_AK5PFchs.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L2Relative_AK5PFchs.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L3Absolute_AK5PFchs.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_DATA_L2L3Residual_AK5PFchs.txt")).Data());
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/FT53_V21A_AN6_L1FastJet_AK7PFchs.txt")).Data()); 
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/FT53_V21A_AN6_L2Relative_AK7PFchs.txt")).Data()); 
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/FT53_V21A_AN6_L3Absolute_AK7PFchs.txt")).Data()); 
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/FT53_V21A_AN6_L2L3Residual_AK7PFchs.txt")).Data());
   }                                                                                      
   else {                                                                                 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_MC_L1FastJet_AK5PFchs.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_MC_L2Relative_AK5PFchs.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/Summer13_V1_MC_L3Absolute_AK5PFchs.txt")).Data()); 
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/START53_V27_L1FastJet_AK7PFchs.txt")).Data()); 
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/START53_V27_L2Relative_AK7PFchs.txt")).Data()); 
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/START53_V27_L3Absolute_AK7PFchs.txt")).Data()); 
   }
-  fatJetCorr->SetInputName(pubFastJet->GetOutputFatJetsName());
+  fatJetCorr->SetInputName(pubFastJet->GetOutputJetsName());
   fatJetCorr->SetCorrectedName("CorrectedFatJets");    
         
   MetCorrectionMod *metCorrT0T1Shift = new MetCorrectionMod;
@@ -418,6 +416,34 @@ void runBavantiBoostedV_CHS
   fatJetCleaning->SetApplyPhotonRemoval(kTRUE);
   fatJetCleaning->SetGoodJetsName(fatJetId->GetOutputName());
   fatJetCleaning->SetCleanJetsName("CleanFatJets");
+
+  //------------------------------------------------------------------------------------------------
+  // select events with a monojet topology : no FAT jet preselection (as we have to recreate them)
+  //------------------------------------------------------------------------------------------------
+  BoostedVAnalysisMod *fastPresel = new BoostedVAnalysisMod("MonoJetFastSelector");
+  fastPresel->SetFatJetsName(jetCleaning->GetOutputName()); //identified fat jets
+  fastPresel->SetFatJetsFromBranch(kFALSE);
+  fastPresel->SetJetsName(jetCleaning->GetOutputName()); //identified jets
+  fastPresel->SetJetsFromBranch(kFALSE);
+  fastPresel->SetElectronsName(electronCleaning->GetOutputName());
+  fastPresel->SetElectronsFromBranch(kFALSE);
+  fastPresel->SetMuonsName(muonId->GetOutputName());
+  fastPresel->SetMuonsFromBranch(kFALSE);
+  fastPresel->SetPhotonsName(photonCleaningMod->GetOutputName());
+  fastPresel->SetPhotonsFromBranch(kFALSE);
+  fastPresel->SetLeptonsName(merger->GetOutputName());
+  fastPresel->ApplyTopPresel(kTRUE); 
+  fastPresel->ApplyWlepPresel(kTRUE);
+  fastPresel->ApplyZlepPresel(kTRUE);
+  fastPresel->ApplyMetPresel(kTRUE);
+  fastPresel->ApplyVbfPresel(kTRUE);
+  fastPresel->ApplyGjetPresel(kTRUE);
+  // do not use fat jet for this block
+  fastPresel->SetMinFatJetPt(10);
+  fastPresel->SetMinTagJetPt(100);
+  fastPresel->SetMinMet(200);    
+  fastPresel->SetMinPhotonPt(150);    
+  fastPresel->FillAndPublishPresel(kFALSE);
 
   //------------------------------------------------------------------------------------------------
   // select events with a monojet topology
@@ -563,16 +589,17 @@ void runBavantiBoostedV_CHS
   photonCleaningMod        ->Add(pftauIdMod);
   pftauIdMod               ->Add(pftauCleaningMod);
   pftauCleaningMod         ->Add(pubJet);
-  pubJet                   ->Add(pubFastJet);
-  pubFastJet               ->Add(jetCorr);
-  jetCorr                  ->Add(fatJetCorr);
-  fatJetCorr               ->Add(metCorrT0T1Shift);
-  metCorrT0T1Shift         ->Add(jetId);
-  jetId                    ->Add(fatJetId);
-  fatJetId                 ->Add(jetCleaning);
-  jetCleaning              ->Add(fatJetCleaning);
+  pubJet                   ->Add(jetCorr);
+  jetCorr                  ->Add(jetId);
+  jetId                    ->Add(jetCleaning);
+  jetCleaning              ->Add(fastPresel);
+  fastPresel               ->Add(pubFastJet);
+  pubFastJet               ->Add(fatJetCorr);
+  fatJetCorr               ->Add(fatJetId);
+  fatJetId                 ->Add(fatJetCleaning);
   fatJetCleaning           ->Add(jetplusmet);
-  jetplusmet               ->Add(extendedMetFiller);
+  jetplusmet               ->Add(metCorrT0T1Shift);
+  metCorrT0T1Shift         ->Add(extendedMetFiller);
   extendedMetFiller        ->Add(boostedJetsFiller);
   boostedJetsFiller        ->Add(skmPhotons);
   skmPhotons               ->Add(skmElectrons);
