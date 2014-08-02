@@ -16,29 +16,23 @@ ClassImp(mithep::FastJetMod)
 //--------------------------------------------------------------------------------------------------
 FastJetMod::FastJetMod(const char *name, const char *title) :
   BaseMod (name,title),
-  fMakeSmallJets (kFALSE),
-  fMakeFatJets (kTRUE),
   fGetMatchBtag (kTRUE),
   fUseBambuJets (kFALSE),
-  fUseBambuFatJets (kFALSE),
   fBtaggedJetsName (Names::gkPFJetBrn),
   fBtaggedJetsFromBranch (kTRUE),
   fBtaggedJets (0),
   fJetsName (Names::gkPFJetBrn),
   fJetsFromBranch (kTRUE),
   fJets (0),
-  fFatJetsName (Names::gkPFJetBrn),
-  fFatJetsFromBranch (kTRUE),
-  fFatJets (0),
   fPfCandidatesName (Names::gkPFCandidatesBrn),
   fPfCandidatesFromBranch(kTRUE),
   fPfCandidates (0),
-  fOutputJetsName ("AK5FJCHS"),
+  fOutputJetsName ("AK8FJCHS"),
   fOutputJets (0),
-  fOutputFatJetsName ("AK8FJCHS"),
-  fOutputFatJets (0),
   fJetConeSize (0.5),
-  fFatJetConeSize (0.8)
+  fFatJetConeSize (0.8),
+  fParticleMinPt (0.001),
+  fJetMinPt (20)
 {
   // Constructor.
 }
@@ -62,13 +56,6 @@ void FastJetMod::Process()
       return;
     }
   }
-  if (fUseBambuFatJets) {
-    LoadEventObject(fFatJetsName,fFatJets,fFatJetsFromBranch);
-    if (!fFatJets) {
-      SendError(kAbortModule,"Process","Pointer to input fat jet collection %s null.",fFatJetsName.Data());
-      return;
-    }
-  }
   LoadEventObject(fPfCandidatesName,fPfCandidates,fPfCandidatesFromBranch);
   if (!fPfCandidates) {
     SendError(kAbortModule,"Process","Pointer to input PF Cands collection %s null.",fPfCandidatesName.Data());
@@ -78,45 +65,35 @@ void FastJetMod::Process()
   // Create output collections
   fOutputJets = new JetOArr;
   fOutputJets->SetName(fOutputJetsName);
-  fOutputFatJets = new JetOArr;
-  fOutputFatJets->SetName(fOutputFatJetsName);    
     
   std::vector<fastjet::PseudoJet> fjParts;
   // Push all particle flow candidates of the input PFjet into fastjet particle collection
   for (UInt_t j=0; j<fPfCandidates->GetEntries(); ++j) {
     const PFCandidate *pfCand = fPfCandidates->At(j);
+    // Exclude very soft (unphysical) particles
+    if (pfCand->Pt() < fParticleMinPt)
+      continue;
     fjParts.push_back(fastjet::PseudoJet(pfCand->Px(),pfCand->Py(),pfCand->Pz(),pfCand->E()));
     fjParts.back().set_user_index(j);
   }	
   
   // Setup the clusters for fastjet
-  fastjet::ClusterSequenceArea fjClustering(fjParts,*fAKJetDef,*fAreaDefinition);
-  fastjet::ClusterSequenceArea fjFatClustering(fjParts,*fAKFatJetDef,*fAreaDefinition);
+  fastjet::ClusterSequenceArea *fjClustering =
+    new fastjet::ClusterSequenceArea(fjParts,*fAKJetDef,*fAreaDefinition);
 
   // ---- Fastjet is ready ----
 
-  std::vector<fastjet::PseudoJet> fjOutJets;
-  if (fMakeSmallJets) {
-    // Produce a new set of jets based on the fastjet particle collection and the defined clustering
-    // Cut off fat jets with pt < 10 GeV and consider only the hardest jet of the output collection
-    fjOutJets = sorted_by_pt(fjClustering.inclusive_jets(10.)); 
-    // Check that the output collection size is non-null, otherwise nothing to be done further
-    if (fjOutJets.size() < 1) {
-      printf(" FastJetMod - WARNING - input PFCands produces null reclustering output");
-      return;
-    }
-  }
-  std::vector<fastjet::PseudoJet> fjOutFatJets;
-  if (fMakeFatJets) {
-    fjOutFatJets = sorted_by_pt(fjFatClustering.inclusive_jets(10.));
-    if (fjOutFatJets.size() < 1) {
-      printf(" FastJetMod - WARNING - input PFCands produces null fat reclustering output");
-      return;
-    }    
+  // Produce a new set of jets based on the fastjet particle collection and the defined clustering
+  // Cut off fat jets with pt < fJetMinPt GeV
+  std::vector<fastjet::PseudoJet> fjOutJets = sorted_by_pt(fjClustering->inclusive_jets(fJetMinPt)); 
+  // Check that the output collection size is non-null, otherwise nothing to be done further
+  if (fjOutJets.size() < 1) {
+    printf(" FastJetMod - WARNING - input PFCands produces null reclustering output. skipping event!");
+    this->SkipEvent(); 
+    return;
   }
 
   // Now loop over PFJets and fill the output collection
-  if (fMakeSmallJets)
   for (UInt_t j=0; j<fjOutJets.size(); ++j) {
     // Inizialize PFJet with 4-vector
     PFJet* outJet = new PFJet(fjOutJets[j].px(),
@@ -130,35 +107,16 @@ void FastJetMod::Process()
     // Add this jet to the output collection
     fOutputJets->Add(outJet);
         
-  } //end loop on fastjet small jets
-
-  if (fMakeFatJets)
-  for (UInt_t j=0; j<fjOutFatJets.size(); ++j) {
-    // Inizialize PFJet with 4-vector
-    PFJet* outFatJet = new PFJet(fjOutFatJets[j].px(),
-                                 fjOutFatJets[j].py(),
-                                 fjOutFatJets[j].pz(),
-                                 fjOutFatJets[j].e());
-
-    // Setup PFJet particle flow related quantities
-    FillPFJet(outFatJet, fjOutFatJets[j]);
-                              
-    // Add this jet to the output collection
-    fOutputFatJets->Add(outFatJet);
-        
-  } //end loop on fastjet large jets
+  } //end loop on fastjet jets
   
   // Now sort the output collections
-  if (fMakeSmallJets)
-    fOutputJets->Sort();
-  if (fMakeFatJets)
-    fOutputFatJets->Sort();
+  fOutputJets->Sort();
       
   // add to event for other modules to use
-  if (fMakeSmallJets)
-    AddObjThisEvt(fOutputJets);  
-  if (fMakeFatJets)
-    AddObjThisEvt(fOutputFatJets);
+  AddObjThisEvt(fOutputJets);  
+  
+  // some memory cleanup
+  fjClustering->delete_self_when_unused();
   
   return;
 }
@@ -171,14 +129,10 @@ void FastJetMod::SlaveBegin()
     ReqEventObject(fBtaggedJetsName,fBtaggedJets,fBtaggedJetsFromBranch);
   if (fUseBambuJets)
     ReqEventObject(fJetsName,fJets,fJetsFromBranch);
-  if (fUseBambuFatJets)
-    ReqEventObject(fFatJetsName,fFatJets,fFatJetsFromBranch);
   ReqEventObject(fPfCandidatesName,fPfCandidates,fPfCandidatesFromBranch);
     
-  // AKT constructor (fConeSize = small for antiKt)
+  // AKT constructor
   fAKJetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm, fJetConeSize);
-  // AKT constructor (fConeSize = small for antiKt)
-  fAKFatJetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm, fFatJetConeSize);
   
   // Initialize area caculation (done with ghost particles)
   int activeAreaRepeats = 1;
@@ -210,11 +164,17 @@ void FastJetMod::FillPFJet (PFJet *pPFJet, fastjet::PseudoJet &fjJet)
   
   // Loop on input jet constituents vector and discard very soft particles (ghosts)
   for (unsigned int iPart = 0; iPart < fjJet.constituents().size(); iPart++) {
-    if (fjJet.constituents()[iPart].perp() < 0.01)
+    if (fjJet.constituents()[iPart].perp() < fParticleMinPt)
       continue;
     int thisPFCandIndex = fjJet.constituents()[iPart].user_index();
     // First of all fix the linking between PFJets and PFCandidates
     const PFCandidate *pfCand = fPfCandidates->At(thisPFCandIndex);
+    // Check that the pfCandidate exists
+    if (!pfCand) {
+      printf(" FastJetMod::FillPFJet - WARNING - input PFCand pointer is null, skipping this candidate.");
+      continue;
+    }    
+    
     pPFJet->AddPFCand(pfCand);      
     
     // Now take care of energy fraction and multiplicities

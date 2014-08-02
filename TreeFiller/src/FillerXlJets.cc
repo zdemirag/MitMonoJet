@@ -189,17 +189,19 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   }	
 
   // Setup the cluster for fastjet
-  fastjet::ClusterSequenceArea fjClustering(fjParts,*fCAJetDef,*fAreaDefinition);
+  fastjet::ClusterSequenceArea *fjClustering =
+    new fastjet::ClusterSequenceArea(fjParts,*fCAJetDef,*fAreaDefinition);
 
   // ---- Fastjet is ready ----
 
   // Produce a new set of jets based on the fastjet particle collection and the defined clustering
   // Cut off fat jets with pt < 10 GeV and consider only the hardest jet of the output collection
-  std::vector<fastjet::PseudoJet> fjOutJets = sorted_by_pt(fjClustering.inclusive_jets(10.)); 
+  std::vector<fastjet::PseudoJet> fjOutJets = sorted_by_pt(fjClustering->inclusive_jets(10.)); 
 
   // Check that the output collection size is non-null, otherwise nothing to be done further
   if (fjOutJets.size() < 1) {
-    printf(" FillerXlJets::FillXlFatJet() - WARNING - input PFJet produces null reclustering output");
+    printf(" FillerXlJets::FillXlFatJet() - WARNING - input PFJet produces null reclustering output. skipping event!");
+    this->SkipEvent(); 
     return;
   }
   fastjet::PseudoJet fjJet = fjOutJets[0];
@@ -319,6 +321,9 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   for (UInt_t iSubJ=0; iSubJ<fXlSubJets->GetEntries(); ++iSubJ)
     fatJet->AddSubJet(fXlSubJets->At(iSubJ));    
    
+  // Memory cleanup
+  fjClustering->delete_self_when_unused();
+   
   return;
 }
 
@@ -376,12 +381,18 @@ double FillerXlJets::GetQjetVolatility(std::vector <fastjet::PseudoJet> &constit
   
   for(unsigned int ii = 0 ; ii < (unsigned int) QJetsN ; ii++){    
     qjet_plugin.SetRandSeed(seed+ii); // new feature in Qjets to set the random seed
-    fastjet::ClusterSequence qjet_seq(constits, qjet_def);
+    fastjet::ClusterSequence *qjet_seq =
+      new fastjet::ClusterSequence(constits, qjet_def);
     
-    vector<fastjet::PseudoJet> inclusive_jets2 = sorted_by_pt(qjet_seq.inclusive_jets(5.0));
-    if (inclusive_jets2.size()>0) { qjetmasses.push_back( inclusive_jets2[0].m() ); }          
+    vector<fastjet::PseudoJet> inclusive_jets2 = sorted_by_pt(qjet_seq->inclusive_jets(5.0));
+    // skip failed recombinations (with no output jets)
+    if (inclusive_jets2.size() < 1)
+      continue;
+    if (inclusive_jets2.size()>0) { qjetmasses.push_back( inclusive_jets2[0].m() ); }
+    // memory cleanup
+    qjet_seq->delete_self_when_unused();          
   }
-  
+
   // find RMS of a vector
   float qjetsRMS = FindRMS( qjetmasses );
   // find mean of a vector

@@ -323,16 +323,17 @@ void BoostedVAnalysisMod::Process()
 
   if (fApplyGjetPresel) {
     // G+jets Preselection: require boosted jet + photon
-    int nGoodTagJets = 0;
+    int nGoodFatJets = 0;
     int nGoodPhotons = 0;
 
-    // Jets
-    for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
-      const Jet *jet = fJets->At(i);
-      // Pt and eta cuts
-      if (jet->Pt() < fMinTagJetPt || fabs(jet->Eta()) > 2.5)
-        continue;
-      nGoodTagJets++;
+    // FatJets
+    if (fFatJets->GetEntries() > 0) { 
+      for (UInt_t i = 0; i < fFatJets->GetEntries(); ++i) {
+        const Jet *jet = fFatJets->At(i);
+        // Pt and eta cuts
+        if (jet->Pt() < fMinFatJetPt || fabs(jet->Eta()) > 2.5)
+          nGoodFatJets++;
+      }
     }
 
     // Photons
@@ -345,7 +346,7 @@ void BoostedVAnalysisMod::Process()
         nGoodPhotons++;
       }
     }
-    if (nGoodTagJets > 0 && nGoodPhotons > 0)
+    if (nGoodFatJets > 0 && nGoodPhotons > 0)
       passGjetPresel = kTRUE;
   }
 
@@ -357,15 +358,17 @@ void BoostedVAnalysisMod::Process()
   }
 
   // Store the preselection word in the extended event selection object
-  int preselectionWord = GetPreselWord (
-                         passTopPresel, 
-                         passWlepPresel,
-                         passZlepPresel,
-                         passMetPresel, 
-                         passVbfPresel, 
-                         passGjetPresel); 
-  fXlEvtSelData->SetFiltersWord(fEvtSelData->metFiltersWord());
-  fXlEvtSelData->SetPreselWord(preselectionWord);
+  if (fFillAndPublishPresel) {
+    int preselectionWord = GetPreselWord (
+                           passTopPresel, 
+                           passWlepPresel,
+                           passZlepPresel,
+                           passMetPresel, 
+                           passVbfPresel, 
+                           passGjetPresel); 
+    fXlEvtSelData->SetFiltersWord(fEvtSelData->metFiltersWord());
+    fXlEvtSelData->SetPreselWord(preselectionWord);
+  }
    
   // Increment passed events counter
   fPass++;
