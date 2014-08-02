@@ -45,6 +45,7 @@ ClassImp(mithep::BoostedVAnalysisMod)
     fApplyMetPresel        (kTRUE), 
     fApplyVbfPresel        (kTRUE),
     fApplyGjetPresel       (kTRUE),
+    fApplyFatJetPresel     (kTRUE),
     fFillAndPublishPresel  (kTRUE),
     // collections
     fMet                   (0),
@@ -115,7 +116,8 @@ void BoostedVAnalysisMod::Process()
   }
 
   fJets    = GetObjThisEvt<JetOArr>(fJetsName);
-  fFatJets = GetObjThisEvt<JetOArr>(fFatJetsName);
+  if (fApplyFatJetPresel)
+    fFatJets = GetObjThisEvt<JetOArr>(fFatJetsName);
 
   ParticleOArr *leptons = GetObjThisEvt<ParticleOArr>(fLeptonsName);
   
@@ -146,8 +148,10 @@ void BoostedVAnalysisMod::Process()
     int nGoodBJets = 0;
     int nGoodLeptons = 0;
 
-    // FatJets
-    if (fFatJets->GetEntries() > 0) { 
+    // FatJets: if fatJets not available adjust preselection params
+    if (!fApplyFatJetPresel)
+      nGoodFatJets = 1;
+    if (fApplyFatJetPresel && fFatJets->GetEntries() > 0) { 
       for (UInt_t i = 0; i < fFatJets->GetEntries(); ++i) {
         const Jet *jet = fFatJets->At(i);
         // Pt and eta cuts
@@ -326,8 +330,10 @@ void BoostedVAnalysisMod::Process()
     int nGoodFatJets = 0;
     int nGoodPhotons = 0;
 
-    // FatJets
-    if (fFatJets->GetEntries() > 0) { 
+    // FatJets: if fatJets not available adjust preselection params
+    if (!fApplyFatJetPresel)
+      nGoodFatJets = 1;
+    if (fApplyFatJetPresel && fFatJets->GetEntries() > 0) { 
       for (UInt_t i = 0; i < fFatJets->GetEntries(); ++i) {
         const Jet *jet = fFatJets->At(i);
         // Pt and eta cuts

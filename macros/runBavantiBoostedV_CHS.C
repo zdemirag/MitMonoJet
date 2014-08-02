@@ -46,11 +46,11 @@ TString getJsonFile(const char* dir);
 void runBavantiBoostedV_CHS
                        (const char *fileset    = "0000",
                         const char *skim       = "noskim",
-                        const char *dataset    = "s12-pj1800-v7a",     
+                        const char *dataset    = "s12-ttj-v1-v7a",     
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 200)
+                        int         nEvents    = 2000)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -421,8 +421,6 @@ void runBavantiBoostedV_CHS
   // select events with a monojet topology : no FAT jet preselection (as we have to recreate them)
   //------------------------------------------------------------------------------------------------
   BoostedVAnalysisMod *fastPresel = new BoostedVAnalysisMod("MonoJetFastSelector");
-  fastPresel->SetFatJetsName(jetCleaning->GetOutputName()); //identified fat jets
-  fastPresel->SetFatJetsFromBranch(kFALSE);
   fastPresel->SetJetsName(jetCleaning->GetOutputName()); //identified jets
   fastPresel->SetJetsFromBranch(kFALSE);
   fastPresel->SetElectronsName(electronCleaning->GetOutputName());
@@ -438,6 +436,7 @@ void runBavantiBoostedV_CHS
   fastPresel->ApplyMetPresel(kTRUE);
   fastPresel->ApplyVbfPresel(kTRUE);
   fastPresel->ApplyGjetPresel(kTRUE);
+  fastPresel->ApplyFatJetPresel(kFALSE);
   // do not use fat jet for this block
   fastPresel->SetMinFatJetPt(10);
   fastPresel->SetMinTagJetPt(100);

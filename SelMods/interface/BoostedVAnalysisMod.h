@@ -58,6 +58,7 @@ namespace mithep
     void                  ApplyMetPresel           (Bool_t b)      { fApplyMetPresel = b;         }
     void                  ApplyVbfPresel           (Bool_t b)      { fApplyVbfPresel = b;         }
     void                  ApplyGjetPresel          (Bool_t b)      { fApplyGjetPresel = b;        }
+    void                  ApplyFatJetPresel        (Bool_t b)      { fApplyFatJetPresel = b;      }
 
     // decide whether to to fill and publish the preseleciton word or not
     void                  FillAndPublishPresel     (Bool_t b)      { fFillAndPublishPresel = b;   }
@@ -111,6 +112,7 @@ namespace mithep
     Bool_t                fApplyMetPresel; 
     Bool_t                fApplyVbfPresel; 
     Bool_t                fApplyGjetPresel; 
+    Bool_t                fApplyFatJetPresel;
     // logical whether to  to to fill and publish the preseleciton word or not
     Bool_t                fFillAndPublishPresel; 
     // hooks to the collections
