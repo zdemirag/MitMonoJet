@@ -288,9 +288,10 @@ void DMSTreeWriter::Process()
       fMitDMSTree.fjet1C2b1_        = fjet->C2b1();        
       fMitDMSTree.fjet1C2b2_        = fjet->C2b2();        
       fMitDMSTree.fjet1QJetVol_     = fjet->QJetVol();     
-      fMitDMSTree.fjet1MassSDb0_    = fjet->MassSDb0();    
-      fMitDMSTree.fjet1MassSDb2_    = fjet->MassSDb2();    
       fMitDMSTree.fjet1MassSDbm1_   = fjet->MassSDbm1();   
+      fMitDMSTree.fjet1MassSDb0_    = fjet->MassSDb0();    
+      fMitDMSTree.fjet1MassSDb1_    = fjet->MassSDb1();    
+      fMitDMSTree.fjet1MassSDb2_    = fjet->MassSDb2();    
       fMitDMSTree.fjet1MassPruned_  = fjet->MassPruned();  
       fMitDMSTree.fjet1MassFiltered_= fjet->MassFiltered();
       fMitDMSTree.fjet1MassTrimmed_ = fjet->MassTrimmed();
@@ -341,9 +342,10 @@ void DMSTreeWriter::Process()
       fMitDMSTree.fjet2C2b1_        = fjet->C2b1();        
       fMitDMSTree.fjet2C2b2_        = fjet->C2b2();        
       fMitDMSTree.fjet2QJetVol_     = fjet->QJetVol();     
-      fMitDMSTree.fjet2MassSDb0_    = fjet->MassSDb0();    
-      fMitDMSTree.fjet2MassSDb2_    = fjet->MassSDb2();    
       fMitDMSTree.fjet2MassSDbm1_   = fjet->MassSDbm1();   
+      fMitDMSTree.fjet2MassSDb0_    = fjet->MassSDb0();    
+      fMitDMSTree.fjet2MassSDb1_    = fjet->MassSDb1();    
+      fMitDMSTree.fjet2MassSDb2_    = fjet->MassSDb2();    
       fMitDMSTree.fjet2MassPruned_  = fjet->MassPruned();  
       fMitDMSTree.fjet2MassFiltered_= fjet->MassFiltered();
       fMitDMSTree.fjet2MassTrimmed_ = fjet->MassTrimmed();
