@@ -37,6 +37,16 @@ FastJetMod::FastJetMod(const char *name, const char *title) :
   // Constructor.
 }
 
+FastJetMod::~FastJetMod()
+{
+  // Destructor  
+  delete fOutputJets;
+  delete fAKJetDef;
+  
+  delete fActiveArea;
+  delete fAreaDefinition;  
+}
+
 //--------------------------------------------------------------------------------------------------
 void FastJetMod::Process()
 {
@@ -89,6 +99,10 @@ void FastJetMod::Process()
   // Check that the output collection size is non-null, otherwise nothing to be done further
   if (fjOutJets.size() < 1) {
     printf(" FastJetMod - WARNING - input PFCands produces null reclustering output. skipping event!");
+
+    fjClustering->delete_self_when_unused();
+    delete fjClustering;
+
     this->SkipEvent(); 
     return;
   }
@@ -117,6 +131,7 @@ void FastJetMod::Process()
   
   // some memory cleanup
   fjClustering->delete_self_when_unused();
+  delete fjClustering;
   
   return;
 }
