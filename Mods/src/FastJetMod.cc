@@ -75,6 +75,7 @@ void FastJetMod::Process()
   // Create output collections
   fOutputJets = new JetOArr;
   fOutputJets->SetName(fOutputJetsName);
+  fOutputJets->SetOwner(kTRUE);
     
   std::vector<fastjet::PseudoJet> fjParts;
   // Push all particle flow candidates of the input PFjet into fastjet particle collection
@@ -119,7 +120,7 @@ void FastJetMod::Process()
     FillPFJet(outJet, fjOutJets[j]);
                               
     // Add this jet to the output collection
-    fOutputJets->Add(outJet);
+    fOutputJets->AddOwned(outJet);
         
   } //end loop on fastjet jets
   
