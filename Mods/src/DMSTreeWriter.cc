@@ -321,7 +321,7 @@ void DMSTreeWriter::Process()
         fMitDMSTree.fjet1QGAxis2Sub2_ = fjet->SubJet(1)->QGAxis2();
         fMitDMSTree.fjet1QGMultSub2_  = fjet->SubJet(1)->QGMult();
       }
-      
+
     }// end filling of first fat jet
 
     if (i == 1) {
