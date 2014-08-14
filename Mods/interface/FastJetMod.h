@@ -30,7 +30,7 @@ namespace mithep
     public:
       FastJetMod(const char *name = "FastJetMod",
                    const char *title = "FastJet module");
-      //~FastJetMod();
+      ~FastJetMod();
 
       const char *GetOutputJetsName()     const { return fOutputJetsName;     }
 

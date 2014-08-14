@@ -37,6 +37,16 @@ FastJetMod::FastJetMod(const char *name, const char *title) :
   // Constructor.
 }
 
+FastJetMod::~FastJetMod()
+{
+  // Destructor  
+  delete fOutputJets;
+  delete fAKJetDef;
+  
+  delete fActiveArea;
+  delete fAreaDefinition;  
+}
+
 //--------------------------------------------------------------------------------------------------
 void FastJetMod::Process()
 {
@@ -65,6 +75,7 @@ void FastJetMod::Process()
   // Create output collections
   fOutputJets = new JetOArr;
   fOutputJets->SetName(fOutputJetsName);
+  fOutputJets->SetOwner(kTRUE);
     
   std::vector<fastjet::PseudoJet> fjParts;
   // Push all particle flow candidates of the input PFjet into fastjet particle collection
@@ -89,6 +100,10 @@ void FastJetMod::Process()
   // Check that the output collection size is non-null, otherwise nothing to be done further
   if (fjOutJets.size() < 1) {
     printf(" FastJetMod - WARNING - input PFCands produces null reclustering output. skipping event!");
+
+    fjClustering->delete_self_when_unused();
+    delete fjClustering;
+
     this->SkipEvent(); 
     return;
   }
@@ -105,7 +120,7 @@ void FastJetMod::Process()
     FillPFJet(outJet, fjOutJets[j]);
                               
     // Add this jet to the output collection
-    fOutputJets->Add(outJet);
+    fOutputJets->AddOwned(outJet);
         
   } //end loop on fastjet jets
   
@@ -117,6 +132,7 @@ void FastJetMod::Process()
   
   // some memory cleanup
   fjClustering->delete_self_when_unused();
+  delete fjClustering;
   
   return;
 }

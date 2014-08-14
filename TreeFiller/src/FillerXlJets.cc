@@ -63,6 +63,17 @@ FillerXlJets::~FillerXlJets()
     delete fXlSubJets;
   if (fXlFatJets)
     delete fXlFatJets;
+
+  delete fPruner;
+  delete fFilterer;
+  delete fTrimmer ;
+    
+  delete fCAJetDef;
+  
+  delete fActiveArea;
+  delete fAreaDefinition;  
+  
+  delete fQGTagger;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -201,6 +212,10 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   // Check that the output collection size is non-null, otherwise nothing to be done further
   if (fjOutJets.size() < 1) {
     printf(" FillerXlJets::FillXlFatJet() - WARNING - input PFJet produces null reclustering output. skipping event!");
+
+    fjClustering->delete_self_when_unused();
+    delete fjClustering;
+
     this->SkipEvent(); 
     return;
   }
@@ -316,6 +331,10 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
     fatJet->SetPullAngle(GetPullAngle(fjSubJetsSorted,0.01));   
     FillXlSubJets(fjTopSubJets,fjTopSubAxes,fatJet,XlSubJet::ESubJetType::eTop);
   } 
+  // Trim the output collections
+  fXlSubJets->Trim();
+  fXlFatJets->Trim();
+
   // Sort subjets according to pt and add the subjets to the fat jet
   fXlSubJets->Sort();
   for (UInt_t iSubJ=0; iSubJ<fXlSubJets->GetEntries(); ++iSubJ)
@@ -323,6 +342,7 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
    
   // Memory cleanup
   fjClustering->delete_self_when_unused();
+  delete fjClustering;
    
   return;
 }
@@ -390,7 +410,8 @@ double FillerXlJets::GetQjetVolatility(std::vector <fastjet::PseudoJet> &constit
       continue;
     if (inclusive_jets2.size()>0) { qjetmasses.push_back( inclusive_jets2[0].m() ); }
     // memory cleanup
-    qjet_seq->delete_self_when_unused();          
+    qjet_seq->delete_self_when_unused(); 
+    delete qjet_seq;         
   }
 
   // find RMS of a vector

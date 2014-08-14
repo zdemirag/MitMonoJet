@@ -85,6 +85,9 @@ void FillerXlMet::Process()
 
   // Store the covariance matrix in the new object
   extMet->SetCovMatrix(*MVACov);
+
+  // Trim the output collections
+  fXlMet->Trim();
   
   return;
 }

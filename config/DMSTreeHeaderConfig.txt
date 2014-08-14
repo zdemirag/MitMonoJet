@@ -1,0 +1,116 @@
+UInt_t		isData         
+UInt_t		event          
+UInt_t		run            
+UInt_t		lumi           
+UInt_t		trigger        
+UInt_t		HLTmatch       
+UInt_t		nvtx           
+float		metRaw         
+float		metRawPhi      
+float		met            
+float		metPhi         
+float		mvamet         
+float		mvametPhi      
+float		mvaCov00       
+float		mvaCov10       
+float		mvaCov01       
+float		mvaCov11       
+
+UInt_t		nlep           
+LorentzVector	lep1           
+Int_t		lid1           
+LorentzVector	lep2           
+Int_t		lid2           
+
+Int_t		ntaus
+LorentzVector	tau1
+
+UInt_t		nphotons
+LorentzVector	pho1
+
+Int_t		nfjets
+LorentzVector	fjet1
+float		fjet1CH
+float		fjet1NHF
+float		fjet1EMF
+float		fjet1Btag
+float		fjet1QGtag
+float		fjet1Tau1
+float		fjet1Tau2
+float		fjet1Tau3
+float		fjet1C2b0
+float		fjet1C2b0p2
+float		fjet1C2b0p5
+float		fjet1C2b1
+float		fjet1C2b2
+float		fjet1QJetVol
+float		fjet1MassSDb0
+float		fjet1MassSDb2
+float		fjet1MassSDbm1
+float		fjet1MassPruned
+float		fjet1MassFiltered
+float		fjet1MassTrimmed
+UInt_t		fjet1PartonId
+
+LorentzVector	fjet2
+float		fjet2CH
+float		fjet2NHF
+float		fjet2EMF
+float		fjet2Btag
+float		fjet2QGtag
+float		fjet2Tau1
+float		fjet2Tau2
+float		fjet2Tau3
+float		fjet2C2b0
+float		fjet2C2b0p2
+float		fjet2C2b0p5
+float		fjet2C2b1
+float		fjet2C2b2
+float		fjet2QJetVol
+float		fjet2MassSDb0
+float		fjet2MassSDb2
+float		fjet2MassSDbm1
+float		fjet2MassPruned
+float		fjet2MassFiltered
+float		fjet2MassTrimmed
+UInt_t		fjet2PartonId
+
+UInt_t		nsjets
+LorentzVector	sjet1
+LorentzVector	sjet2
+
+UInt_t		njets
+LorentzVector	jet1
+LorentzVector	jet2
+LorentzVector	jet3
+LorentzVector	jet4
+LorentzVector	jet5
+
+UInt_t		nbjets
+LorentzVector	bjet1
+float		bjet1Btag
+LorentzVector	bjet2
+float		bjet2Btag
+
+LorentzVector	genV
+UInt_t		genVid
+UInt_t		genVdaughterId
+float		topPt
+float		topBarPt
+
+float		Q
+float		id1
+float		x1
+float		pdf1
+float		id2
+float		x2
+float		pdf2
+Int_t		processId
+float		puweight
+float		npu
+float		npuPlusOne
+float		npuMinusOne
+UInt_t		metFiltersWord
+UInt_t		preselWord	
+
+          
