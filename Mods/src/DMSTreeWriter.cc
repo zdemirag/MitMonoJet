@@ -264,9 +264,6 @@ void DMSTreeWriter::Process()
   }
 
   // FAT JETS  
-  // needed bugfix for wrong jet->subjet linking for second fatjet
-  std::vector<const XlSubJet *> fjet1subJets;
-
   fMitDMSTree.nfjets_ = fFatJets->GetEntries();
   for (UInt_t i = 0; i < fFatJets->GetEntries(); ++i) {
 
@@ -302,8 +299,6 @@ void DMSTreeWriter::Process()
     
       fMitDMSTree.fjet1nsj_ = fjet->NSubJets();
       if (fMitDMSTree.fjet1nsj_ > 0) {
-        // BUG FIX for jet->subjet linking
-        fjet1subJets.push_back(fjet->SubJet(0));
         fMitDMSTree.fjet1sj1_         = fjet->SubJet(0)->Mom();
         fMitDMSTree.fjet1QGtagSub1_   = fjet->SubJet(0)->QGTag();
         fMitDMSTree.fjet1QGPtDSub1_   = fjet->SubJet(0)->QGPtD();
@@ -312,8 +307,6 @@ void DMSTreeWriter::Process()
         fMitDMSTree.fjet1QGMultSub1_  = fjet->SubJet(0)->QGMult();
       }
       if (fMitDMSTree.fjet1nsj_ > 1) {
-        // BUG FIX for jet->subjet linking
-        fjet1subJets.push_back(fjet->SubJet(1));
         fMitDMSTree.fjet1sj2_         = fjet->SubJet(1)->Mom();
         fMitDMSTree.fjet1QGtagSub2_   = fjet->SubJet(1)->QGTag();
         fMitDMSTree.fjet1QGPtDSub2_   = fjet->SubJet(1)->QGPtD();
@@ -354,66 +347,23 @@ void DMSTreeWriter::Process()
       if (!fIsData)  
         fMitDMSTree.fjet2PartonId_  = JetPartonMatch(fMitDMSTree.fjet2_, 0.7);
                 
-      fMitDMSTree.fjet2nsj_ = 0;
-      // BUG FIX for jet->subjet linking
-      unsigned int index1 = 999;
-      unsigned int index2 = 999;
-      // fix first index
-      for (unsigned int i = 0; i < fjet->NSubJets(); i++) {
-        // First case: FJet1 has no subjets
-        if (fjet1subJets.size() == 0) {
-          index1 = 0;
-          fMitDMSTree.fjet2nsj_ = fjet->NSubJets();
-          break;
-        }
-        // Second case: FJet1 has subjets
-        bool indexIsFree = true;
-        for (unsigned int  j = 0; j < fjet1subJets.size(); j++)
-            // Compare the subjet pointers: they should be different!
-            if (fjet->SubJet(i) == fjet1subJets[j])
-              indexIsFree = false;
-        if (indexIsFree) {
-          index1 = i;
-          fMitDMSTree.fjet2nsj_++;
-          break;
-        }
-      }
-      // fix second index
-      if (index1 < fjet->NSubJets())
-      for (unsigned int i = index1+1; i < fjet->NSubJets(); i++) {
-        // First case: FJet1 has no subjets
-        if (fjet1subJets.size() == 0) {
-          index2 = index1+1;
-          break;
-        }
-        // Second case: FJet1 has subjets
-        bool indexIsFree = true;
-        for (unsigned int j = 0; j < fjet1subJets.size(); j++)
-            // Compare the subjet pointers: they should be different!
-            if (fjet->SubJet(i) == fjet1subJets[j])
-              indexIsFree = false;
-        if (indexIsFree) {
-          index2 = i;
-          fMitDMSTree.fjet2nsj_++;
-          break;
-        }
-      }
+      fMitDMSTree.fjet2nsj_ = fjet->NSubJets();
       
       if (fMitDMSTree.fjet2nsj_ > 0) {
-        fMitDMSTree.fjet2sj1_         = fjet->SubJet(index1)->Mom();
-        fMitDMSTree.fjet2QGtagSub1_   = fjet->SubJet(index1)->QGTag();
-        fMitDMSTree.fjet2QGPtDSub1_   = fjet->SubJet(index1)->QGPtD();
-        fMitDMSTree.fjet2QGAxis1Sub1_ = fjet->SubJet(index1)->QGAxis1();
-        fMitDMSTree.fjet2QGAxis2Sub1_ = fjet->SubJet(index1)->QGAxis2();
-        fMitDMSTree.fjet2QGMultSub1_  = fjet->SubJet(index1)->QGMult();
+        fMitDMSTree.fjet2sj1_         = fjet->SubJet(0)->Mom();
+        fMitDMSTree.fjet2QGtagSub1_   = fjet->SubJet(0)->QGTag();
+        fMitDMSTree.fjet2QGPtDSub1_   = fjet->SubJet(0)->QGPtD();
+        fMitDMSTree.fjet2QGAxis1Sub1_ = fjet->SubJet(0)->QGAxis1();
+        fMitDMSTree.fjet2QGAxis2Sub1_ = fjet->SubJet(0)->QGAxis2();
+        fMitDMSTree.fjet2QGMultSub1_  = fjet->SubJet(0)->QGMult();
       }
       if (fMitDMSTree.fjet2nsj_ > 1) {
-        fMitDMSTree.fjet2sj2_         = fjet->SubJet(index2)->Mom();
-        fMitDMSTree.fjet2QGtagSub2_   = fjet->SubJet(index2)->QGTag();
-        fMitDMSTree.fjet2QGPtDSub2_   = fjet->SubJet(index2)->QGPtD();
-        fMitDMSTree.fjet2QGAxis1Sub2_ = fjet->SubJet(index2)->QGAxis1();
-        fMitDMSTree.fjet2QGAxis2Sub2_ = fjet->SubJet(index2)->QGAxis2();
-        fMitDMSTree.fjet2QGMultSub2_  = fjet->SubJet(index2)->QGMult();
+        fMitDMSTree.fjet2sj2_         = fjet->SubJet(1)->Mom();
+        fMitDMSTree.fjet2QGtagSub2_   = fjet->SubJet(1)->QGTag();
+        fMitDMSTree.fjet2QGPtDSub2_   = fjet->SubJet(1)->QGPtD();
+        fMitDMSTree.fjet2QGAxis1Sub2_ = fjet->SubJet(1)->QGAxis1();
+        fMitDMSTree.fjet2QGAxis2Sub2_ = fjet->SubJet(1)->QGAxis2();
+        fMitDMSTree.fjet2QGMultSub2_  = fjet->SubJet(1)->QGMult();
       }
         
     }// end filling of second fat jet
