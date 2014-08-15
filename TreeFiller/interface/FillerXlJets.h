@@ -83,8 +83,12 @@ namespace mithep
       void SlaveTerminate();
  
       void FillXlFatJet (const PFJet *pPFJet);
-      void FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets,std::vector<fastjet::PseudoJet> &fjSubAxes,
+      void FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets,
                          XlFatJet *pFatJet,XlSubJet::ESubJetType t);
+      // Jet collection helpers
+      std::vector <fastjet::PseudoJet>   
+            Sorted_by_pt_min_pt(std::vector <fastjet::PseudoJet> &jets,  
+                                float jetPtMin);      
       // QJets volatility helpers
       void   GetJetConstituents(fastjet::PseudoJet &jet, std::vector <fastjet::PseudoJet> &constits,  
                                 float constitsPtMin);
@@ -155,7 +159,7 @@ namespace mithep
       // Counters : used to initialize seed for QJets volatility
       Long64_t fCounter;
 
-      ClassDef(FillerXlJets, 1)            //XlJets, Fat and Sub, filler      
+      ClassDef(FillerXlJets, 2)            //XlJets, Fat and Sub, filler      
   };
 }
 #endif

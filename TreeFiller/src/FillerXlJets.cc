@@ -296,49 +296,37 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   fatJet->SetPull(GetPull(fjJet,0.01).Mod());   
  
   // Loop on the subjets and fill the subjet Xl collections - do it according to the user request
-  // In case of CA declustering subjet axis = subjet 
   if (fFillVSubJets) {
     std::vector<fastjet::PseudoJet> fjVSubJets;
-    std::vector<fastjet::PseudoJet> fjVSubAxes;
-    if (fNSubDeclustering) {
+    if (fNSubDeclustering)
       fjVSubJets = nSub2.currentSubjets();
-      fjVSubAxes = nSub2.currentAxes();
-    }
     else {
       int nSubJPruned = std::min<unsigned int>(fjJetPruned.constituents().size(),2);
       fjVSubJets = fjJetPruned.associated_cluster_sequence()->exclusive_subjets(fjJetPruned,nSubJPruned);
-      fjVSubAxes = fjVSubJets;    
     }
-    std::vector<fastjet::PseudoJet> fjSubJetsSorted = sorted_by_pt(fjVSubJets);    
+    // Order the subjets according to their pt and discard zero pt subjets
+    std::vector<fastjet::PseudoJet> fjSubJetsSorted = Sorted_by_pt_min_pt(fjVSubJets,0.01);    
     // Store the color pull angle: either choose 2-prong or 3-prong subclustering!
     fatJet->SetPullAngle(GetPullAngle(fjSubJetsSorted,0.01));   
-    FillXlSubJets(fjVSubJets,fjVSubAxes,fatJet,XlSubJet::ESubJetType::eV);
+    FillXlSubJets(fjSubJetsSorted,fatJet,XlSubJet::ESubJetType::eV);
   } 
   if (fFillTopSubJets) {
     std::vector<fastjet::PseudoJet> fjTopSubJets;
-    std::vector<fastjet::PseudoJet> fjTopSubAxes;
-    if (fNSubDeclustering) {
+    if (fNSubDeclustering) 
       fjTopSubJets = nSub3.currentSubjets();
-      fjTopSubAxes = nSub3.currentAxes();
-    }
     else {
       int nSubJPruned = std::min<unsigned int>(fjJetPruned.constituents().size(),3);
       fjTopSubJets = fjJetPruned.associated_cluster_sequence()->exclusive_subjets(fjJetPruned,nSubJPruned);
-      fjTopSubAxes = fjTopSubJets;    
     }
-    std::vector<fastjet::PseudoJet> fjSubJetsSorted = sorted_by_pt(fjTopSubJets);    
+    // Order the subjets according to their pt
+    std::vector<fastjet::PseudoJet> fjSubJetsSorted = Sorted_by_pt_min_pt(fjTopSubJets,0.01);    
     // Store the color pull angle: either choose 2-prong or 3-prong subclustering!
     fatJet->SetPullAngle(GetPullAngle(fjSubJetsSorted,0.01));   
-    FillXlSubJets(fjTopSubJets,fjTopSubAxes,fatJet,XlSubJet::ESubJetType::eTop);
+    FillXlSubJets(fjSubJetsSorted,fatJet,XlSubJet::ESubJetType::eTop);
   } 
   // Trim the output collections
   fXlSubJets->Trim();
   fXlFatJets->Trim();
-
-  // Sort subjets according to pt and add the subjets to the fat jet
-  fXlSubJets->Sort();
-  for (UInt_t iSubJ=0; iSubJ<fXlSubJets->GetEntries(); ++iSubJ)
-    fatJet->AddSubJet(fXlSubJets->At(iSubJ));    
    
   // Memory cleanup
   fjClustering->delete_self_when_unused();
@@ -348,7 +336,7 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
 }
 
 //--------------------------------------------------------------------------------------------------
-void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, std::vector<fastjet::PseudoJet> &fjSubAxes,
+void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets,
                                  XlFatJet *pFatJet, XlSubJet::ESubJetType subJetType)
 {
   for (int iSJet=0; iSJet < (int) fjSubJets.size(); iSJet++) {
@@ -359,21 +347,40 @@ void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, std
                           fjSubJets[iSJet].pz(),
                           fjSubJets[iSJet].e());
 
-    // Store the subjet axis 
-    ThreeVector subAxis(fjSubAxes[iSJet].px(),fjSubAxes[iSJet].py(),fjSubAxes[iSJet].pz());
-    subJet->SetAxis(subAxis);
-
     // Store the QG tagging variable
     if (fQGTaggingActive)
       FillSubjetQGTagging(fjSubJets[iSJet], 0.01, subJet, pFatJet);
     
     // Store the subjet type value 
     subJet->SetSubJetType(subJetType);
-                          
+
+    // Add the subjet to the relative fatjet 
+    pFatJet->AddSubJet(subJet);                              
+
   }
     
   return;    
 }
+
+//--------------------------------------------------------------------------------------------------
+std::vector <fastjet::PseudoJet>   FillerXlJets::Sorted_by_pt_min_pt(std::vector <fastjet::PseudoJet> &jets,  
+                                                                     float jetPtMin)
+{
+  // First order collection by pt
+  std::vector<fastjet::PseudoJet> sortedJets = sorted_by_pt(jets);
+  
+  // Loop on the sorted collection and erase jets below jetPtMin
+  std::vector<fastjet::PseudoJet>::iterator it = sortedJets.begin();
+  for ( ;  it != sortedJets.end(); ) {
+    if (it->perp() < jetPtMin)
+      it = sortedJets.erase(it);
+    else
+      it++;
+  }  
+  
+  // Return the reduced and sorted jet collection
+  return sortedJets;
+}                                                                           
 
 //--------------------------------------------------------------------------------------------------
 void FillerXlJets::GetJetConstituents(fastjet::PseudoJet &jet, std::vector <fastjet::PseudoJet> &constits,  
