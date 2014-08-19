@@ -41,8 +41,8 @@ TString getJsonFile(const char* dir);
 //--------------------------------------------------------------------------------------------------
 void runMonoJet(const char *fileset    = "0000",
                 const char *skim       = "noskim",
-                const char *dataset    = "s12-wjets-ptw100-v7a",
-                const char *book       = "t2mit/filefi/031",
+                const char *dataset    = "s12-wjets-1-v7a",
+                const char *book       = "t2mit/filefi/032",
                 const char *catalogDir = "/home/cmsprod/catalog",
                 const char *outputName = "MonoJet_August13",
                 int         nEvents    = 100)
