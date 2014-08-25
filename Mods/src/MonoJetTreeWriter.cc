@@ -88,6 +88,7 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fSuperClusters          (0),
   fParticles              (0),
   fEvtSelData             (0),
+  fVertices               (0),
   // -------------------------
   fDecay                  (0),
   fFillNtupleType         (0),
@@ -150,7 +151,7 @@ void MonoJetTreeWriter::Process()
   LoadEventObject(fTracksName,        fTracks,        true);
 
   ParticleOArr    *leptons  = GetObjThisEvt<ParticleOArr>(ModNames::gkMergedLeptonsName);
-  const VertexCol *vertices = GetObjThisEvt<VertexOArr>(fVertexName);
+  fVertices = GetObjThisEvt<VertexOArr>(fVertexName);
 
   const PFCandidateCol *fPFNoPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFNoPileUpName);    
   const PFCandidateCol *fPFPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFPileUpName);
@@ -305,6 +306,7 @@ void MonoJetTreeWriter::Process()
     if      (lep->ObjType() == kMuon) {
       fMitGPTree.lid1_ = 13;
       const Muon* mu = dynamic_cast<const Muon*>(lep);
+      fMitGPTree.lep1IsGlobalTrackerMuon_ = IsGlobalTrackerMuon(mu);
       fMitGPTree.lep1IsTightMuon_ = IsTightMuon(mu);
       fMitGPTree.lep1PtErr_ = mu->BestTrk()->PtErr()/mu->BestTrk()->Pt();
       double totalIso =  IsolationTools::BetaMwithPUCorrection(fPFNoPileUpCands, fPFPileUpCands, mu, 0.4);
@@ -332,6 +334,7 @@ void MonoJetTreeWriter::Process()
     if     (lep->ObjType() == kMuon) {
       fMitGPTree.lid2_ = 13;
       const Muon* mu = dynamic_cast<const Muon*>(lep);
+      fMitGPTree.lep2IsGlobalTrackerMuon_ = IsGlobalTrackerMuon(mu);
       fMitGPTree.lep2IsTightMuon_ = IsTightMuon(mu);
       fMitGPTree.lep2PtErr_ = mu->BestTrk()->PtErr()/mu->BestTrk()->Pt();
       double totalIso =  IsolationTools::BetaMwithPUCorrection(fPFNoPileUpCands, fPFPileUpCands, mu, 0.4);
@@ -445,7 +448,7 @@ void MonoJetTreeWriter::Process()
     fMitGPTree.noiseCleaning_ |= int(fMitGPTree.jet1NEMF_>0.7) << 2;
     fMitGPTree.jet1Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
 
-    qgTagger->CalculateVariables(jet, vertices);
+    qgTagger->CalculateVariables(jet, fVertices);
     fMitGPTree.jet1QGtag_ = qgTagger->QGValue();
 
     // variables used for the QG retraining
@@ -517,7 +520,7 @@ void MonoJetTreeWriter::Process()
     fMitGPTree.noiseCleaning_ |= int(fMitGPTree.jet2NHF_>0.7) << 4;
     fMitGPTree.noiseCleaning_ |= int(fMitGPTree.jet2NEMF_>0.7) << 5;
     fMitGPTree.jet2Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
-    qgTagger->CalculateVariables(jet, vertices);
+    qgTagger->CalculateVariables(jet, fVertices);
     fMitGPTree.jet2QGtag_ = qgTagger->QGValue();
 
     // trigger matching
@@ -721,6 +724,19 @@ void MonoJetTreeWriter::SlaveBegin()
   fMitGPTree.tree_->SetDirectory(fOutputFile);
   AddOutput(fMitGPTree.tree_);
 }
+
+bool MonoJetTreeWriter::IsGlobalTrackerMuon(const Muon *muon)
+{
+
+  return (((muon->HasGlobalTrk() && muon->GlobalTrk()->Chi2()/muon->GlobalTrk()->Ndof() < 10 &&
+	   (muon->NSegments() > 1 || muon->NMatches() > 1) && muon->NValidHits() > 0) ||
+	   (muon->IsTrackerMuon() &&
+	    muon->Quality().Quality(MuonQuality::TMLastStationTight))) &&
+	  MuonTools::PassD0Cut(muon, fVertices, 0.2,-1) &&
+	  MuonTools::PassDZCut(muon, fVertices, 0.5,-1) )
+	  ;
+}
+
 
 bool MonoJetTreeWriter::IsTightMuon(const Muon *muon)
 {

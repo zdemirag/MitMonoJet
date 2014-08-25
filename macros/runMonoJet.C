@@ -208,21 +208,6 @@ void runMonoJet(const char *fileset    = "0000",
   muonIdWW->SetPtMin(10.);
   muonIdWW->SetEtaCut(2.4);
 
-  MuonIDMod *muonIdPOG = new MuonIDMod;
-  muonIdPOG->SetOutputName("POGMuons");
-  muonIdPOG->SetClassType("GlobalTracker");
-  muonIdPOG->SetIDType("NoId");
-  muonIdPOG->SetApplyD0Cut(true);
-  muonIdPOG->SetD0Cut(0.2);
-  muonIdPOG->SetApplyDZCut(true);
-  muonIdPOG->SetDZCut(0.5);
-  //muonIdPOG->SetIsoType("PFIsoBetaPUCorrected");
-  //muonIdPOG->SetPFNoPileUpName("pfnopileupcands");
-  //muonIdPOG->SetPFPileUpName("pfpileupcands");
-  muonIdPOG->SetIsoType("NoIso");
-  muonIdPOG->SetPtMin(10.);
-  muonIdPOG->SetEtaCut(2.4);
-
   MuonIDMod* muonIdIso = new MuonIDMod;
   muonIdIso->SetOutputName("IsolatedPOGMuons");
   muonIdIso->SetClassType("GlobalorTracker");
@@ -237,8 +222,31 @@ void runMonoJet(const char *fileset    = "0000",
   muonIdIso->SetPtMin(10.);
   muonIdIso->SetEtaCut(2.4);
 
-  MuonIDMod *muonId = muonIdPOG;
-  //MuonIDMod *muonId = muonIdIso;
+  MuonIDMod *muonIdPOG = new MuonIDMod;
+  muonIdPOG->SetOutputName("POGMuons");
+  muonIdPOG->SetClassType("GlobalTracker");
+  muonIdPOG->SetIDType("NoId");
+  muonIdPOG->SetApplyD0Cut(true);
+  muonIdPOG->SetD0Cut(0.2);
+  muonIdPOG->SetApplyDZCut(true);
+  muonIdPOG->SetDZCut(0.5);
+  muonIdPOG->SetIsoType("NoIso");
+  muonIdPOG->SetPtMin(10.);
+  muonIdPOG->SetEtaCut(2.4);
+
+
+  MuonIDMod *muonIdLoose = new MuonIDMod;
+  muonIdLoose->SetOutputName("LooseMuons");
+  muonIdLoose->SetClassType("All");
+  muonIdLoose->SetIDType("NoId");
+  muonIdLoose->SetIsoType("NoIso");
+  muonIdLoose->SetApplyD0Cut(false);
+  muonIdLoose->SetApplyDZCut(false);
+  muonIdLoose->SetPtMin(10.);
+  muonIdLoose->SetEtaCut(2.4);
+
+  //MuonIDMod *muonId = muonIdPOG;
+  MuonIDMod *muonId = muonIdLoose;
 
   ElectronCleaningMod *electronCleaning = new ElectronCleaningMod;
   electronCleaning->SetCleanMuonsName(muonId->GetOutputName());
