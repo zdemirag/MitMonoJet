@@ -306,7 +306,7 @@ void MonoJetTreeWriter::Process()
     if      (lep->ObjType() == kMuon) {
       fMitGPTree.lid1_ = 13;
       const Muon* mu = dynamic_cast<const Muon*>(lep);
-      fMitGPTree.lep1IsGlobalTrackerMuon_ = IsGlobalTrackerMuon(mu);
+      fMitGPTree.lep1IsGlobalOrTrackerMuon_ = IsGlobalOrTrackerMuon(mu);
       fMitGPTree.lep1IsTightMuon_ = IsTightMuon(mu);
       fMitGPTree.lep1PtErr_ = mu->BestTrk()->PtErr()/mu->BestTrk()->Pt();
       double totalIso =  IsolationTools::BetaMwithPUCorrection(fPFNoPileUpCands, fPFPileUpCands, mu, 0.4);
@@ -334,7 +334,7 @@ void MonoJetTreeWriter::Process()
     if     (lep->ObjType() == kMuon) {
       fMitGPTree.lid2_ = 13;
       const Muon* mu = dynamic_cast<const Muon*>(lep);
-      fMitGPTree.lep2IsGlobalTrackerMuon_ = IsGlobalTrackerMuon(mu);
+      fMitGPTree.lep2IsGlobalOrTrackerMuon_ = IsGlobalOrTrackerMuon(mu);
       fMitGPTree.lep2IsTightMuon_ = IsTightMuon(mu);
       fMitGPTree.lep2PtErr_ = mu->BestTrk()->PtErr()/mu->BestTrk()->Pt();
       double totalIso =  IsolationTools::BetaMwithPUCorrection(fPFNoPileUpCands, fPFPileUpCands, mu, 0.4);
@@ -725,6 +725,15 @@ void MonoJetTreeWriter::SlaveBegin()
   AddOutput(fMitGPTree.tree_);
 }
 
+bool MonoJetTreeWriter::IsGlobalOrTrackerMuon(const Muon *muon)
+{
+
+  return ((muon->HasGlobalTrk() || muon->IsTrackerMuon()) &&
+	  MuonTools::PassD0Cut(muon, fVertices, 0.2,-1) &&
+	  MuonTools::PassDZCut(muon, fVertices, 0.5,-1) )
+	  ;
+}
+
 bool MonoJetTreeWriter::IsGlobalTrackerMuon(const Muon *muon)
 {
 
@@ -736,6 +745,7 @@ bool MonoJetTreeWriter::IsGlobalTrackerMuon(const Muon *muon)
 	  MuonTools::PassDZCut(muon, fVertices, 0.5,-1) )
 	  ;
 }
+
 
 
 bool MonoJetTreeWriter::IsTightMuon(const Muon *muon)

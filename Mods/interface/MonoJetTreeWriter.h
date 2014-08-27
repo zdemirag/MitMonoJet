@@ -104,6 +104,7 @@ namespace mithep
 
   private:
     bool                IsTightMuon(const Muon *muon);
+    bool                IsGlobalOrTrackerMuon(const Muon *muon);
     bool                IsGlobalTrackerMuon(const Muon *muon);
     void                CorrectMet(const float met, const float metPhi,
 				   const Particle *l1, const Particle *l2,
