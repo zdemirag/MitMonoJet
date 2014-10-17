@@ -1,6 +1,7 @@
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TSystem.h>
 #include <TProfile.h>
+#include "MitCommon/Utils/interface/Utils.h"
 #include "MitAna/DataUtil/interface/Debug.h"
 #include "MitAna/Catalog/interface/Catalog.h"
 #include "MitAna/TreeMod/interface/Analysis.h"
@@ -34,54 +35,46 @@
 #include "MitMonoJet/Mods/interface/MonoJetTreeWriter.h"
 #endif
 
+TString getCatalogDir(const char* dir);
+TString getJsonFile(const char* dir);
+
 //--------------------------------------------------------------------------------------------------
 void runFlatMonoJet(const char *fileset    = "0000",
-		    const char *skim       = "noskim",
-		    const char *dataset    = "s12-wjets-ptw100-v7a",
-		    const char *book       = "t2mit/filefi/031",
-		    const char *catalogDir = "/home/cmsprod/catalog",
-		    const char *outputName = "MonoJet_August13",
-		    int         nEvents    = 100)
+                const char *skim       = "noskim",
+                const char *dataset    = "s12-wjets-ptw100-v7a",
+                const char *book       = "t2mit/filefi/031",
+                const char *catalogDir = "/home/cmsprod/catalog",
+                const char *outputName = "MonoJet_August13",
+                int         nEvents    = 100)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
   //------------------------------------------------------------------------------------------------
-  char json[1024], overlap[1024];
-  float overlapCut = -1;
-
-  if (gSystem->Getenv("MIT_PROD_JSON"))
-    sprintf(json,   "%s",gSystem->Getenv("MIT_PROD_JSON"));
-  else {
-    sprintf(json, "%s", "~");
-  }
-
-  TString jsonFile = TString("/home/cmsprod/cms/json/") + TString(json);
-  std::cout<<"JSON "<<jsonFile<<std::endl;
-  Bool_t  isData   = ( (jsonFile.CompareTo("/home/cmsprod/cms/json/~") != 0) );
+  TString cataDir  = getCatalogDir(catalogDir);
+  TString mitData  = Utils::GetEnv("MIT_DATA");
+  TString json     = Utils::GetEnv("MIT_PROD_JSON");
+  TString jsonFile = getJsonFile("/home/cmsprod/cms/json");
+  Bool_t  isData   = (json.CompareTo("~") != 0);
+  printf("\n Initialization worked. Data?: %d\n\n",isData);  
 
   std::cout<<"*********** Is data?? **********"<<isData<<std::endl;
-
-  if (gSystem->Getenv("MIT_PROD_OVERLAP")) {
-    sprintf(overlap,"%s",gSystem->Getenv("MIT_PROD_OVERLAP"));
-    if (EOF == sscanf(overlap,"%f",&overlapCut)) {
-      printf(" Overlap was not properly defined. EXIT!\n");
-      return;
-    }
-  }
-  else {
-     sprintf(overlap,"%s", "-1.0");
-    //printf(" OVERLAP file was not properly defined. EXIT!\n");
-    //return;
-  }
-
-  printf("\n Initialization worked \n");
 
   //------------------------------------------------------------------------------------------------
   // some global setups
   //------------------------------------------------------------------------------------------------
   using namespace mithep;
-  gDebugMask  = Debug::kGeneral;
+  gDebugMask  = (Debug::EDebugMask) (Debug::kGeneral | Debug::kTreeIO);
   gDebugLevel = 3;
+
+  // Caching and how
+  Int_t local = 1, cacher = 1;
+
+  // local =   0 - as is,
+  //           1 - /mnt/hadoop (MIT:SmartCache - preload one-by-one)
+  //           2 - /mnt/hadoop (MIT:SmartCache - preload complete fileset)
+  //           3 - ./          (xrdcp          - preload one-by-one)
+  // cacher =  0 - no file by file caching
+  //           1 - file by file caching on
 
   //------------------------------------------------------------------------------------------------
   // set up information
@@ -91,15 +84,15 @@ void runFlatMonoJet(const char *fileset    = "0000",
   runLumiSel->SetAbortIfNotAccepted(kFALSE);   // accept all events if there is no valid JSON file
 
   // only select on run- and lumisection numbers when valid json file present
-  if ((jsonFile.CompareTo("/home/cmsprod/cms/json/~") != 0) &&
-      (jsonFile.CompareTo("/home/cmsprod/cms/json/-") != 0)   ) {
+  if (json.CompareTo("~") != 0 && json.CompareTo("-") != 0) {
+    printf(" runBoostedV() - adding jsonFile: %s\n",jsonFile.Data());
     runLumiSel->AddJSONFile(jsonFile.Data());
   }
-  if ((jsonFile.CompareTo("/home/cmsprod/cms/json/-") == 0)   ) {
+  if (json.CompareTo("-") == 0) {
     printf("\n WARNING -- Looking at data without JSON file: always accept.\n\n");
+    runLumiSel->SetAbortIfNotAccepted(kFALSE);   // accept all events if there is no valid JSON file
   }
-
-  printf("\n Run lumi worked\n");
+  printf("\n Run lumi worked. \n\n");
 
   // Generator info
   GeneratorMod *generatorMod = new GeneratorMod;
@@ -257,63 +250,31 @@ void runFlatMonoJet(const char *fileset    = "0000",
   merger->SetElectronsName(electronCleaning->GetOutputName());
   merger->SetMergedName("MergedLeptons");
 
-  //-----------------------------------
+//-----------------------------------
   // Photon Regression + ID
   //-----------------------------------
   PhotonMvaMod *photreg = new PhotonMvaMod;
   photreg->SetRegressionVersion(3);
-  photreg->SetRegressionWeights(std::string((gSystem->Getenv("CMSSW_BASE") + TString("/src/MitPhysics/data/gbrv3ph_52x.root")).Data()));
+  photreg->SetRegressionWeights(std::string(
+    (gSystem->Getenv("MIT_DATA") + TString("/gbrv3ph_52x.root")).Data()
+    ));
   photreg->SetOutputName("GoodPhotonsRegr");
   photreg->SetApplyShowerRescaling(kTRUE);
   photreg->SetMinNumPhotons(0);
   photreg->SetIsData(isData);
 
   PhotonIDMod *photonIDMod = new PhotonIDMod;
-  photonIDMod->SetPtMin(0.0);
+  photonIDMod->SetPtMin(15.0);
   photonIDMod->SetOutputName("GoodPhotons");
-  photonIDMod->SetIDType("BaseLineCiCPFNoPresel");
-  photonIDMod->SetIsoType("NoIso");
+  photonIDMod->SetIDType("MITMVAId");
+  photonIDMod->SetBdtCutBarrel(0.02);
+  photonIDMod->SetBdtCutEndcap(0.1);
+  photonIDMod->SetIdMVAType("2013FinalIdMVA_8TeV");
   photonIDMod->SetApplyElectronVeto(kTRUE);
-  photonIDMod->SetApplyPixelSeed(kTRUE);
-  photonIDMod->SetApplyConversionId(kTRUE);
   photonIDMod->SetApplyFiduciality(kTRUE);
   photonIDMod->SetIsData(isData);
   photonIDMod->SetPhotonsFromBranch(kFALSE);
   photonIDMod->SetInputName(photreg->GetOutputName());
-  //get the photon with regression energy
-  photonIDMod->DoMCSmear(kTRUE);
-  photonIDMod->DoDataEneCorr(kTRUE);
-  //------------------------------------------Energy smear and scale--------------------------------------------------------------
-  photonIDMod->SetMCSmearFactors2012HCP(0.0111,0.0111,0.0107,0.0107,0.0155,0.0194,0.0295,0.0276,0.037,0.0371);
-  photonIDMod->AddEnCorrPerRun2012HCP(190645,190781,0.9964,0.9964,1.0020,1.0020,0.9893,1.0028,0.9871,0.9937,0.9839,0.9958);
-  photonIDMod->AddEnCorrPerRun2012HCP(190782,191042,1.0024,1.0024,1.0079,1.0079,0.9923,1.0058,0.9911,0.9977,0.9886,1.0005);
-  photonIDMod->AddEnCorrPerRun2012HCP(191043,193555,0.9935,0.9935,0.9991,0.9991,0.9861,0.9997,0.9894,0.9960,0.9864,0.9982);
-  photonIDMod->AddEnCorrPerRun2012HCP(193556,194150,0.9920,0.9920,0.9976,0.9976,0.9814,0.9951,0.9896,0.9962,0.9872,0.9990);
-  photonIDMod->AddEnCorrPerRun2012HCP(194151,194532,0.9925,0.9925,0.9981,0.9981,0.9826,0.9963,0.9914,0.9980,0.9874,0.9993);
-  photonIDMod->AddEnCorrPerRun2012HCP(194533,195113,0.9927,0.9927,0.9983,0.9983,0.9844,0.9981,0.9934,0.9999,0.9878,0.9996);
-  photonIDMod->AddEnCorrPerRun2012HCP(195114,195915,0.9929,0.9929,0.9984,0.9984,0.9838,0.9974,0.9942,1.0007,0.9878,0.9997);
-  photonIDMod->AddEnCorrPerRun2012HCP(195916,198115,0.9919,0.9919,0.9975,0.9975,0.9827,0.9964,0.9952,1.0017,0.9869,0.9987);
-  photonIDMod->AddEnCorrPerRun2012HCP(198116,199803,0.9955,0.9955,1.0011,1.0011,0.9859,0.9995,0.9893,0.9959,0.9923,1.0041);
-  photonIDMod->AddEnCorrPerRun2012HCP(199804,200048,0.9967,0.9967,1.0023,1.0023,0.9870,1.0006,0.9893,0.9959,0.9937,1.0055);
-  photonIDMod->AddEnCorrPerRun2012HCP(200049,200151,0.9980,0.9980,1.0036,1.0036,0.9877,1.0012,0.9910,0.9976,0.9980,1.0097);
-  photonIDMod->AddEnCorrPerRun2012HCP(200152,200490,0.9958,0.9958,1.0013,1.0013,0.9868,1.0004,0.9922,0.9988,0.9948,1.0065);
-  photonIDMod->AddEnCorrPerRun2012HCP(200491,200531,0.9979,0.9979,1.0035,1.0035,0.9876,1.0012,0.9915,0.9981,0.9979,1.0096);
-  photonIDMod->AddEnCorrPerRun2012HCP(200532,201656,0.9961,0.9961,1.0017,1.0017,0.9860,0.9996,0.9904,0.9970,0.9945,1.0063);
-  photonIDMod->AddEnCorrPerRun2012HCP(201657,202305,0.9969,0.9969,1.0025,1.0025,0.9866,1.0002,0.9914,0.9980,0.9999,1.0116);
-  photonIDMod->AddEnCorrPerRun2012HCP(202305,203002,0.9982,0.9982,1.0038,1.0038,0.9872,1.0008,0.9934,1.0000,1.0018,1.0135);
-  photonIDMod->AddEnCorrPerRun2012HCP(203003,203984,1.0006,1.0006,1.0061,1.0061,0.9880,1.0017,0.9919,0.9988,0.9992,1.0104);
-  photonIDMod->AddEnCorrPerRun2012HCP(203985,205085,0.9993,0.9993,1.0048,1.0048,0.9903,1.0040,0.9928,0.9997,0.9987,1.0099);
-  photonIDMod->AddEnCorrPerRun2012HCP(205086,205310,1.0004,1.0004,1.0059,1.0059,0.9901,1.0037,0.9987,1.0055,1.0091,1.0202);
-  photonIDMod->AddEnCorrPerRun2012HCP(205311,206207,1.0000,1.0000,1.0055,1.0055,0.9891,1.0028,0.9948,1.0017,1.0032,1.0144);
-  photonIDMod->AddEnCorrPerRun2012HCP(206208,206483,1.0003,1.0003,1.0058,1.0058,0.9895,1.0032,0.9921,0.9989,1.0056,1.0167);
-  photonIDMod->AddEnCorrPerRun2012HCP(206484,206597,1.0005,1.0005,1.0060,1.0060,0.9895,1.0032,0.9968,1.0036,1.0046,1.0158);
-  photonIDMod->AddEnCorrPerRun2012HCP(206598,206896,1.0006,1.0006,1.0061,1.0061,0.9881,1.0017,0.9913,0.9982,1.0050,1.0162);
-  photonIDMod->AddEnCorrPerRun2012HCP(206897,207220,1.0006,1.0006,1.0061,1.0061,0.9884,1.0021,0.9909,0.9978,1.0053,1.0165);
-  photonIDMod->AddEnCorrPerRun2012HCP(207221,208686,1.0006,1.0006,1.0061,1.0061,0.9894,1.0030,0.9951,1.0020,1.0060,1.0172);
-  //---------------------------------shower shape scale--------------------------------------------------------------------------------
-  photonIDMod->SetDoShowerShapeScaling(kTRUE);
-  photonIDMod->SetShowerShapeType("2012ShowerShape");
-  photonIDMod->Set2012HCP(kTRUE);
 
   PFTauIDMod *pftauIDMod = new PFTauIDMod;
   pftauIDMod->SetPFTausName("HPSTaus");
@@ -376,7 +337,6 @@ void runFlatMonoJet(const char *fileset    = "0000",
   metCorrT0T1Shift->IsData(isData);
   metCorrT0T1Shift->SetPrint(kFALSE);
 
-
   MonoJetTreeWriter *jetplusmettree = new MonoJetTreeWriter("MonoJetTreeWriter");
   jetplusmettree->SetTriggerObjectsName(hltModP->GetOutputName());
   jetplusmettree->SetMetName(metCorrT0T1Shift->GetOutputName()); //corrected met
@@ -425,11 +385,12 @@ void runFlatMonoJet(const char *fileset    = "0000",
   jetID            ->Add(muonIdIso);
   muonIdIso        ->Add(jetCleaning);
   jetCleaning      ->Add(jetplusmettree);
-
+  
   //------------------------------------------------------------------------------------------------
   // setup analysis
   //------------------------------------------------------------------------------------------------
   Analysis *ana = new Analysis;
+  ana->SetUseCacher(cacher);
   ana->SetUseHLT(kTRUE);
   ana->SetKeepHierarchy(kTRUE);
   ana->SetSuperModule(runLumiSel);
@@ -442,13 +403,12 @@ void runFlatMonoJet(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   TString skimdataset = TString(dataset)+TString("/") +TString(skim);
   TString bookstr = book;
-  Catalog *c = new Catalog(catalogDir);
+  Catalog *c = new Catalog(cataDir.Data());
   Dataset *d = NULL;
-  bool    cachingOn = true;
   if (TString(skim).CompareTo("noskim") == 0)
-    d = c->FindDataset(bookstr,dataset,fileset,cachingOn); // chaching on
+    d = c->FindDataset(bookstr,dataset,fileset,local);
   else
-    d = c->FindDataset(bookstr,skimdataset.Data(),fileset,cachingOn);
+    d = c->FindDataset(bookstr,skimdataset.Data(),fileset,local);
   ana->AddDataset(d);
   //ana->AddFile("/mnt/hadoop/cms/store/user/paus/filefi/032/r12a-met-j22-v1/C4AC0AB8-BA82-E211-B238-003048678FF4.root");
 
@@ -467,8 +427,8 @@ void runFlatMonoJet(const char *fileset    = "0000",
   // Say what we are doing
   //------------------------------------------------------------------------------------------------
   printf("\n==== PARAMETER SUMMARY FOR THIS JOB ====\n");
-  printf("\n JSON file: %s\n  and overlap cut: %f (%s)\n",jsonFile.Data(),overlapCut,overlap);
-  printf("\n Rely on Catalog: %s\n",catalogDir);
+  printf("\n JSON file: %s\n",jsonFile.Data());
+  printf("\n Rely on Catalog: %s\n",cataDir.Data());
   printf("  -> Book: %s  Dataset: %s  Skim: %s  Fileset: %s <-\n",book,dataset,skim,fileset);
   printf("\n Root output: %s\n\n",rootFile.Data());
   printf("\n========================================\n");
@@ -480,3 +440,57 @@ void runFlatMonoJet(const char *fileset    = "0000",
 
   return;
 }
+
+//--------------------------------------------------------------------------------------------------
+TString getCatalogDir(const char* dir)
+{
+  TString cataDir = TString("./catalog");
+  Long_t *id=0,*size=0,*flags=0,*mt=0;
+
+  printf(" Try local catalog first: %s\n",cataDir.Data());
+  if (gSystem->GetPathInfo(cataDir.Data(),id,size,flags,mt) != 0) {
+    cataDir = TString(dir);
+    if (gSystem->GetPathInfo(cataDir.Data(),id,size,flags,mt) != 0) {
+      printf(" Requested local (./catalog) and specified catalog do not exist. EXIT!\n");
+      return TString("");
+    }
+  }
+  else {
+    printf(" Local catalog exists: %s using this one.\n",cataDir.Data());
+  }
+
+  return cataDir;
+}
+
+//--------------------------------------------------------------------------------------------------
+TString getJsonFile(const char* dir)
+{
+  TString jsonDir  = TString("./json");
+  TString json     = Utils::GetEnv("MIT_PROD_JSON");
+  Long_t *id=0,*size=0,*flags=0,*mt=0;
+
+  printf(" Try local json first: %s\n",jsonDir.Data());
+  if (gSystem->GetPathInfo(jsonDir.Data(),id,size,flags,mt) != 0) {
+    jsonDir = TString(dir);
+    if (gSystem->GetPathInfo(jsonDir.Data(),id,size,flags,mt) != 0) {
+      printf(" Requested local (./json) and specified json directory do not exist. EXIT!\n");
+      return TString("");
+    }
+  }
+  else {
+    printf(" Local json directory exists: %s using this one.\n",jsonDir.Data());
+  }
+
+  // Construct the full file name
+  TString jsonFile = jsonDir + TString("/") + json;
+  if (gSystem->GetPathInfo(jsonFile.Data(),id,size,flags,mt) != 0) {
+    printf(" Requested jsonfile (%s) does not exist. EXIT!\n",jsonFile.Data());
+    return TString("");
+  }
+  else {
+    printf(" Requested jsonfile (%s) exist. Moving on now!\n",jsonFile.Data());
+  }
+
+  return jsonFile;
+}
+

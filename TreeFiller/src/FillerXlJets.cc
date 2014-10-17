@@ -48,7 +48,7 @@ FillerXlJets::FillerXlJets(const char *name, const char *title) :
   fPruneDistCut (0.5),  
   fFilterN (3),      
   fFilterRad (0.2),     
-  fTrimRad (0.05),       
+  fTrimRad (0.1),       
   fTrimPtFrac (0.03),    
   fConeSize (0.6),
   fCounter (0)
@@ -63,6 +63,17 @@ FillerXlJets::~FillerXlJets()
     delete fXlSubJets;
   if (fXlFatJets)
     delete fXlFatJets;
+
+  delete fPruner;
+  delete fFilterer;
+  delete fTrimmer ;
+    
+  delete fCAJetDef;
+  
+  delete fActiveArea;
+  delete fAreaDefinition;  
+  
+  delete fQGTagger;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -189,17 +200,23 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   }	
 
   // Setup the cluster for fastjet
-  fastjet::ClusterSequenceArea fjClustering(fjParts,*fCAJetDef,*fAreaDefinition);
+  fastjet::ClusterSequenceArea *fjClustering =
+    new fastjet::ClusterSequenceArea(fjParts,*fCAJetDef,*fAreaDefinition);
 
   // ---- Fastjet is ready ----
 
   // Produce a new set of jets based on the fastjet particle collection and the defined clustering
   // Cut off fat jets with pt < 10 GeV and consider only the hardest jet of the output collection
-  std::vector<fastjet::PseudoJet> fjOutJets = sorted_by_pt(fjClustering.inclusive_jets(10.)); 
+  std::vector<fastjet::PseudoJet> fjOutJets = sorted_by_pt(fjClustering->inclusive_jets(10.)); 
 
   // Check that the output collection size is non-null, otherwise nothing to be done further
   if (fjOutJets.size() < 1) {
-    printf(" FillerXlJets::FillXlFatJet() - WARNING - input PFJet produces null reclustering output");
+    printf(" FillerXlJets::FillXlFatJet() - WARNING - input PFJet produces null reclustering output. skipping event!");
+
+    fjClustering->delete_self_when_unused();
+    delete fjClustering;
+
+    this->SkipEvent(); 
     return;
   }
   fastjet::PseudoJet fjJet = fjOutJets[0];
@@ -236,9 +253,11 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
 
   // Compute groomed masses
   fastjet::contrib::SoftDropTagger softDropSDb0(0.0, fSoftDropZCut, fSoftDropMuCut);
+  fastjet::contrib::SoftDropTagger softDropSDb1(1.0, fSoftDropZCut, fSoftDropMuCut);
   fastjet::contrib::SoftDropTagger softDropSDb2(2.0, fSoftDropZCut, fSoftDropMuCut);
   fastjet::contrib::SoftDropTagger softDropSDbm1(-1.0, fSoftDropZCut, fSoftDropMuCut);
   double MassSDb0 = (softDropSDb0(fjJet)).m();
+  double MassSDb1 = (softDropSDb1(fjJet)).m();
   double MassSDb2 = (softDropSDb2(fjJet)).m();
   double MassSDbm1 = (softDropSDbm1(fjJet)).m();
 
@@ -266,6 +285,7 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   
   // Store the groomed masses
   fatJet->SetMassSDb0(MassSDb0);     
+  fatJet->SetMassSDb1(MassSDb1);     
   fatJet->SetMassSDb2(MassSDb2);     
   fatJet->SetMassSDbm1(MassSDbm1);    
   fatJet->SetMassPruned(MassPruned);   
@@ -276,51 +296,47 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   fatJet->SetPull(GetPull(fjJet,0.01).Mod());   
  
   // Loop on the subjets and fill the subjet Xl collections - do it according to the user request
-  // In case of CA declustering subjet axis = subjet 
   if (fFillVSubJets) {
     std::vector<fastjet::PseudoJet> fjVSubJets;
-    std::vector<fastjet::PseudoJet> fjVSubAxes;
-    if (fNSubDeclustering) {
+    if (fNSubDeclustering)
       fjVSubJets = nSub2.currentSubjets();
-      fjVSubAxes = nSub2.currentAxes();
-    }
     else {
       int nSubJPruned = std::min<unsigned int>(fjJetPruned.constituents().size(),2);
       fjVSubJets = fjJetPruned.associated_cluster_sequence()->exclusive_subjets(fjJetPruned,nSubJPruned);
-      fjVSubAxes = fjVSubJets;    
     }
-    std::vector<fastjet::PseudoJet> fjSubJetsSorted = sorted_by_pt(fjVSubJets);    
+    // Order the subjets according to their pt and discard zero pt subjets
+    std::vector<fastjet::PseudoJet> fjSubJetsSorted = Sorted_by_pt_min_pt(fjVSubJets,0.01);    
     // Store the color pull angle: either choose 2-prong or 3-prong subclustering!
     fatJet->SetPullAngle(GetPullAngle(fjSubJetsSorted,0.01));   
-    FillXlSubJets(fjVSubJets,fjVSubAxes,fatJet,XlSubJet::ESubJetType::eV);
+    FillXlSubJets(fjSubJetsSorted,fatJet,XlSubJet::ESubJetType::eV);
   } 
   if (fFillTopSubJets) {
     std::vector<fastjet::PseudoJet> fjTopSubJets;
-    std::vector<fastjet::PseudoJet> fjTopSubAxes;
-    if (fNSubDeclustering) {
+    if (fNSubDeclustering) 
       fjTopSubJets = nSub3.currentSubjets();
-      fjTopSubAxes = nSub3.currentAxes();
-    }
     else {
       int nSubJPruned = std::min<unsigned int>(fjJetPruned.constituents().size(),3);
       fjTopSubJets = fjJetPruned.associated_cluster_sequence()->exclusive_subjets(fjJetPruned,nSubJPruned);
-      fjTopSubAxes = fjTopSubJets;    
     }
-    std::vector<fastjet::PseudoJet> fjSubJetsSorted = sorted_by_pt(fjTopSubJets);    
+    // Order the subjets according to their pt
+    std::vector<fastjet::PseudoJet> fjSubJetsSorted = Sorted_by_pt_min_pt(fjTopSubJets,0.01);    
     // Store the color pull angle: either choose 2-prong or 3-prong subclustering!
     fatJet->SetPullAngle(GetPullAngle(fjSubJetsSorted,0.01));   
-    FillXlSubJets(fjTopSubJets,fjTopSubAxes,fatJet,XlSubJet::ESubJetType::eTop);
+    FillXlSubJets(fjSubJetsSorted,fatJet,XlSubJet::ESubJetType::eTop);
   } 
-  // Sort subjets according to pt and add the subjets to the fat jet
-  fXlSubJets->Sort();
-  for (UInt_t iSubJ=0; iSubJ<fXlSubJets->GetEntries(); ++iSubJ)
-    fatJet->AddSubJet(fXlSubJets->At(iSubJ));    
+  // Trim the output collections
+  fXlSubJets->Trim();
+  fXlFatJets->Trim();
+   
+  // Memory cleanup
+  fjClustering->delete_self_when_unused();
+  delete fjClustering;
    
   return;
 }
 
 //--------------------------------------------------------------------------------------------------
-void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, std::vector<fastjet::PseudoJet> &fjSubAxes,
+void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets,
                                  XlFatJet *pFatJet, XlSubJet::ESubJetType subJetType)
 {
   for (int iSJet=0; iSJet < (int) fjSubJets.size(); iSJet++) {
@@ -331,21 +347,40 @@ void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets, std
                           fjSubJets[iSJet].pz(),
                           fjSubJets[iSJet].e());
 
-    // Store the subjet axis 
-    ThreeVector subAxis(fjSubAxes[iSJet].px(),fjSubAxes[iSJet].py(),fjSubAxes[iSJet].pz());
-    subJet->SetAxis(subAxis);
-
     // Store the QG tagging variable
     if (fQGTaggingActive)
       FillSubjetQGTagging(fjSubJets[iSJet], 0.01, subJet, pFatJet);
     
     // Store the subjet type value 
     subJet->SetSubJetType(subJetType);
-                          
+
+    // Add the subjet to the relative fatjet 
+    pFatJet->AddSubJet(subJet);                              
+
   }
     
   return;    
 }
+
+//--------------------------------------------------------------------------------------------------
+std::vector <fastjet::PseudoJet>   FillerXlJets::Sorted_by_pt_min_pt(std::vector <fastjet::PseudoJet> &jets,  
+                                                                     float jetPtMin)
+{
+  // First order collection by pt
+  std::vector<fastjet::PseudoJet> sortedJets = sorted_by_pt(jets);
+  
+  // Loop on the sorted collection and erase jets below jetPtMin
+  std::vector<fastjet::PseudoJet>::iterator it = sortedJets.begin();
+  for ( ;  it != sortedJets.end(); ) {
+    if (it->perp() < jetPtMin)
+      it = sortedJets.erase(it);
+    else
+      it++;
+  }  
+  
+  // Return the reduced and sorted jet collection
+  return sortedJets;
+}                                                                           
 
 //--------------------------------------------------------------------------------------------------
 void FillerXlJets::GetJetConstituents(fastjet::PseudoJet &jet, std::vector <fastjet::PseudoJet> &constits,  
@@ -373,12 +408,19 @@ double FillerXlJets::GetQjetVolatility(std::vector <fastjet::PseudoJet> &constit
   
   for(unsigned int ii = 0 ; ii < (unsigned int) QJetsN ; ii++){    
     qjet_plugin.SetRandSeed(seed+ii); // new feature in Qjets to set the random seed
-    fastjet::ClusterSequence qjet_seq(constits, qjet_def);
+    fastjet::ClusterSequence *qjet_seq =
+      new fastjet::ClusterSequence(constits, qjet_def);
     
-    vector<fastjet::PseudoJet> inclusive_jets2 = sorted_by_pt(qjet_seq.inclusive_jets(5.0));
-    if (inclusive_jets2.size()>0) { qjetmasses.push_back( inclusive_jets2[0].m() ); }          
+    vector<fastjet::PseudoJet> inclusive_jets2 = sorted_by_pt(qjet_seq->inclusive_jets(5.0));
+    // skip failed recombinations (with no output jets)
+    if (inclusive_jets2.size() < 1)
+      continue;
+    if (inclusive_jets2.size()>0) { qjetmasses.push_back( inclusive_jets2[0].m() ); }
+    // memory cleanup
+    qjet_seq->delete_self_when_unused(); 
+    delete qjet_seq;         
   }
-  
+
   // find RMS of a vector
   float qjetsRMS = FindRMS( qjetmasses );
   // find mean of a vector

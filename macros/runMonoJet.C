@@ -1,6 +1,7 @@
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TSystem.h>
 #include <TProfile.h>
+#include "MitCommon/Utils/interface/Utils.h"
 #include "MitAna/DataUtil/interface/Debug.h"
 #include "MitAna/Catalog/interface/Catalog.h"
 #include "MitAna/TreeMod/interface/Analysis.h"
@@ -34,11 +35,14 @@
 #include "MitMonoJet/Mods/interface/MonoJetTreeWriter.h"
 #endif
 
+TString getCatalogDir(const char* dir);
+TString getJsonFile(const char* dir);
+
 //--------------------------------------------------------------------------------------------------
 void runMonoJet(const char *fileset    = "0000",
                 const char *skim       = "noskim",
-                const char *dataset    = "s12-wjets-ptw100-v7a",
-                const char *book       = "t2mit/filefi/031",
+                const char *dataset    = "s12-wjets-1-v7a",
+                const char *book       = "t2mit/filefi/032",
                 const char *catalogDir = "/home/cmsprod/catalog",
                 const char *outputName = "MonoJet_August13",
                 int         nEvents    = 100)
@@ -46,42 +50,31 @@ void runMonoJet(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
   //------------------------------------------------------------------------------------------------
-  char json[1024], overlap[1024];
-  float overlapCut = -1;
-
-  if (gSystem->Getenv("MIT_PROD_JSON"))
-    sprintf(json,   "%s",gSystem->Getenv("MIT_PROD_JSON"));
-  else {
-    sprintf(json, "%s", "~");
-  }
-
-  TString jsonFile = TString("/home/cmsprod/cms/json/") + TString(json);
-  std::cout<<"JSON "<<jsonFile<<std::endl;
-  Bool_t  isData   = ( (jsonFile.CompareTo("/home/cmsprod/cms/json/~") != 0) );
+  TString cataDir  = getCatalogDir(catalogDir);
+  TString mitData  = Utils::GetEnv("MIT_DATA");
+  TString json     = Utils::GetEnv("MIT_PROD_JSON");
+  TString jsonFile = getJsonFile("/home/cmsprod/cms/json");
+  Bool_t  isData   = (json.CompareTo("~") != 0);
+  printf("\n Initialization worked. Data?: %d\n\n",isData);  
 
   std::cout<<"*********** Is data?? **********"<<isData<<std::endl;
-
-  if (gSystem->Getenv("MIT_PROD_OVERLAP")) {
-    sprintf(overlap,"%s",gSystem->Getenv("MIT_PROD_OVERLAP"));
-    if (EOF == sscanf(overlap,"%f",&overlapCut)) {
-      printf(" Overlap was not properly defined. EXIT!\n");
-      return;
-    }
-  }
-  else {
-     sprintf(overlap,"%s", "-1.0");
-    //printf(" OVERLAP file was not properly defined. EXIT!\n");
-    //return;
-  }
-
-  printf("\n Initialization worked \n");
 
   //------------------------------------------------------------------------------------------------
   // some global setups
   //------------------------------------------------------------------------------------------------
   using namespace mithep;
-  gDebugMask  = Debug::kGeneral;
+  gDebugMask  = (Debug::EDebugMask) (Debug::kGeneral | Debug::kTreeIO);
   gDebugLevel = 3;
+
+  // Caching and how
+  Int_t local = 1, cacher = 1;
+
+  // local =   0 - as is,
+  //           1 - /mnt/hadoop (MIT:SmartCache - preload one-by-one)
+  //           2 - /mnt/hadoop (MIT:SmartCache - preload complete fileset)
+  //           3 - ./          (xrdcp          - preload one-by-one)
+  // cacher =  0 - no file by file caching
+  //           1 - file by file caching on
 
   //------------------------------------------------------------------------------------------------
   // set up information
@@ -91,15 +84,15 @@ void runMonoJet(const char *fileset    = "0000",
   runLumiSel->SetAbortIfNotAccepted(kFALSE);   // accept all events if there is no valid JSON file
 
   // only select on run- and lumisection numbers when valid json file present
-  if ((jsonFile.CompareTo("/home/cmsprod/cms/json/~") != 0) &&
-      (jsonFile.CompareTo("/home/cmsprod/cms/json/-") != 0)   ) {
+  if (json.CompareTo("~") != 0 && json.CompareTo("-") != 0) {
+    printf(" runBoostedV() - adding jsonFile: %s\n",jsonFile.Data());
     runLumiSel->AddJSONFile(jsonFile.Data());
   }
-  if ((jsonFile.CompareTo("/home/cmsprod/cms/json/-") == 0)   ) {
+  if (json.CompareTo("-") == 0) {
     printf("\n WARNING -- Looking at data without JSON file: always accept.\n\n");
+    runLumiSel->SetAbortIfNotAccepted(kFALSE);   // accept all events if there is no valid JSON file
   }
-
-  printf("\n Run lumi worked\n");
+  printf("\n Run lumi worked. \n\n");
 
   // Generator info
   GeneratorMod *generatorMod = new GeneratorMod;
@@ -257,7 +250,7 @@ void runMonoJet(const char *fileset    = "0000",
   merger->SetElectronsName(electronCleaning->GetOutputName());
   merger->SetMergedName("MergedLeptons");
 
-  //-----------------------------------
+//-----------------------------------
   // Photon Regression + ID
   //-----------------------------------
   PhotonMvaMod *photreg = new PhotonMvaMod;
@@ -357,11 +350,6 @@ void runMonoJet(const char *fileset    = "0000",
 //   float minLeadingJetEt = 40;
 //   float maxJetEta = 4.5;
 //   float minMet = 200;
-
-  // Photon ID commissioning
-//   float minLeadingJetEt = 40;
-//   float maxJetEta = 4.7;
-//   float minMet = 0;
 
   MonoJetAnalysisMod         *jetplusmet = new MonoJetAnalysisMod("MonoJetSelector");
   jetplusmet->SetInputMetName(metCorrT0T1Shift->GetOutputName()); //corrected met
@@ -534,6 +522,7 @@ void runMonoJet(const char *fileset    = "0000",
   // setup analysis
   //------------------------------------------------------------------------------------------------
   Analysis *ana = new Analysis;
+  ana->SetUseCacher(cacher);
   ana->SetUseHLT(kTRUE);
   ana->SetKeepHierarchy(kTRUE);
   ana->SetSuperModule(runLumiSel);
@@ -546,13 +535,12 @@ void runMonoJet(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   TString skimdataset = TString(dataset)+TString("/") +TString(skim);
   TString bookstr = book;
-  Catalog *c = new Catalog(catalogDir);
+  Catalog *c = new Catalog(cataDir.Data());
   Dataset *d = NULL;
-  bool    cachingOn = true;
   if (TString(skim).CompareTo("noskim") == 0)
-    d = c->FindDataset(bookstr,dataset,fileset,cachingOn); // chaching on
+    d = c->FindDataset(bookstr,dataset,fileset,local);
   else
-    d = c->FindDataset(bookstr,skimdataset.Data(),fileset,cachingOn);
+    d = c->FindDataset(bookstr,skimdataset.Data(),fileset,local);
   ana->AddDataset(d);
   //ana->AddFile("/mnt/hadoop/cms/store/user/paus/filefi/032/r12a-met-j22-v1/C4AC0AB8-BA82-E211-B238-003048678FF4.root");
 
@@ -571,8 +559,8 @@ void runMonoJet(const char *fileset    = "0000",
   // Say what we are doing
   //------------------------------------------------------------------------------------------------
   printf("\n==== PARAMETER SUMMARY FOR THIS JOB ====\n");
-  printf("\n JSON file: %s\n  and overlap cut: %f (%s)\n",jsonFile.Data(),overlapCut,overlap);
-  printf("\n Rely on Catalog: %s\n",catalogDir);
+  printf("\n JSON file: %s\n",jsonFile.Data());
+  printf("\n Rely on Catalog: %s\n",cataDir.Data());
   printf("  -> Book: %s  Dataset: %s  Skim: %s  Fileset: %s <-\n",book,dataset,skim,fileset);
   printf("\n Root output: %s\n\n",rootFile.Data());
   printf("\n========================================\n");
@@ -584,3 +572,57 @@ void runMonoJet(const char *fileset    = "0000",
 
   return;
 }
+
+//--------------------------------------------------------------------------------------------------
+TString getCatalogDir(const char* dir)
+{
+  TString cataDir = TString("./catalog");
+  Long_t *id=0,*size=0,*flags=0,*mt=0;
+
+  printf(" Try local catalog first: %s\n",cataDir.Data());
+  if (gSystem->GetPathInfo(cataDir.Data(),id,size,flags,mt) != 0) {
+    cataDir = TString(dir);
+    if (gSystem->GetPathInfo(cataDir.Data(),id,size,flags,mt) != 0) {
+      printf(" Requested local (./catalog) and specified catalog do not exist. EXIT!\n");
+      return TString("");
+    }
+  }
+  else {
+    printf(" Local catalog exists: %s using this one.\n",cataDir.Data());
+  }
+
+  return cataDir;
+}
+
+//--------------------------------------------------------------------------------------------------
+TString getJsonFile(const char* dir)
+{
+  TString jsonDir  = TString("./json");
+  TString json     = Utils::GetEnv("MIT_PROD_JSON");
+  Long_t *id=0,*size=0,*flags=0,*mt=0;
+
+  printf(" Try local json first: %s\n",jsonDir.Data());
+  if (gSystem->GetPathInfo(jsonDir.Data(),id,size,flags,mt) != 0) {
+    jsonDir = TString(dir);
+    if (gSystem->GetPathInfo(jsonDir.Data(),id,size,flags,mt) != 0) {
+      printf(" Requested local (./json) and specified json directory do not exist. EXIT!\n");
+      return TString("");
+    }
+  }
+  else {
+    printf(" Local json directory exists: %s using this one.\n",jsonDir.Data());
+  }
+
+  // Construct the full file name
+  TString jsonFile = jsonDir + TString("/") + json;
+  if (gSystem->GetPathInfo(jsonFile.Data(),id,size,flags,mt) != 0) {
+    printf(" Requested jsonfile (%s) does not exist. EXIT!\n",jsonFile.Data());
+    return TString("");
+  }
+  else {
+    printf(" Requested jsonfile (%s) exist. Moving on now!\n",jsonFile.Data());
+  }
+
+  return jsonFile;
+}
+

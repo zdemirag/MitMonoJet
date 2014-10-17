@@ -43,7 +43,6 @@ namespace mithep
                 fSubJetType(eX) {}
 
       Jet                  *MakeCopy()                      const { return new XlSubJet(*this);    }
-      ThreeVector           Axis()                          const { return fAxis.V();              }
       Double_t              BTag()                          const { return fBTag;                  }
       Double_t              QGTag()                         const { return fQGTag;                 }
       Double_t              QGPtD()                         const { return fQGPtD;                 }
@@ -51,7 +50,6 @@ namespace mithep
       Double_t              QGAxis2()                       const { return fQGAxis2;               }
       Double_t              QGMult()                        const { return fQGMult;                }
       ESubJetType           SubJetType()                    const { return fSubJetType;            } 
-      void                  SetAxis(const ThreeVector &a)         { fAxis       = a;               }
       void                  SetBTag(Double_t d)                   { fBTag       = d;               }
       void                  SetQGTag(Double_t d)                  { fQGTag      = d;               }
       void                  SetQGPtD(Double_t d)                  { fQGPtD      = d;               }
@@ -65,7 +63,6 @@ namespace mithep
 
     protected:
 
-      Vect3                 fAxis;       //sub-jet axis found by the jet subclustering algorithm
       Double32_t            fBTag;       //sub-jet b-tag value
       Double32_t            fQGTag;      //sub-jet quark-gluon tag value
       Double32_t            fQGPtD;      //QG tagging PtD
@@ -74,7 +71,7 @@ namespace mithep
       Double32_t            fQGMult;     //QG tagging Multiplicity
       ESubJetType           fSubJetType; //subjet type
       
-    ClassDef(XlSubJet, 1) // XlFatJet class
+    ClassDef(XlSubJet, 2) // XlFatJet class
   };
 }
 

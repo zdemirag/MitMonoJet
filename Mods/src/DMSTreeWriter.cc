@@ -263,7 +263,7 @@ void DMSTreeWriter::Process()
       fMitDMSTree.HLTmatch_ |= MitDMSTree::PhotonMatch;         
   }
 
-  // FAT JETS
+  // FAT JETS  
   fMitDMSTree.nfjets_ = fFatJets->GetEntries();
   for (UInt_t i = 0; i < fFatJets->GetEntries(); ++i) {
 
@@ -285,9 +285,10 @@ void DMSTreeWriter::Process()
       fMitDMSTree.fjet1C2b1_        = fjet->C2b1();        
       fMitDMSTree.fjet1C2b2_        = fjet->C2b2();        
       fMitDMSTree.fjet1QJetVol_     = fjet->QJetVol();     
-      fMitDMSTree.fjet1MassSDb0_    = fjet->MassSDb0();    
-      fMitDMSTree.fjet1MassSDb2_    = fjet->MassSDb2();    
       fMitDMSTree.fjet1MassSDbm1_   = fjet->MassSDbm1();   
+      fMitDMSTree.fjet1MassSDb0_    = fjet->MassSDb0();    
+      fMitDMSTree.fjet1MassSDb1_    = fjet->MassSDb1();    
+      fMitDMSTree.fjet1MassSDb2_    = fjet->MassSDb2();    
       fMitDMSTree.fjet1MassPruned_  = fjet->MassPruned();  
       fMitDMSTree.fjet1MassFiltered_= fjet->MassFiltered();
       fMitDMSTree.fjet1MassTrimmed_ = fjet->MassTrimmed();
@@ -296,24 +297,24 @@ void DMSTreeWriter::Process()
       if (!fIsData)  
         fMitDMSTree.fjet1PartonId_  = JetPartonMatch(fMitDMSTree.fjet1_, 0.7);  
     
-      fMitDMSTree.nsjets_ = fjet->NSubJets();
-      if (fMitDMSTree.nsjets_ > 0) {
-        fMitDMSTree.sjet1_            = fjet->SubJet(0)->Mom();
+      fMitDMSTree.fjet1nsj_ = fjet->NSubJets();
+      if (fMitDMSTree.fjet1nsj_ > 0) {
+        fMitDMSTree.fjet1sj1_         = fjet->SubJet(0)->Mom();
         fMitDMSTree.fjet1QGtagSub1_   = fjet->SubJet(0)->QGTag();
         fMitDMSTree.fjet1QGPtDSub1_   = fjet->SubJet(0)->QGPtD();
         fMitDMSTree.fjet1QGAxis1Sub1_ = fjet->SubJet(0)->QGAxis1();
         fMitDMSTree.fjet1QGAxis2Sub1_ = fjet->SubJet(0)->QGAxis2();
         fMitDMSTree.fjet1QGMultSub1_  = fjet->SubJet(0)->QGMult();
       }
-      if (fMitDMSTree.nsjets_ > 1) {
-        fMitDMSTree.sjet2_            = fjet->SubJet(1)->Mom();
+      if (fMitDMSTree.fjet1nsj_ > 1) {
+        fMitDMSTree.fjet1sj2_         = fjet->SubJet(1)->Mom();
         fMitDMSTree.fjet1QGtagSub2_   = fjet->SubJet(1)->QGTag();
         fMitDMSTree.fjet1QGPtDSub2_   = fjet->SubJet(1)->QGPtD();
         fMitDMSTree.fjet1QGAxis1Sub2_ = fjet->SubJet(1)->QGAxis1();
         fMitDMSTree.fjet1QGAxis2Sub2_ = fjet->SubJet(1)->QGAxis2();
         fMitDMSTree.fjet1QGMultSub2_  = fjet->SubJet(1)->QGMult();
       }
-      
+
     }// end filling of first fat jet
 
     if (i == 1) {
@@ -334,9 +335,10 @@ void DMSTreeWriter::Process()
       fMitDMSTree.fjet2C2b1_        = fjet->C2b1();        
       fMitDMSTree.fjet2C2b2_        = fjet->C2b2();        
       fMitDMSTree.fjet2QJetVol_     = fjet->QJetVol();     
-      fMitDMSTree.fjet2MassSDb0_    = fjet->MassSDb0();    
-      fMitDMSTree.fjet2MassSDb2_    = fjet->MassSDb2();    
       fMitDMSTree.fjet2MassSDbm1_   = fjet->MassSDbm1();   
+      fMitDMSTree.fjet2MassSDb0_    = fjet->MassSDb0();    
+      fMitDMSTree.fjet2MassSDb1_    = fjet->MassSDb1();    
+      fMitDMSTree.fjet2MassSDb2_    = fjet->MassSDb2();    
       fMitDMSTree.fjet2MassPruned_  = fjet->MassPruned();  
       fMitDMSTree.fjet2MassFiltered_= fjet->MassFiltered();
       fMitDMSTree.fjet2MassTrimmed_ = fjet->MassTrimmed();
@@ -344,15 +346,19 @@ void DMSTreeWriter::Process()
       fMitDMSTree.fjet2PullAngle_   = fjet->PullAngle();
       if (!fIsData)  
         fMitDMSTree.fjet2PartonId_  = JetPartonMatch(fMitDMSTree.fjet2_, 0.7);
-
-      if (fjet->NSubJets() > 0) {
+                
+      fMitDMSTree.fjet2nsj_ = fjet->NSubJets();
+      
+      if (fMitDMSTree.fjet2nsj_ > 0) {
+        fMitDMSTree.fjet2sj1_         = fjet->SubJet(0)->Mom();
         fMitDMSTree.fjet2QGtagSub1_   = fjet->SubJet(0)->QGTag();
         fMitDMSTree.fjet2QGPtDSub1_   = fjet->SubJet(0)->QGPtD();
         fMitDMSTree.fjet2QGAxis1Sub1_ = fjet->SubJet(0)->QGAxis1();
         fMitDMSTree.fjet2QGAxis2Sub1_ = fjet->SubJet(0)->QGAxis2();
         fMitDMSTree.fjet2QGMultSub1_  = fjet->SubJet(0)->QGMult();
       }
-      if (fjet->NSubJets() > 1) {
+      if (fMitDMSTree.fjet2nsj_ > 1) {
+        fMitDMSTree.fjet2sj2_         = fjet->SubJet(1)->Mom();
         fMitDMSTree.fjet2QGtagSub2_   = fjet->SubJet(1)->QGTag();
         fMitDMSTree.fjet2QGPtDSub2_   = fjet->SubJet(1)->QGPtD();
         fMitDMSTree.fjet2QGAxis1Sub2_ = fjet->SubJet(1)->QGAxis1();
