@@ -142,7 +142,7 @@ for line in open(inputConfigName):
     makeCondorFile(condorSubFile,workingDir + '/' + datasetName + ".run",thisCondorLogDir,datasetName,thisRootOutFile)
     condorSubFile.close()
     # prepare the copy command for final ntuple transfer
-    transferFile.write('cp ' + workingDir + '/' + thisRootOutFile + ' ' + outputDir + '\n')
+    transferFile.write('mv ' + workingDir + '/' + thisRootOutFile + ' ' + outputDir + '\n')
     # submit the jobs if not in testing mode
     if not testingMode:
       os.system('condor_submit ' + workingDir + '/' + datasetName + '.sub')
