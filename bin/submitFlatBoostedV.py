@@ -44,7 +44,7 @@ should_transfer_files = YES
 when_to_transfer_output = ON_EXIT"""
   # Print the text block into the outputFile file
   print >> outputFile, block_str
-
+  
   line =  '+AccountingGroup = \"group_cmsuser.' + os.environ['USER'] + '\"'
   print >> outputFile, line
   line =  'Queue'
@@ -72,22 +72,32 @@ inputConfigName = os.environ['MIT_USER_DIR'] + '/config/' + os.environ['MIT_PROD
 print " INFO - preparing flat ntuple submission with configuration file: " + inputConfigName
 
 # => prepare the submit working area
-
-workingDir = '/scratch4/dimatteo/cms/hist/' + os.environ['MIT_PROD_CFG'] + '/merged-test'
+workingDir = os.environ['MIT_PROD_HIST'] + '/' + os.environ['MIT_PROD_CFG'] + '/merged-test'
 if os.path.isdir(workingDir):
   # cleanup all sub and run files in the working area
   os.system('rm ' + workingDir + '/*.sub')
   os.system('rm ' + workingDir + '/*.run')
 else:
   os.makedirs(workingDir)
-print " INFO - working/output directory is located under: " + workingDir
+print " INFO - working directory is located under: " + workingDir
+
+# => spell out the output area
+outputDir = '/mnt/hscratch/' + os.environ['USER'] + '/' + os.environ['MIT_PROD_CFG'] + '/merged'
+print " INFO - output target is: " + outputDir
 
 # => prepare the condor log area
-condorLogDir = '/home/dimatteo/cms/logs/' + os.environ['MIT_PROD_CFG'] + '/flat'
+condorLogDir = os.environ['MIT_PROD_LOGS'] + '/' + os.environ['MIT_PROD_CFG'] + '/flat'
 if os.path.isdir(condorLogDir):
   shutil.rmtree(condorLogDir)
 os.makedirs(condorLogDir)
 print " INFO - condor log directory is located under: " + condorLogDir
+
+# => prepare the commands for file transfers
+transferFileName = 'flat_ntuple_transfers.txt' 
+if os.path.isfile(transferFileName):
+  os.system('rm ' + transferFileName)
+os.system('touch ' + transferFileName)
+transferFile = open(initDir + '/' + transferFileName, 'w')
 
 print " INFO - setup completed, moving now to submissions\n\n "
 
@@ -110,12 +120,14 @@ for line in open(inputConfigName):
     # prepare the run instructions for each dataset and put them in a file
     runFile = open(workingDir + '/' + datasetName + ".run", 'w')
     runFile.write('#!/bin/bash\n')
+    # first make sure the input file list in created
+    runFile.write('ls $MIT_PROD_HIST/$MIT_PROD_CFG/$MIT_PROD_BOOK/032/' + datasetName + '/*ntuple*.root > inputBavanti.txt \n')
     runFile.write('export MIT_PROD_JSON=\'' + JSONName + '\'\n')
     rootString = 'root -b -l -q runFlatBoostedV.C+\\(\\\"000\\\",\\\"noskim\\\",\\\"'
     rootString += datasetName
     rootString += '\\\",\\\"filefi/032\\\",\\\"/home/cmsprod/catalog\\\",\\\"'
     rootString += os.environ['MIT_PROD_CFG']
-    rootString += '\\\",' + nEvents + '\\)'    
+    rootString += '\\\",' + nEvents + '\\)\n'    
     runFile.write(rootString)
     runFile.close()
     os.chmod(workingDir + '/' + datasetName + ".run", 0755)
@@ -129,8 +141,17 @@ for line in open(inputConfigName):
     thisRootOutFile = os.environ['MIT_PROD_CFG'] + '_' + datasetName + '_noskim_flatntuple.root'
     makeCondorFile(condorSubFile,workingDir + '/' + datasetName + ".run",thisCondorLogDir,datasetName,thisRootOutFile)
     condorSubFile.close()
+    # prepare the copy command for final ntuple transfer
+    transferFile.write('cp ' + workingDir + '/' + thisRootOutFile + ' ' + outputDir + '\n')
     # submit the jobs if not in testing mode
     if not testingMode:
       os.system('condor_submit ' + workingDir + '/' + datasetName + '.sub')
 
 os.chdir(initDir)
+
+print " \n"
+print " INFO - to move the output ntuples to the final destination [" + outputDir + "]:" 
+print " INFO - 1) check that the jobs are all finished successfully"
+print " INFO - 2) run: source " + transferFileName
+transferFile.close()
+
