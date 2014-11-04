@@ -24,7 +24,7 @@ void runFlatBoostedV(const char *fileset    = "0000",
                      const char *dataset    = "s12-sch-v7a",     
                      const char *book       = "t2mit/filefi/032",
                      const char *catalogDir = "/home/cmsprod/catalog",
-                     const char *outputName = "boostedv",
+                     const char *outputName = "boostedv-v8",
                      int         nEvents    = -1)
 {
   //------------------------------------------------------------------------------------------------
@@ -92,11 +92,9 @@ void runFlatBoostedV(const char *fileset    = "0000",
   TString skimdataset = TString(dataset)+TString("/") +TString(skim);
   Dataset *d = NULL;
   TString bookstr = book;
-  TString inputFile = "/scratch4/dimatteo/cms/hist/" + TString(outputName) + "/t2mit/filefi/032/";
-  inputFile += TString(dataset);
-  inputFile += TString("/") +  TString(outputName) + "_";
-  inputFile += TString(dataset) + "_*_ntuple_*.root";  
-  ana->AddFile(inputFile);
+  TString inputFileList;
+  inputFileList = "inputBavanti.txt";
+  ana->AddFiles(inputFileList,-1);
 
   TString inputPUFile = "/scratch4/dimatteo/cms/hist/" + TString(outputName) + "/merged/";
   inputPUFile += TString(outputName) + TString("_") +  TString(dataset);
