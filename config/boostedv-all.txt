@@ -55,6 +55,18 @@ t2mit/filefi/032 s12-h125inv-gf-v19              noskim         ggHinv          
 t2mit/filefi/032 w13-h125dm-aa-v1                noskim         WHinv                           0.7670      1.0    -1.0    ~
 t2mit/filefi/032 s12-h125invqq-zh-v19            noskim         ZH->qq~inv                      0.2907      1.0    -1.0    ~
 t2mit/filefi/032 s12-h125invbb-zh-v7c            noskim         ZH->bb~inv                      0.0628      1.0    -1.0    ~
+#
+t2mit/filefi/032 s12-h105invqq-zh-v19            noskim         ZH->qq~inv                      0.4909      1.0    -1.0    ~
+t2mit/filefi/032 s12-h115invqq-zh-v19            noskim         ~                               0.3746      1.0    -1.0    ~
+t2mit/filefi/032 s12-h125invqq-zh-v19            noskim         ~                               0.2903      1.0    -1.0    ~
+t2mit/filefi/032 s12-h135invqq-zh-v19            noskim         ~                               0.2278      1.0    -1.0    ~
+t2mit/filefi/032 s12-h145invqq-zh-v19            noskim         ~                               0.1806      1.0    -1.0    ~
+t2mit/filefi/032 s12-h150invqq-zh-v19            noskim         ~                               0.1614      1.0    -1.0    ~
+t2mit/filefi/032 s12-h175invqq-zh-v19            noskim         ~                               0.0957      1.0    -1.0    ~
+t2mit/filefi/032 s12-h200invqq-zh-v19            noskim         ~                               0.0594      1.0    -1.0    ~
+t2mit/filefi/032 s12-h250invqq-zh-v19            noskim         ~                               0.0248      1.0    -1.0    ~
+t2mit/filefi/032 s12-h300invqq-zh-v19            noskim         ~                               0.0114      1.0    -1.0    ~
+t2mit/filefi/032 s12-h400invqq-zh-v19            noskim         ~                               0.0032      1.0    -1.0    ~
 ##=============================================================================================================================================================
 ##=   DATA   ==================================================================================================================================================
 ##=============================================================================================================================================================
