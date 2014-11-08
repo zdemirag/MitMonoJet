@@ -1,0 +1,14 @@
+t2mit/filefi/032 WH_WToQQ_HToInv_M-115_8TeV_pythia6+Summer12_DR53X-PU_S10_START53_V19-v1+AODSIM noskim WH(125) 0.6264 1.0 -1.0 ~
+t2mit/filefi/032 WH_WToQQ_HToInv_M-200_8TeV_pythia6+Summer12_DR53X-PU_S10_START53_V19-v1+AODSIM noskim WH(200) 0.0882 1.0 -1.0 ~
+t2mit/filefi/032 s12-h105invqq-zh-v19            noskim         ZH(105)                         0.4909      1.0    -1.0    ~
+t2mit/filefi/032 s12-h115invqq-zh-v19            noskim         ZH(115)                         0.3746      1.0    -1.0    ~
+t2mit/filefi/032 s12-h125invqq-zh-v19            noskim         ZH(125)                         0.2903      1.0    -1.0    ~
+t2mit/filefi/032 s12-h135invqq-zh-v19            noskim         ZH(135)                         0.2278      1.0    -1.0    ~
+t2mit/filefi/032 s12-h145invqq-zh-v19            noskim         ZH(145)                         0.1806      1.0    -1.0    ~
+t2mit/filefi/032 s12-h150invqq-zh-v19            noskim         ZH(150)                         0.1614      1.0    -1.0    ~
+t2mit/filefi/032 s12-h175invqq-zh-v19            noskim         ZH(175)                         0.0957      1.0    -1.0    ~
+t2mit/filefi/032 s12-h200invqq-zh-v19            noskim         ZH(200)                         0.0594      1.0    -1.0    ~
+t2mit/filefi/032 s12-h250invqq-zh-v19            noskim         ZH(250)                         0.0248      1.0    -1.0    ~
+t2mit/filefi/032 s12-h300invqq-zh-v19            noskim         ZH(300)                         0.0114      1.0    -1.0    ~
+t2mit/filefi/032 s12-h400invqq-zh-v19            noskim         ZH(400)                         0.0032      1.0    -1.0    ~
+
