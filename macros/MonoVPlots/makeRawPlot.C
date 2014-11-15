@@ -144,6 +144,22 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     printf("Finished Plot for Region %s and Variable %s!\n",regions[0].Data(),variable.Data());
     delete plotTask;
   }
+  // For Zll control region plots
+  else if (mode == 2) {
+    gSystem->Setenv("MIT_ANA_CFG","boostedv-z");
+    // plot met corrected
+    plotTask = new PlotTask(0,lumi);
+    plotTask->SetHistRanges(min,max,0.,0.);
+    plotTask->SetNBins(nBins);
+    plotTask->SetAxisTitles(variable,"Number of Events");
+    plotTask->SetPngFileName("/tmp/dummy.png");
+    if (variable == "met")
+      plotTask->Plot(Stacked,nTuple,metCorrectedZll,cuts[icut],"BDT_" + regions[1]);
+    else 
+      plotTask->Plot(Stacked,nTuple,variable,cuts[icut],"BDT_" + regions[1]);
+    printf("Finished Plot for Region %s and Variable %s!\n",regions[1].Data(),variable.Data());
+    delete plotTask;
+  }
   else 
     return;
   
