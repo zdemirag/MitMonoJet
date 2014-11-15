@@ -12,7 +12,7 @@ using namespace std;
 using namespace mithep;
 
 //==================================================================================================
-void makeRawPlot(double lumi = 19700.0)
+void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw", int icut = 0, int nBins = 60, float min = 200, float max = 800)
 {
   // Create raw plots for further analysis (limits) or plotting
 
@@ -55,7 +55,8 @@ void makeRawPlot(double lumi = 19700.0)
   // BoostedV selection
   TString metRawCut250 = "(metRaw > 250)";
   TString fjetCut = "(fjet1.Pt() > 250 && abs(fjet1.Eta()) < 2.5)";
-  TString bdt_all = "(bdt_all > -0.5)";
+  TString bdt_loose = "(bdt_all > -0.5)";
+  TString bdt_tight = "(bdt_all > -0.1)";
   TString dPhifj1j2 = "TMath::ACos(TMath::Cos(jet2.phi() - fjet1.phi()))";
   TString fjetMassCut = "(fjet1.M() < 200.0)";
   TString sdCut = "(fjet1MassSDbm1 > 10)";
@@ -86,31 +87,81 @@ void makeRawPlot(double lumi = 19700.0)
   TString metCorrectedWlnuCut250 = TString("(")+metCorrectedWlnu+TString(" > 250)"); // met corrected cut
       
   // our plot task
-  TString regions[6] = {"Monojet_Signal","Monojet_Zll","Monojet_Wlnu","BoostedV_Signal","BoostedV_Zll","BoostedV_Wlnu"};
-  TString cuts[6];
+  TString regions[6] = {"Met","Zll","Wlnu"};
+  TString cuts[8];
   
   TString MonoJetSelection           = eventWeight+monoJetTrigger+andC+nJetCuts+andC+tauVeto+andC+photonVeto+andC+metFiltersCut;
-  TString BoostedVSelection          = fjetCut+andC+bdt_all; //BoostedV MVA based selection
+  TString BoostedVSelectionL         = fjetCut+andC+bdt_loose; //BoostedV MVA loose selection
+  TString BoostedVSelectionT         = fjetCut+andC+bdt_tight; //BoostedV MVA tight selection
   TString SignalRegionSelection      = preselCutsZnunu+andC+lepVeto+andC+metRawCut200;
-  TString ZllControlRegionSelection  = preselCutsZll+andC+DiMuonCut+andC+InvMassCut+andC+metCorrectedZllCut200;
-  TString WlnuControlRegionSelection = preselCutsWlnu+andC+SingleMuonCut+andC+TransMassCut+andC+metCorrectedWlnuCut200;
+  TString ZllControlRegionSelection  = preselCutsZll+andC+DiMuonCut+andC+InvMassCut+andC+metCorrectedZllCut250;
+  TString WlnuControlRegionSelection = preselCutsWlnu+andC+SingleMuonCut+andC+TransMassCut+andC+metCorrectedWlnuCut250;
 
-  cuts[0]     = MonoJetSelection+andC+SignalRegionSelection+")";       // monojet signal region selection
-  cuts[1]     = MonoJetSelection+andC+ZllControlRegionSelection+")";   // monojet Z->ll control region selection
-  cuts[2]     = MonoJetSelection+andC+WlnuControlRegionSelection+")";  // monojet W->lnu control region selection
-  cuts[3]     = MonoJetSelection+andC+BoostedVSelection+andC+SignalRegionSelection+")";      // boostedV signal region selection
-  cuts[4]     = MonoJetSelection+andC+BoostedVSelection+andC+ZllControlRegionSelection+")";  // boostedV Z->ll control region selection
-  cuts[5]     = MonoJetSelection+andC+BoostedVSelection+andC+WlnuControlRegionSelection+")"; // boostedV W->lnu control region selection
-
+  cuts[0]     = MonoJetSelection+andC+BoostedVSelectionL+andC+SignalRegionSelection+")";      // boostedV signal region selection, MET 200
+  cuts[1]     = MonoJetSelection+andC+BoostedVSelectionT+andC+SignalRegionSelection+")";      // boostedV signal region selection, MET 200
+  cuts[2]     = MonoJetSelection+andC+BoostedVSelectionL+andC+ZllControlRegionSelection+")";  // boostedV Z->ll control region selection, MET 250
+  cuts[3]     = MonoJetSelection+andC+BoostedVSelectionL+andC+WlnuControlRegionSelection+")"; // boostedV W->lnu control region selection, MET 250
+  cuts[4]     = MonoJetSelection+andC+BoostedVSelectionL+andC+metRawCut250+andC+SignalRegionSelection+")";  // boostedV signal region selection, MET 250
+  cuts[5]     = MonoJetSelection+andC+fjetCut+andC+metRawCut250+andC+SignalRegionSelection+")";  // boostedV signal region selection, MET 250, no BDT cut
+  cuts[6]     = MonoJetSelection+andC+fjetCut+andC+ZllControlRegionSelection+")";  // boostedV Z->ll region selection, MET 250, no BDT cut
+  cuts[7]     = MonoJetSelection+andC+fjetCut+andC+WlnuControlRegionSelection+")"; // boostedV W->lnu region selection, MET 250, no BDT cut
  
-  // plot metRaw
-  PlotTask *plotTask = new PlotTask(0,lumi);
-  plotTask->SetHistRanges(200.0,800.0,0.,0.);
-  plotTask->SetNBins(60);
-  plotTask->SetAxisTitles("E_{T}^{miss} [GeV]","Number of Events");
-  plotTask->SetPngFileName("/tmp/dummy.png");
-  plotTask->Plot(Stacked,nTuple,"metRaw",cuts[3],"BDT");
-  printf("Finished Plot for Region %s and Variable %s!\n",regions[3].Data(),"metRaw");
+  PlotTask *plotTask = 0;
+
+  // For limits
+  if (mode == 0) {
+    gSystem->Setenv("MIT_ANA_CFG","boostedv-plots");
+    // plot metRaw, BDT loose
+    plotTask = new PlotTask(0,lumi);
+    plotTask->SetHistRanges(200.0,800.0,0.,0.);
+    plotTask->SetNBins(60);
+    plotTask->SetAxisTitles("E_{T}^{miss} [GeV]","Number of Events");
+    plotTask->SetPngFileName("/tmp/dummy.png");
+    plotTask->Plot(Stacked,nTuple,"metRaw",cuts[0],"BDT_loose_" + regions[0]);
+    printf("Finished Plot for Region %s and Variable %s!\n",regions[0].Data(),"metRaw");
+    delete plotTask;
+  
+    // plot metRaw, BDT tight
+    plotTask = new PlotTask(0,lumi);
+    plotTask->SetHistRanges(200.0,800.0,0.,0.);
+    plotTask->SetNBins(60);
+    plotTask->SetAxisTitles("E_{T}^{miss} [GeV]","Number of Events");
+    plotTask->SetPngFileName("/tmp/dummy.png");
+    plotTask->Plot(Stacked,nTuple,"metRaw",cuts[1],"BDT_tight_" + regions[0]);
+    printf("Finished Plot for Region %s and Variable %s!\n",regions[0].Data(),"metRaw");
+    delete plotTask;
+  }
+  // For signal region plots
+  else if (mode == 1) {
+    gSystem->Setenv("MIT_ANA_CFG","boostedv-plots");
+    // plot metRaw
+    plotTask = new PlotTask(0,lumi);
+    plotTask->SetHistRanges(min,max,0.,0.);
+    plotTask->SetNBins(nBins);
+    plotTask->SetAxisTitles(variable,"Number of Events");
+    plotTask->SetPngFileName("/tmp/dummy.png");
+    plotTask->Plot(Stacked,nTuple,variable,cuts[icut],"BDT_" + regions[0]);
+    printf("Finished Plot for Region %s and Variable %s!\n",regions[0].Data(),variable.Data());
+    delete plotTask;
+  }
+  // For Zll control region plots
+  else if (mode == 2) {
+    gSystem->Setenv("MIT_ANA_CFG","boostedv-z");
+    // plot met corrected
+    plotTask = new PlotTask(0,lumi);
+    plotTask->SetHistRanges(min,max,0.,0.);
+    plotTask->SetNBins(nBins);
+    plotTask->SetAxisTitles(variable,"Number of Events");
+    plotTask->SetPngFileName("/tmp/dummy.png");
+    if (variable == "met")
+      plotTask->Plot(Stacked,nTuple,metCorrectedZll,cuts[icut],"BDT_" + regions[1]);
+    else 
+      plotTask->Plot(Stacked,nTuple,variable,cuts[icut],"BDT_" + regions[1]);
+    printf("Finished Plot for Region %s and Variable %s!\n",regions[1].Data(),variable.Data());
+    delete plotTask;
+  }
+  else 
+    return;
   
   return;
 }
