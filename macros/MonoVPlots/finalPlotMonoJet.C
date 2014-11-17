@@ -150,6 +150,14 @@ void finalPlotMonoJet(int nsel = 0, int ReBin = 1, TString XTitle = "N_{jets}", 
     myPlot.setMCHist(iZjets,  (TH1D*)hZjets  ->Clone("hZjets")); 
     myPlot.setDataHist((TH1D*)hData->Clone("data"));
   }
+  else if (nsel == 2){ // wlv
+    myPlot.setMCHist(iOther,  (TH1D*)hOther  ->Clone("hOther"));
+    myPlot.setMCHist(iDiboson,(TH1D*)hDiboson->Clone("hDiboson"));
+    myPlot.setMCHist(iTop,    (TH1D*)hTop    ->Clone("hTop"));
+    myPlot.setMCHist(iWjets,  (TH1D*)hWjets  ->Clone("hWjets"));
+    myPlot.setMCHist(iZjets,  (TH1D*)hZjets  ->Clone("hZjets")); 
+    myPlot.setDataHist((TH1D*)hData->Clone("data"));
+  }
   else assert(0);
   
   myPlot.setNsel(theNselPlot);
