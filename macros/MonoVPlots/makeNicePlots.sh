@@ -13,11 +13,19 @@ then
   root -l -q -b finalPlotMonoJet.C+'(0,1,"V-Tag MVA ","","BDT_Met_bdt_all.root","bdt_sig",1,19.7,1,0)'
 elif [ $1 = "zll" ];
 then
-  # zll CR region plotss
+  # zll CR region plots
   root -l -q -b finalPlotMonoJet.C+'(1,1,"MET ","GeV","BDT_Zll_met.root","met_zll",1,19.7,0,0)'
   root -l -q -b finalPlotMonoJet.C+'(1,1,"Jet Mass ","GeV","BDT_Zll_fjet1.M().root","mass_zll",0,19.7,0,0)'
   root -l -q -b finalPlotMonoJet.C+'(1,1,"Jet P_{T} ","GeV","BDT_Zll_fjet1.Pt().root","pt_zll",1,19.7,0,0)'
   root -l -q -b finalPlotMonoJet.C+'(1,1,"V-Tag MVA ","","BDT_Zll_bdt_all.root","bdt_zll",1,19.7,0,0)'
+  exit 0
+elif [ $1 = "wlv" ];
+then
+  # wlv CR region plots
+  root -l -q -b finalPlotMonoJet.C+'(2,1,"MET ","GeV","BDT_Wlv_met.root","met_wlv",1,19.7,0,0)'
+  root -l -q -b finalPlotMonoJet.C+'(2,1,"Jet Mass ","GeV","BDT_Wlv_fjet1.M().root","mass_wlv",0,19.7,0,0)'
+  root -l -q -b finalPlotMonoJet.C+'(2,1,"Jet P_{T} ","GeV","BDT_Wlv_fjet1.Pt().root","pt_wlv",1,19.7,0,0)'
+  root -l -q -b finalPlotMonoJet.C+'(2,1,"V-Tag MVA ","","BDT_Wlv_bdt_all.root","bdt_wlv",1,19.7,0,0)'
   exit 0
 fi
   

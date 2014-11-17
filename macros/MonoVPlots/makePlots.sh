@@ -20,6 +20,15 @@ then
   root -b -q ../rootlogon_monojet.C makeRawPlot.C+'(19700,2,"fjet1.Pt()",2,55,250,800)'
   root -b -q ../rootlogon_monojet.C makeRawPlot.C+'(19700,2,"bdt_all",6,40,-1.,1.)'
   exit 0
+elif [ $1 = "wlv" ];
+then
+  # wlv cr region plots, HORRIBLE fix for weird name
+  root -b -q ../rootlogon_monojet.C makeRawPlot.C+'(19700,3,"met",3,55,250,800)'
+  mv BDT_Wlv_TMath\:\:Sqrt\(TMath\:\:Power\(metRaw\*TMath\:\:Cos\(metRawPhi\ +\ lep1.Px\(\,2\ +\ TMath\:\:Power\(metRaw\*TMath\:\:Sin\(metRawPhi\ +\ lep1.Py\(\,2.root BDT_Wlv_met.root
+  root -b -q ../rootlogon_monojet.C makeRawPlot.C+'(19700,3,"fjet1.M()",3,40,0,200)'
+  root -b -q ../rootlogon_monojet.C makeRawPlot.C+'(19700,3,"fjet1.Pt()",3,55,250,800)'
+  root -b -q ../rootlogon_monojet.C makeRawPlot.C+'(19700,3,"bdt_all",7,40,-1.,1.)'
+  exit 0
 fi
   
 exit 0
