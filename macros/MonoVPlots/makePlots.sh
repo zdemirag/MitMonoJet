@@ -4,7 +4,7 @@
 #
 #                                                                         L.Di Matteo (Nov 14, 2014)
 #---------------------------------------------------------------------------------------------------
-if [ $1 = "sig"  || [ $1 = "all" ];
+if [ $1 = "sig" ]  || [ $1 = "all" ];
 then
   # signal region plots
   root -b -q ../rootlogon_monojet.C makeRawPlot.C+'(19700,1,"metRaw",5,55,250,800)'
@@ -15,7 +15,7 @@ then
   root -b -q ../rootlogon_monojet.C makeRawPlot.C+'(19700,1,"fjet1.M()",6,40,0,200)'
   root -b -q ../rootlogon_monojet.C makeRawPlot.C+'(19700,1,"fjet1.Pt()",6,55,250,800)'
 fi
-if [ $1 = "zll"  || [ $1 = "all" ];
+if [ $1 = "zll" ] || [ $1 = "all" ];
 then
   # zll cr region plots, HORRIBLE fix for weird name
   root -b -q ../rootlogon_monojet.C makeRawPlot.C+'(19700,2,"met",2,35,250,600)'
@@ -28,7 +28,7 @@ then
   root -b -q ../rootlogon_monojet.C makeRawPlot.C+'(19700,2,"fjet1.M()",7,40,0,200)'
   root -b -q ../rootlogon_monojet.C makeRawPlot.C+'(19700,2,"fjet1.Pt()",7,55,250,800)'
 fi
-if [ $1 = "wlv"  || [ $1 = "all" ];
+if [ $1 = "wlv" ] || [ $1 = "all" ];
 then
   # wlv cr region plots, HORRIBLE fix for weird name
   root -b -q ../rootlogon_monojet.C makeRawPlot.C+'(19700,3,"met",3,35,250,600)'
@@ -41,7 +41,7 @@ then
   root -b -q ../rootlogon_monojet.C makeRawPlot.C+'(19700,3,"fjet1.M()",8,40,0,200)'
   root -b -q ../rootlogon_monojet.C makeRawPlot.C+'(19700,3,"fjet1.Pt()",8,55,250,800)'
 fi
-if [ $1 = "pj"  || [ $1 = "all" ];
+if [ $1 = "pj" ] || [ $1 = "all" ];
 then
   # pj cr region plots, HORRIBLE fix for weird name
   root -b -q ../rootlogon_monojet.C makeRawPlot.C+'(19700,4,"met",4,55,250,800)'
