@@ -15,7 +15,7 @@
 #include "TPaveText.h"
 #endif
 
-enum samp {iHiggs,iOther,iDiboson,iTop,iWjets,iZjets,iQCD,ifromQ,ifromB,ifromG,ifromW,nSamples};
+enum samp {iHiggs,iOther,iDiboson,iTop,iWjets,iZjets,iGjets,ifromQ,ifromB,ifromG,ifromW,nSamples};
 
 float xPos[nSamples+1] = {0.21,0.21,0.21,0.21,0.21,0.45,0.45,0.45,0.45,0.45,0.45,0.45}; 
 float yOff[nSamples+1] = {0,1,2,3,4,0,1,2,3,4,5,6};
@@ -142,7 +142,7 @@ class StandardPlot {
             _sampleColor[iWjets]   = kAzure-2;
             _sampleColor[iZjets]   = kSpring-7;
             _sampleColor[iDiboson] = kGray+1;
-            _sampleColor[iQCD  ]   = kBlue-1;
+            _sampleColor[iGjets  ] = kBlue-1;
             _sampleColor[ifromW]   = kAzure-9;
             _sampleColor[ifromQ]   = kSpring+4;
             _sampleColor[ifromB]   = kYellow-7;
@@ -197,16 +197,16 @@ class StandardPlot {
             }
 
 	    bool plotSystErrorBars = true;
-	    if(plotSystErrorBars == true &&_hist[iTop]&&_hist[iWjets]&&_hist[iZjets]&&_hist[iDiboson]&&_hist[iQCD]) {
+	    if(plotSystErrorBars == true &&_hist[iTop]&&_hist[iWjets]&&_hist[iZjets]&&_hist[iDiboson]&&_hist[iGjets]) {
   	      TGraphAsymmErrors * gsyst = new TGraphAsymmErrors(hSum);
               for (int i = 0; i < gsyst->GetN(); ++i) {
                 double systBck = 0.100*0.100*_hist[iTop  ]->GetBinContent(i+1)*_hist[iTop  ]->GetBinContent(i+1)+
 		                 0.100*0.100*_hist[iWjets]->GetBinContent(i+1)*_hist[iWjets]->GetBinContent(i+1)+
 				 0.100*0.100*_hist[iZjets]->GetBinContent(i+1)*_hist[iZjets]->GetBinContent(i+1)+
 		                 0.100*0.100*_hist[iDiboson   ]->GetBinContent(i+1)*_hist[iDiboson   ]->GetBinContent(i+1)+
-				 0.100*0.100*_hist[iQCD  ]->GetBinContent(i+1)*_hist[iQCD  ]->GetBinContent(i+1);
+				 0.100*0.100*_hist[iGjets  ]->GetBinContent(i+1)*_hist[iGjets  ]->GetBinContent(i+1);
                 double total = _hist[iTop]->GetBinContent(i+1)+_hist[iWjets]->GetBinContent(i+1)+_hist[iZjets]->GetBinContent(i+1)+
-                               _hist[iDiboson ]->GetBinContent(i+1)+_hist[iQCD  ]->GetBinContent(i+1);
+                               _hist[iDiboson ]->GetBinContent(i+1)+_hist[iGjets  ]->GetBinContent(i+1);
                 if(total > 0) systBck = sqrt(systBck)/total;
                 gsyst->SetPointEYlow (i, sqrt(hSum->GetBinError(i+1)*hSum->GetBinError(i+1)+hSum->GetBinContent(i+1)*hSum->GetBinContent(i+1)*systBck*systBck));
                 gsyst->SetPointEYhigh(i, sqrt(hSum->GetBinError(i+1)*hSum->GetBinError(i+1)+hSum->GetBinContent(i+1)*hSum->GetBinContent(i+1)*systBck*systBck));
@@ -321,7 +321,7 @@ class StandardPlot {
             if(_hist[iWjets]   &&_hist[iWjets]->GetSumOfWeights() > 0)  { DrawLegend(xPos[j], 0.84 - yOff[j]*_yoffset, _hist[iWjets]  , " W+jets",   	         "f" ); j++; }
             if(_hist[iTop  ]   &&_hist[iTop  ]->GetSumOfWeights() > 0)  { DrawLegend(xPos[j], 0.84 - yOff[j]*_yoffset, _hist[iTop  ]  , " Top",      	         "f" ); j++; }
             if(_hist[iDiboson] &&_hist[iDiboson]->GetSumOfWeights() > 0){ DrawLegend(xPos[j], 0.84 - yOff[j]*_yoffset, _hist[iDiboson], " Diboson",       	     "f" ); j++; }
-            if(_hist[iQCD  ]   &&_hist[iQCD  ]->GetSumOfWeights() > 0)  { DrawLegend(xPos[j], 0.84 - yOff[j]*_yoffset, _hist[iQCD  ]  , " QCD",      	         "f" ); j++; }
+            if(_hist[iGjets]   &&_hist[iGjets]->GetSumOfWeights() > 0)  { DrawLegend(xPos[j], 0.84 - yOff[j]*_yoffset, _hist[iGjets]  , " #gamma+jets",      	 "f" ); j++; }
             if(_hist[ifromW]   &&_hist[ifromW]->GetSumOfWeights() > 0)  { DrawLegend(xPos[j], 0.84 - yOff[j]*_yoffset, _hist[ifromW]  , Form("%s",fromW.Data()), "f" ); j++; }
             if(_hist[ifromQ]   &&_hist[ifromQ]->GetSumOfWeights() > 0)  { DrawLegend(xPos[j], 0.84 - yOff[j]*_yoffset, _hist[ifromQ]  , Form("%s",fromQ.Data()), "f" ); j++; }
             if(_hist[ifromB]   &&_hist[ifromB]->GetSumOfWeights() > 0)  { DrawLegend(xPos[j], 0.84 - yOff[j]*_yoffset, _hist[ifromB]  , Form("%s",fromB.Data()), "f" ); j++; }

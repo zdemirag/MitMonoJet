@@ -83,6 +83,9 @@ void finalPlotMonoJet(int nsel = 0, int ReBin = 1, TString XTitle = "N_{jets}", 
   TH1D* hDiboson = (TH1D*)file->Get("Diboson");
   TH1D* hOther   = (TH1D*)file->Get("Others");
   TH1D* hData    = (TH1D*)file->Get("htempdata_0");
+  TH1D* hGjets = 0;
+  if (nsel == 3)
+    hGjets = (TH1D*)file->Get("G+jets"); 
   
   TH1D* hTotal = (TH1D*) hTop->Clone();
   hTotal->Reset();
@@ -92,10 +95,10 @@ void finalPlotMonoJet(int nsel = 0, int ReBin = 1, TString XTitle = "N_{jets}", 
   hDataDivision->Reset();
   TH1D* hRatio = (TH1D*) hTop->Clone();
   hRatio->Reset();
-
+  
   TH1D* hHiggs = 0;
   if (nsel == 0) {
-    (TH1D*)file->Get("WH_125");
+    hHiggs = (TH1D*)file->Get("WH_125");
     hHiggs->Add((TH1D*)file->Get("ZH_125"));
     hHiggs->Add((TH1D*)file->Get("ggH_125"));
   }
@@ -107,9 +110,14 @@ void finalPlotMonoJet(int nsel = 0, int ReBin = 1, TString XTitle = "N_{jets}", 
   hDiboson ->SetBinContent(binToRemove,0);
   hOther   ->SetBinContent(binToRemove,0);
   hData    ->SetBinContent(binToRemove,0);
+  if (nsel == 3) 
+    hGjets ->SetBinContent(binToRemove,0);
+
 
   Double_t totalBkg = hTop->GetSumOfWeights()+hWjets->GetSumOfWeights()+hZjets->GetSumOfWeights()+
                       hDiboson->GetSumOfWeights()+hOther->GetSumOfWeights();
+  if (nsel == 3) 
+    totalBkg += hGjets->GetSumOfWeights();
 
   double scale = hData->GetSumOfWeights()/totalBkg;
   if (scaleToData) {
@@ -119,6 +127,8 @@ void finalPlotMonoJet(int nsel = 0, int ReBin = 1, TString XTitle = "N_{jets}", 
     hZjets  ->Scale(scale);
     hDiboson->Scale(scale);
     hOther  ->Scale(scale);
+    if (nsel == 3)
+      hGjets ->Scale(scale);
   }
 
   // Construct the total background
@@ -127,6 +137,8 @@ void finalPlotMonoJet(int nsel = 0, int ReBin = 1, TString XTitle = "N_{jets}", 
   hTotal->Add(hTop    );
   hTotal->Add(hWjets  );
   hTotal->Add(hZjets  );
+  if (nsel == 3)
+    hTotal->Add(hGjets);
 
   Int_t theNselPlot = nsel;
   
@@ -148,6 +160,23 @@ void finalPlotMonoJet(int nsel = 0, int ReBin = 1, TString XTitle = "N_{jets}", 
     myPlot.setMCHist(iTop,    (TH1D*)hTop    ->Clone("hTop"));
     myPlot.setMCHist(iWjets,  (TH1D*)hWjets  ->Clone("hWjets"));
     myPlot.setMCHist(iZjets,  (TH1D*)hZjets  ->Clone("hZjets")); 
+    myPlot.setDataHist((TH1D*)hData->Clone("data"));
+  }
+  else if (nsel == 2){ // wlv
+    myPlot.setMCHist(iOther,  (TH1D*)hOther  ->Clone("hOther"));
+    myPlot.setMCHist(iDiboson,(TH1D*)hDiboson->Clone("hDiboson"));
+    myPlot.setMCHist(iTop,    (TH1D*)hTop    ->Clone("hTop"));
+    myPlot.setMCHist(iWjets,  (TH1D*)hWjets  ->Clone("hWjets"));
+    myPlot.setMCHist(iZjets,  (TH1D*)hZjets  ->Clone("hZjets")); 
+    myPlot.setDataHist((TH1D*)hData->Clone("data"));
+  }
+  else if (nsel == 3){ // pj
+    hOther->Add(hDiboson);
+    hOther->Add(hTop    );
+    hOther->Add(hWjets  );
+    hOther->Add(hZjets  );
+    myPlot.setMCHist(iGjets,  (TH1D*)hGjets  ->Clone("hGjets"));
+    myPlot.setMCHist(iOther,  (TH1D*)hOther  ->Clone("hOther"));
     myPlot.setDataHist((TH1D*)hData->Clone("data"));
   }
   else assert(0);
