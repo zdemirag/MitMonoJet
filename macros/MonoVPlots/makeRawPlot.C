@@ -93,8 +93,8 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   TString metCorrectedPjCut250 = TString("(")+metCorrectedPj+TString(" > 250)"); // met corrected cut
       
   // our plot task
-  TString regions[6] = {"Met","Zll","Wlv","Pj"};
-  TString cuts[8];
+  TString regions[4] = {"Met","Zll","Wlv","Pj"};
+  TString cuts[10];
   
   TString MonoJetSelection           = eventWeight+monoJetTrigger+andC+nJetCuts+andC+tauVeto+andC+photonVeto+andC+metFiltersCut;
   TString BoostedVSelectionL         = fjetCut+andC+bdt_loose; //BoostedV MVA loose selection
@@ -103,7 +103,7 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   TString ZllControlRegionSelection  = preselCutsZll+andC+DiMuonCut+andC+InvMassCut+andC+metCorrectedZllCut250;
   TString WlvControlRegionSelection = preselCutsWlv+andC+SingleMuonCut+andC+TransMassCut+andC+metCorrectedWlvCut250;
   TString PjControlRegionSelection = eventWeight+singlePhTrigger+andC+preselCutsPj
-                                    +andC+tauVeto+andC+metFiltersCut
+                                    +andC+jetCuts+andC+tauVeto+andC+metFiltersCut
                                     +andC+SinglePhotonCut+andC+metCorrectedPjCut250;
 
   cuts[0]     = MonoJetSelection+andC+BoostedVSelectionL+andC+SignalRegionSelection+")";      // boostedV signal region selection, MET 200
@@ -115,9 +115,16 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   cuts[6]     = MonoJetSelection+andC+fjetCut+andC+metRawCut250+andC+SignalRegionSelection+")";  // boostedV signal region selection, MET 250, no BDT cut
   cuts[7]     = MonoJetSelection+andC+fjetCut+andC+ZllControlRegionSelection+")";             // boostedV Z->ll region selection, MET 250, no BDT cut
   cuts[8]     = MonoJetSelection+andC+fjetCut+andC+WlvControlRegionSelection+")";             // boostedV W->lnu region selection, MET 250, no BDT cut
-  cuts[9]     = PjControlRegionSelection+andC+fjetCut+")";                                    // boostedV Photon+jets control region selection, MET 250, no BDT cut
+  cuts[9]     = PjControlRegionSelection+andC+fjetCut+")";                                    // boostedV Photon+jets control region selection, MET 250, no BDT cut 
+  const int icut_no_BDT = 6;
+  // Fix the region name if cut does not contain BDT
+  if (icut >= icut_no_BDT)
+    for (int i = 0; i < 4; i++)
+      regions[i] = regions[i] + "_noVTagCut";
  
   PlotTask *plotTask = 0;
+  
+  
 
   // For limits
   if (mode == 0) {
@@ -197,10 +204,10 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     plotTask->SetAxisTitles(variable,"Number of Events");
     plotTask->SetPngFileName("/tmp/dummy.png");
     if (variable == "met")
-      plotTask->Plot(Stacked,nTuple,metCorrectedPj,cuts[icut],"BDT_" + regions[2]);
+      plotTask->Plot(Stacked,nTuple,metCorrectedPj,cuts[icut],"BDT_" + regions[3]);
     else 
-      plotTask->Plot(Stacked,nTuple,variable,cuts[icut],"BDT_" + regions[2]);
-    printf("Finished Plot for Region %s and Variable %s!\n",regions[2].Data(),variable.Data());
+      plotTask->Plot(Stacked,nTuple,variable,cuts[icut],"BDT_" + regions[3]);
+    printf("Finished Plot for Region %s and Variable %s!\n",regions[3].Data(),variable.Data());
     delete plotTask;
   }
   else 

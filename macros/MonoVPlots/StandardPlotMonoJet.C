@@ -142,7 +142,7 @@ class StandardPlot {
             _sampleColor[iWjets]   = kAzure-2;
             _sampleColor[iZjets]   = kSpring-7;
             _sampleColor[iDiboson] = kGray+1;
-            _sampleColor[iGjets  ]   = kBlue-1;
+            _sampleColor[iGjets  ] = kBlue-1;
             _sampleColor[ifromW]   = kAzure-9;
             _sampleColor[ifromQ]   = kSpring+4;
             _sampleColor[ifromB]   = kYellow-7;
