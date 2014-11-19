@@ -33,6 +33,8 @@ t2mit/filefi/032 s12-ttj-v1-v7a                  noskim         top             
 t2mit/filefi/032 s12-ttj-v2-v7a                  noskim         ~                               136.3       1.0    -1.0    ~
 t2mit/filefi/032 s12-ttj-sl-v1-v7c               noskim         ~                               53.2        1.0    -1.0    ~
 t2mit/filefi/032 s12-ttj-fl-v2-v7c               noskim         ~                               13.43       1.0    -1.0    ~
+t2mit/filefi/032 TTJets_HadronicMGDecays_8TeV-madgraph+Summer12_DR53X-PU_S10_START53_V7A-v1+AODSIM     noskim ~ 26.7 1.0 -1.0 ~
+t2mit/filefi/032 TTJets_HadronicMGDecays_8TeV-madgraph+Summer12_DR53X-PU_S10_START53_V7A_ext-v1+AODSIM noskim ~ 26.7 1.0 -1.0 ~
 t2mit/filefi/032 s12-wtop-dr-v7a                 noskim         T~                              10.7        1.0    -1.0    ~
 t2mit/filefi/032 s12-wtopb-dr-v7a                noskim         ~                               10.7        1.0    -1.0    ~
 t2mit/filefi/032 s12-sch-v7a                     noskim         ~                               2.82        1.0    -1.0    ~
@@ -42,9 +44,9 @@ t2mit/filefi/032 s12-tchb-v7a                    noskim         ~               
 ### diboson ###
 t2mit/filefi/032 s12-diphoj-3-v7a                noskim         #gamma#gamma+jets               93.15       1.0    -1.0    ~
 #
-t2mit/filefi/032 s12-ww-v7a                      noskim         WW                              33.61       1.0    -1.0    ~
-t2mit/filefi/032 s12-wz-v7a                      noskim         WZ                              1.0         1.0    -1.0    ~
-t2mit/filefi/032 s12-zz-v7a                      noskim         ZZ                              1.0         1.0    -1.0    ~
+t2mit/filefi/032 s12-ww-v7a                      noskim         WW                              57.11       1.0    -1.0    ~
+t2mit/filefi/032 s12-wz-v7a                      noskim         WZ                              22.45       1.0    -1.0    ~
+t2mit/filefi/032 s12-zz-v7a                      noskim         ZZ                              9.03        1.0    -1.0    ~
 #
 t2mit/filefi/032 s12-zgllg-v7a                   noskim         Z#gamma->ll#gamma               159.12      1.0    -1.0    ~
 t2mit/filefi/032 s12-zgllgptg130-v7a             noskim         ~                               0.0478      1.0    -1.0    ~

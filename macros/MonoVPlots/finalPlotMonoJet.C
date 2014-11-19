@@ -153,6 +153,7 @@ void finalPlotMonoJet(int nsel = 0, int ReBin = 1, TString XTitle = "N_{jets}", 
     myPlot.setMCHist(iTop,    (TH1D*)hTop    ->Clone("hTop"));
     myPlot.setMCHist(iWjets,  (TH1D*)hWjets  ->Clone("hWjets"));
     myPlot.setMCHist(iZjets,  (TH1D*)hZjets  ->Clone("hZjets")); 
+    hData->Reset();
     myPlot.setDataHist((TH1D*)hData->Clone("data"));
   }
   else if (nsel == 1){ // zll
