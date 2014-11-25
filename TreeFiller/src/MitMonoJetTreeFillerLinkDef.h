@@ -2,6 +2,7 @@
 #define MITMONOJET_TREEFILLER_LINKDEF_H
 #include "MitMonoJet/TreeFiller/interface/FillerXlJets.h"
 #include "MitMonoJet/TreeFiller/interface/FillerXlMet.h"
+#include "MitMonoJet/TreeFiller/interface/FillerXsIsoParticles.h"
 #endif
 
 #ifdef __CINT__
@@ -14,4 +15,5 @@
 
 #pragma link C++ class mithep::FillerXlJets+;
 #pragma link C++ class mithep::FillerXlMet+;
+#pragma link C++ class mithep::FillerXsIsoParticles+;
 #endif

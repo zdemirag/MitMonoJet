@@ -36,6 +36,7 @@
 #include "MitMonoJet/SelMods/interface/BoostedVAnalysisMod.h"
 #include "MitMonoJet/TreeFiller/interface/FillerXlJets.h"
 #include "MitMonoJet/TreeFiller/interface/FillerXlMet.h"
+#include "MitMonoJet/TreeFiller/interface/FillerXsIsoParticles.h"
 #include "MitMonoJet/Mods/interface/FastJetMod.h"
 #include "MitMonoJet/Mods/interface/SkimJetsMod.h"
 
@@ -497,6 +498,15 @@ void runBavantiBoostedV_CHS
   boostedJetsFiller->SetConeSize(0.8);      
 
   //------------------------------------------------------------------------------------------------
+  // prepare the reduced isolated particles
+  //------------------------------------------------------------------------------------------------
+  FillerXsIsoParticles *boostedXsIsoParticlesFiller = new FillerXsIsoParticles;  
+  boostedXsIsoParticlesFiller->FillXsMuons(kTRUE);
+  boostedXsIsoParticlesFiller->FillXsElectrons(kFALSE);
+  boostedXsIsoParticlesFiller->FillXsTaus(kFALSE);
+  boostedXsIsoParticlesFiller->FillXsPhotons(kFALSE);
+
+  //------------------------------------------------------------------------------------------------
   // keep the skimmed collections for further usage
   //------------------------------------------------------------------------------------------------
   //SkimMod<PFCandidate> *skmPFCandidates = new SkimMod<PFCandidate>;
@@ -571,43 +581,45 @@ void runBavantiBoostedV_CHS
   outMod->AddNewBranch("PFMetMVA");
   outMod->AddNewBranch("XlFatJets");
   outMod->AddNewBranch("XlSubJets");
+  outMod->AddNewBranch("XsMuons");
   
   //------------------------------------------------------------------------------------------------
   // making analysis chain
   //------------------------------------------------------------------------------------------------
-  runLumiSel               ->Add(goodPVFilterMod);
-  goodPVFilterMod          ->Add(hltModP);
-  hltModP                  ->Add(photonReg);
-  photonReg                ->Add(sepPuMod);
-  sepPuMod                 ->Add(muonId);
-  muonId                   ->Add(eleIdMod);
-  eleIdMod                 ->Add(electronCleaning);
-  electronCleaning         ->Add(merger);
-  merger                   ->Add(photonIdMod);
-  photonIdMod              ->Add(photonCleaningMod);
-  photonCleaningMod        ->Add(pftauIdMod);
-  pftauIdMod               ->Add(pftauCleaningMod);
-  pftauCleaningMod         ->Add(pubJet);
-  pubJet                   ->Add(jetCorr);
-  jetCorr                  ->Add(jetId);
-  jetId                    ->Add(jetCleaning);
-  jetCleaning              ->Add(fastPresel);
-  fastPresel               ->Add(pubFastJet);
-  pubFastJet               ->Add(fatJetCorr);
-  fatJetCorr               ->Add(fatJetId);
-  fatJetId                 ->Add(fatJetCleaning);
-  fatJetCleaning           ->Add(jetplusmet);
-  jetplusmet               ->Add(metCorrT0T1Shift);
-  metCorrT0T1Shift         ->Add(extendedMetFiller);
-  extendedMetFiller        ->Add(boostedJetsFiller);
-  boostedJetsFiller        ->Add(skmPhotons);
-  skmPhotons               ->Add(skmElectrons);
-  skmElectrons             ->Add(skmMuons);
-  skmMuons                 ->Add(skmTaus);
-  skmTaus                  ->Add(skmJets);
-  skmJets                  ->Add(skmTrigger);
-  skmTrigger               ->Add(skmMetCorr);
-  skmMetCorr               ->Add(outMod);
+  runLumiSel                 ->Add(goodPVFilterMod);
+  goodPVFilterMod            ->Add(hltModP);
+  hltModP                    ->Add(photonReg);
+  photonReg                  ->Add(sepPuMod);
+  sepPuMod                   ->Add(muonId);
+  muonId                     ->Add(eleIdMod);
+  eleIdMod                   ->Add(electronCleaning);
+  electronCleaning           ->Add(merger);
+  merger                     ->Add(photonIdMod);
+  photonIdMod                ->Add(photonCleaningMod);
+  photonCleaningMod          ->Add(pftauIdMod);
+  pftauIdMod                 ->Add(pftauCleaningMod);
+  pftauCleaningMod           ->Add(pubJet);
+  pubJet                     ->Add(jetCorr);
+  jetCorr                    ->Add(jetId);
+  jetId                      ->Add(jetCleaning);
+  jetCleaning                ->Add(fastPresel);
+  fastPresel                 ->Add(pubFastJet);
+  pubFastJet                 ->Add(fatJetCorr);
+  fatJetCorr                 ->Add(fatJetId);
+  fatJetId                   ->Add(fatJetCleaning);
+  fatJetCleaning             ->Add(jetplusmet);
+  jetplusmet                 ->Add(metCorrT0T1Shift);
+  metCorrT0T1Shift           ->Add(extendedMetFiller);
+  extendedMetFiller          ->Add(boostedJetsFiller);
+  boostedJetsFiller          ->Add(boostedXsIsoParticlesFiller);
+  boostedXsIsoParticlesFiller->Add(skmPhotons);
+  skmPhotons                 ->Add(skmElectrons);
+  skmElectrons               ->Add(skmMuons);
+  skmMuons                   ->Add(skmTaus);
+  skmTaus                    ->Add(skmJets);
+  skmJets                    ->Add(skmTrigger);
+  skmTrigger                 ->Add(skmMetCorr);
+  skmMetCorr                 ->Add(outMod);
   
   //------------------------------------------------------------------------------------------------
   // Say what we are doing
