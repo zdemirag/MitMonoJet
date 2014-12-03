@@ -27,6 +27,7 @@ FillerXlMet::FillerXlMet(const char *name, const char *title) :
   fMuonsName (Names::gkMuonBrn),
   fElectronsName (Names::gkElectronBrn),
   fTausName (Names::gkPFTauBrn),
+  fPhotonsName (Names::gkPhotonBrn),
   fPFCandidatesName (Names::gkPFCandidatesBrn),
   fPVName (Names::gkPVBeamSpotBrn),
   fPileUpDenName (Names::gkPileupEnergyDensityBrn),
@@ -36,6 +37,7 @@ FillerXlMet::FillerXlMet(const char *name, const char *title) :
   fMuonsFromBranch (kTRUE),
   fElectronsFromBranch (kTRUE),
   fTausFromBranch (kTRUE),
+  fPhotonsFromBranch (kTRUE),
   fPFCandidatesFromBranch (kTRUE),
   fPVFromBranch (kTRUE),
   fPublishOutput (kTRUE),
@@ -62,6 +64,7 @@ void FillerXlMet::Process()
   LoadEventObject(fMuonsName, fMuons, fMuonsFromBranch);
   LoadEventObject(fElectronsName, fElectrons, fElectronsFromBranch);
   LoadEventObject(fTausName, fPFTaus, fTausFromBranch);
+  LoadEventObject(fPhotonsName, fPhotons, fPhotonsFromBranch);
   LoadEventObject(fPFCandidatesName,  fPFCandidates,  fPFCandidatesFromBranch);
   LoadEventObject(fPVName, fPV, fPVFromBranch);
   LoadEventObject(fRawMetName, fRawMet, true);
@@ -75,10 +78,10 @@ void FillerXlMet::Process()
   }
 
   // Compute the MVA met for this event
-  Met mvaMet = fMVAMet->GetMet(fMuons,fElectrons,fPFTaus,fPFCandidates,
+  Met mvaMet = fMVAMet->GetMet(fMuons,fElectrons,fPFTaus,fPhotons,fPFCandidates,
                                fPFJets,0,fPV,fRawMet,fJetCorrector,fPileUpDen);
   TMatrixD* MVACov = fMVAMet->GetMetCovariance();
-
+  
   // Prepare and store in an array a new XlMet 
   XlMet *extMet = fXlMet->Allocate();
   new (extMet) XlMet(mvaMet.Mex(),mvaMet.Mey());

@@ -153,7 +153,7 @@ void FillerXlJets::SlaveBegin()
                                  fastjet::SelectorPtFractionMin(fTrimPtFrac)));
     
   // CA constructor (fConeSize = 0.6 for antiKt) - reproducing paper 1: http://arxiv.org/abs/1011.2268
-  fCAJetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm, fConeSize);
+  fCAJetDef = new fastjet::JetDefinition(fastjet::cambridge_algorithm, fConeSize);
   
   // Initialize area caculation (done with ghost particles)
   int activeAreaRepeats = 1;

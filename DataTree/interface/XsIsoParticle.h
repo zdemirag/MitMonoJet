@@ -22,7 +22,8 @@ namespace mithep
     public:
       enum EParticleId {
         eX = 0,      //unidentified
-        eTightMuon   //passing tight muon identification
+        eTightMuon,  //passing tight muon identification
+        eIsoMuon     //passing muon isolation AND tight selection
       };
 
       XsIsoParticle() :

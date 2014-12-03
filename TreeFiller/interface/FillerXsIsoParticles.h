@@ -18,8 +18,9 @@
 #include "MitAna/TreeMod/interface/BaseMod.h"
 #include "MitAna/DataTree/interface/MuonCol.h"
 #include "MitAna/DataTree/interface/ElectronCol.h"
-#include "MitAna/DataTree/interface/TauCol.h"
+#include "MitAna/DataTree/interface/PFTauCol.h"
 #include "MitAna/DataTree/interface/PhotonCol.h"
+#include "MitAna/DataTree/interface/PFCandidateCol.h"
 #include "MitAna/DataTree/interface/Particle.h"
 
 namespace mithep
@@ -40,8 +41,6 @@ namespace mithep
                                                                                                                                           
       void SetMuonsName(const char *n)     { fMuonsName = n;          }
       void SetMuonsFromBranch(Bool_t b)    { fMuonsFromBranch = b;    }
-      void SetGoodMuonsName(const char *n) { fGoodMuonsName = n;      }
-      void SetGoodMuonsFromBranch(Bool_t b){ fGoodMuonsFromBranch = b;}
       void SetElectronsName(const char *n) { fElectronsName = n;      }
       void SetElectronsFromBranch(Bool_t b){ fElectronsFromBranch=b;  }
       void SetTausName(const char *n)      { fTausName = n;           }
@@ -60,6 +59,12 @@ namespace mithep
       void SlaveTerminate();
  
       void FillXsIsoParticle(XsIsoParticleArr *pXsArr, const Particle *pParticle);
+      // For XsMuons
+      void FillXsIsoParticle(XsIsoParticleArr *pXsArr, const Particle *pParticle,
+                             Bool_t isTight, Bool_t isIso);
+
+      // Muon collection helpers
+      Bool_t IsTightMuon(const Muon *muon);
 
     private:
       Bool_t fIsData;                      //is this data or MC?
@@ -73,22 +78,24 @@ namespace mithep
       Bool_t fMuonsFromBranch;             //are input muons from Branch?
       const MuonCol *fMuons;               //input muons
 
-      TString fGoodMuonsName;              //(i) name of input tight/good muons
-      Bool_t fGoodMuonsFromBranch;         //are input tight/good muons from Branch?
-      const MuonCol *fGoodMuons;           //input tight/good muons
-
       TString fElectronsName;              //(i) name of input electrons
       Bool_t fElectronsFromBranch;         //are input electrons from Branch?
       const ElectronCol *fElectrons;       //input electrons
 
       TString fTausName;                   //(i) name of input taus
       Bool_t fTausFromBranch;              //are input taus from Branch?
-      const TauCol *fTaus;                 //input taus
+      const PFTauCol *fTaus;               //input taus
 
       TString fPhotonsName;                //(i) name of input photons
       Bool_t fPhotonsFromBranch;           //are input photons from Branch?
-      const TauCol *fPhotons;              //input photons
+      const PhotonCol *fPhotons;           //input photons
  
+      TString fPfPuCandsName;              //(i) name of PF candidates coll
+      const PFCandidateCol *fPfPuCands;    //particle flow candidates coll handle
+
+      TString fPfNoPuCandsName;            //(i) name of PF no PU candidates coll
+      const PFCandidateCol *fPfNoPuCands;  //particle flow no PU candidates coll handle
+
       TString fXsMuonsName;                //name of output fXsMuons collection
       XsIsoParticleArr *fXsMuons;          //array of fXsMuons
       TString fXsElectronsName;            //name of output fXsElectrons collection

@@ -469,13 +469,15 @@ void runBavantiBoostedV_CHS
   FillerXlMet *extendedMetFiller = new FillerXlMet();
   extendedMetFiller->SetIsData(isData);
   extendedMetFiller->SetJetsFromBranch(kFALSE);
-  extendedMetFiller->SetJetsName(jetCleaning->GetOutputName());
+  extendedMetFiller->SetJetsName(jetCorr->GetOutputName());
   extendedMetFiller->SetMuonsFromBranch(kFALSE);
   extendedMetFiller->SetMuonsName(muonId->GetOutputName());
   extendedMetFiller->SetElectronsFromBranch(kFALSE);
   extendedMetFiller->SetElectronsName(electronCleaning->GetOutputName());
   extendedMetFiller->SetTausFromBranch(kFALSE);
   extendedMetFiller->SetTausName(pftauCleaningMod->GetOutputName());
+  extendedMetFiller->SetPhotonsFromBranch(kFALSE);
+  extendedMetFiller->SetPhotonsName(photonCleaningMod->GetOutputName());
   extendedMetFiller->SetPVFromBranch(kFALSE);
   extendedMetFiller->SetPVName(goodPVFilterMod->GetOutputName());
   extendedMetFiller->SetXlMetName("PFMetMVA");     
@@ -493,10 +495,10 @@ void runBavantiBoostedV_CHS
   // prepare the reduced isolated particles
   //------------------------------------------------------------------------------------------------
   FillerXsIsoParticles *boostedXsIsoParticlesFiller = new FillerXsIsoParticles;  
-  boostedXsIsoParticlesFiller->FillXsMuons(kFALSE);
+  boostedXsIsoParticlesFiller->FillXsMuons(kTRUE);
   boostedXsIsoParticlesFiller->FillXsElectrons(kFALSE);
   boostedXsIsoParticlesFiller->FillXsTaus(kFALSE);
-  boostedXsIsoParticlesFiller->FillXsPhotons(kTRUE);
+  boostedXsIsoParticlesFiller->FillXsPhotons(kFALSE);
   //boostedXsIsoParticlesFiller->SetMuonsName(XXX->GetOutputName());
   //boostedXsIsoParticlesFiller->SetMuonsFromBranch(kFALSE);
   boostedXsIsoParticlesFiller->SetElectronsName(eleIdMod->GetOutputName());

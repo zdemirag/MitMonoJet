@@ -7,6 +7,8 @@
 #include "MitCommon/DataFormats/interface/Types.h"
 #include "MitCommon/MathTools/interface/MathUtils.h"
 
+#include "MitPhysics/Utils/interface/IsolationTools.h"
+
 using namespace mithep;
 
 ClassImp(mithep::FillerXsIsoParticles)
@@ -23,9 +25,6 @@ FillerXsIsoParticles::FillerXsIsoParticles(const char *name, const char *title) 
   fMuonsName (Names::gkMuonBrn),
   fMuonsFromBranch (kTRUE),
   fMuons (0),
-  fGoodMuonsName (Names::gkMuonBrn),
-  fGoodMuonsFromBranch (kFALSE),
-  fGoodMuons (0),
   fElectronsName (Names::gkElectronBrn),
   fElectronsFromBranch (kTRUE),
   fElectrons (0),
@@ -34,7 +33,11 @@ FillerXsIsoParticles::FillerXsIsoParticles(const char *name, const char *title) 
   fTaus (0),
   fPhotonsName (Names::gkPhotonBrn),
   fPhotonsFromBranch (kTRUE),
-  fPhotons (0),
+  fPhotons (0),  
+  fPfPuCandsName ("pfpileupcands"),
+  fPfPuCands (0),
+  fPfNoPuCandsName ("pfnopileupcands"),
+  fPfNoPuCands (0),
   fXsMuonsName ("XsMuons"),
   fXsElectronsName ("XsElectrons"),
   fXsTausName ("XsTaus"),
@@ -68,7 +71,8 @@ void FillerXsIsoParticles::Process()
   // Load the branches we want to work with
   if (fFillXsMuons) {
     LoadEventObject(fMuonsName,fMuons,fMuonsFromBranch);
-    LoadEventObject(fGoodMuonsName,fGoodMuons,fGoodMuonsFromBranch);
+    LoadEventObject(fPfPuCandsName,fPfPuCands,false);
+    LoadEventObject(fPfNoPuCandsName,fPfNoPuCands,false);
   }
   if (fFillXsElectrons) 
     LoadEventObject(fElectronsName,fElectrons,fElectronsFromBranch);
@@ -81,8 +85,37 @@ void FillerXsIsoParticles::Process()
   if (fFillXsMuons)
     for (UInt_t i=0; i<fMuons->GetEntries(); ++i) {
       const Particle *muon = dynamic_cast<const Particle*>(fMuons->At(i));
+      // Determine if the muon is passing tight selections
+      Bool_t isTight = IsTightMuon(fMuons->At(i));
+      double muonIso = IsolationTools::BetaMwithPUCorrection(fPfNoPuCands, fPfPuCands, fMuons->At(i), 0.4);
+      Bool_t isIso = muonIso < (muon->Pt()*0.2);
+            
       // Fill the XsMuons collection with the reduced muon object
-      FillXsIsoParticle(fXsMuons,muon);            
+      FillXsIsoParticle(fXsMuons,muon,isTight,isIso);            
+    }
+
+  // Electrons block
+  if (fFillXsElectrons)
+    for (UInt_t i=0; i<fElectrons->GetEntries(); ++i) {
+      const Particle *electron = dynamic_cast<const Particle*>(fElectrons->At(i));
+      // Fill the XsElectrons collection with the reduced electron object
+      FillXsIsoParticle(fXsElectrons,electron);            
+    }
+
+  // Taus block
+  if (fFillXsTaus)
+    for (UInt_t i=0; i<fTaus->GetEntries(); ++i) {
+      const Particle *tau = dynamic_cast<const Particle*>(fTaus->At(i));
+      // Fill the XsTaus collection with the reduced electron object
+      FillXsIsoParticle(fXsTaus,tau);            
+    }
+
+  // Photons block
+  if (fFillXsPhotons)
+    for (UInt_t i=0; i<fPhotons->GetEntries(); ++i) {
+      const Particle *photon = dynamic_cast<const Particle*>(fPhotons->At(i));
+      // Fill the XsPhotons collection with the reduced electron object
+      FillXsIsoParticle(fXsPhotons,photon);            
     }
 
   // Trim the output collections
@@ -104,7 +137,8 @@ void FillerXsIsoParticles::SlaveBegin()
   // Run startup code on the computer (slave) doing the actual analysis. 
   if (fFillXsMuons) {
     ReqEventObject(fMuonsName,fMuons,fMuonsFromBranch);
-    ReqEventObject(fGoodMuonsName,fGoodMuons,fGoodMuonsFromBranch);
+    ReqEventObject(fPfPuCandsName,fPfPuCands,false);
+    ReqEventObject(fPfNoPuCandsName,fPfNoPuCands,false);
   }
   if (fFillXsElectrons) 
     ReqEventObject(fElectronsName,fElectrons,fElectronsFromBranch);
@@ -140,6 +174,40 @@ void FillerXsIsoParticles::FillXsIsoParticle(XsIsoParticleArr *pXsArr, const Par
   // Prepare and store in an array a new XsIsoParticle 
   XsIsoParticle *thisXsIsoParticle = pXsArr->Allocate();
   new (thisXsIsoParticle) XsIsoParticle(*pParticle);
-  
+    
   return;
+}
+
+//--------------------------------------------------------------------------------------------------
+void FillerXsIsoParticles::FillXsIsoParticle(XsIsoParticleArr *pXsArr, const Particle *pParticle,
+                                             Bool_t isTight, Bool_t isIso)
+{
+  // Prepare and store in an array a new XsIsoParticle 
+  XsIsoParticle *thisXsIsoParticle = pXsArr->Allocate();
+  new (thisXsIsoParticle) XsIsoParticle(*pParticle);
+  
+  // Determine particle quality
+  if (isTight) {
+    if (isIso)
+      thisXsIsoParticle->SetParticleId(XsIsoParticle::EParticleId::eIsoMuon);
+    else 
+      thisXsIsoParticle->SetParticleId(XsIsoParticle::EParticleId::eTightMuon);
+  }
+       
+  return;
+}
+
+//--------------------------------------------------------------------------------------------------
+Bool_t FillerXsIsoParticles::IsTightMuon(const Muon *muon)
+{
+  Bool_t theDecision = false;
+
+  theDecision = 
+  ((muon->HasGlobalTrk() && muon->GlobalTrk()->Chi2()/muon->GlobalTrk()->Ndof() < 10 
+  && (muon->NSegments() > 1 || muon->NMatches() > 1) && muon->NValidHits() > 0 ) 
+  || muon->IsTrackerMuon() ) &&
+  (muon->BestTrk() != 0 && muon->BestTrk()->NHits() > 10 && 
+  (muon->NSegments() > 1 || muon->NMatches() > 1) && muon->BestTrk()->NPixelHits() > 0 );
+  
+  return theDecision;
 }
