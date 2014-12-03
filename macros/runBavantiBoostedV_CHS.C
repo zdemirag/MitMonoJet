@@ -47,11 +47,12 @@ TString getJsonFile(const char* dir);
 void runBavantiBoostedV_CHS
                        (const char *fileset    = "0000",
                         const char *skim       = "noskim",
-                        const char *dataset    = "s12-ttj-v1-v7a",     
+                        const char *dataset    = "s12-pj800_1400-v7a",     
+                        //const char *dataset    = "s12-ttj-v1-v7a",     
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 2000)
+                        int         nEvents    = 100)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -296,28 +297,19 @@ void runBavantiBoostedV_CHS
   merger->SetMergedName("MergedLeptons");
 
   //-----------------------------------
-  // Photon Regression + ID
+  // Photon Egamma Medium ID
   //-----------------------------------
-  PhotonMvaMod *photonReg = new PhotonMvaMod;
-  photonReg->SetRegressionVersion(3);
-  photonReg->SetRegressionWeights((mitData+TString("/gbrv3ph_52x.root")).Data());
-  photonReg->SetOutputName("GoodPhotonsRegr");
-  photonReg->SetApplyShowerRescaling(kTRUE);
-  photonReg->SetMinNumPhotons(0);
-  photonReg->SetIsData(isData);
-
   PhotonIDMod *photonIdMod = new PhotonIDMod;
   photonIdMod->SetPtMin(15.0);
   photonIdMod->SetOutputName("GoodPhotons");
-  photonIdMod->SetIDType("MITMVAId");
-  photonIdMod->SetBdtCutBarrel(0.02);
-  photonIdMod->SetBdtCutEndcap(0.1);
-  photonIdMod->SetIdMVAType("2013FinalIdMVA_8TeV");
+  photonIdMod->SetIDType("EgammaMedium");
+  photonIdMod->SetIsoType("NoIso");
   photonIdMod->SetApplyElectronVeto(kTRUE);
+  photonIdMod->SetApplyPixelSeed(kFALSE);
+  photonIdMod->SetApplyConversionId(kTRUE);
   photonIdMod->SetApplyFiduciality(kTRUE);
   photonIdMod->SetIsData(isData);
-  photonIdMod->SetPhotonsFromBranch(kFALSE);
-  photonIdMod->SetInputName(photonReg->GetOutputName());
+  photonIdMod->SetPhotonsFromBranch(kTRUE);
 
   PhotonCleaningMod *photonCleaningMod = new PhotonCleaningMod;
   photonCleaningMod->SetCleanElectronsName(electronCleaning->GetOutputName());
@@ -501,10 +493,18 @@ void runBavantiBoostedV_CHS
   // prepare the reduced isolated particles
   //------------------------------------------------------------------------------------------------
   FillerXsIsoParticles *boostedXsIsoParticlesFiller = new FillerXsIsoParticles;  
-  boostedXsIsoParticlesFiller->FillXsMuons(kTRUE);
+  boostedXsIsoParticlesFiller->FillXsMuons(kFALSE);
   boostedXsIsoParticlesFiller->FillXsElectrons(kFALSE);
   boostedXsIsoParticlesFiller->FillXsTaus(kFALSE);
-  boostedXsIsoParticlesFiller->FillXsPhotons(kFALSE);
+  boostedXsIsoParticlesFiller->FillXsPhotons(kTRUE);
+  //boostedXsIsoParticlesFiller->SetMuonsName(XXX->GetOutputName());
+  //boostedXsIsoParticlesFiller->SetMuonsFromBranch(kFALSE);
+  boostedXsIsoParticlesFiller->SetElectronsName(eleIdMod->GetOutputName());
+  boostedXsIsoParticlesFiller->SetElectronsFromBranch(kFALSE);
+  boostedXsIsoParticlesFiller->SetTausName(pftauCleaningMod->GetOutputName());
+  boostedXsIsoParticlesFiller->SetTausFromBranch(kFALSE);
+  boostedXsIsoParticlesFiller->SetPhotonsName(photonCleaningMod->GetOutputName());
+  boostedXsIsoParticlesFiller->SetPhotonsFromBranch(kFALSE);
 
   //------------------------------------------------------------------------------------------------
   // keep the skimmed collections for further usage
@@ -582,14 +582,16 @@ void runBavantiBoostedV_CHS
   outMod->AddNewBranch("XlFatJets");
   outMod->AddNewBranch("XlSubJets");
   outMod->AddNewBranch("XsMuons");
+  outMod->AddNewBranch("XsElectrons");
+  outMod->AddNewBranch("XsTaus");
+  outMod->AddNewBranch("XsPhotons");
   
   //------------------------------------------------------------------------------------------------
   // making analysis chain
   //------------------------------------------------------------------------------------------------
   runLumiSel                 ->Add(goodPVFilterMod);
   goodPVFilterMod            ->Add(hltModP);
-  hltModP                    ->Add(photonReg);
-  photonReg                  ->Add(sepPuMod);
+  hltModP                    ->Add(sepPuMod);
   sepPuMod                   ->Add(muonId);
   muonId                     ->Add(eleIdMod);
   eleIdMod                   ->Add(electronCleaning);
