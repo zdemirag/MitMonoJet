@@ -45,7 +45,7 @@ void runMonoJet(const char *fileset    = "0000",
                 const char *book       = "t2mit/filefi/032",
                 const char *catalogDir = "/home/cmsprod/catalog",
                 const char *outputName = "MonoJet_August13",
-                int         nEvents    = 100)
+                int         nEvents    = 1000)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -133,6 +133,21 @@ void runMonoJet(const char *fileset    = "0000",
   for (int i=0; i<nMjtTrigs; i++)
     hltModP->AddTrigger(TString("!+"+monoJetTriggers[i]),0,999999);
 
+  // photon triggers
+  const int nPhTrigs = 8;
+  TString photonTriggers[nPhTrigs] = { "HLT_Photon135_v7",
+				       "HLT_Photon135_v6",
+				       "HLT_Photon135_v5",
+				       "HLT_Photon135_v4",
+				       "HLT_Photon150_v4",
+				       "HLT_Photon150_v3",
+				       "HLT_Photon150_v2",
+				       "HLT_Photon150_v1" };
+
+  for (int i=0; i<nPhTrigs; i++)
+    hltModP->AddTrigger(TString("!+"+photonTriggers[i]),0,999999);
+
+
   // VBF triggers
   const int nVbfTrigs = 7;
   TString vbfTriggers[nVbfTrigs] = { "HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v9",
@@ -155,7 +170,7 @@ void runMonoJet(const char *fileset    = "0000",
   // split pfcandidates to PFPU and PFnoPU
   //------------------------------------------------------------------------------------------------
   SeparatePileUpMod* SepPUMod = new SeparatePileUpMod;
-  //  SepPUMod->SetUseAllVerteces(kFALSE);
+  // SepPUMod->SetUseAllVerteces(kFALSE);
   // SepPUMod->SetVertexName("OutVtxCiC");
   SepPUMod->SetPFNoPileUpName("pfnopileupcands");
   SepPUMod->SetPFPileUpName("pfpileupcands");
@@ -202,43 +217,39 @@ void runMonoJet(const char *fileset    = "0000",
   muonIdWW->SetIDType("WWMuIdV4");
   muonIdWW->SetIsoType("IsoRingsV0_BDTG_Iso");
   muonIdWW->SetApplyD0Cut(kTRUE);
+  muonIdWW->SetD0Cut(0.02);
   muonIdWW->SetApplyDZCut(kTRUE);
+  muonIdWW->SetDZCut(0.1);
   muonIdWW->SetWhichVertex(0);
   muonIdWW->SetRhoType(RhoUtilities::CMS_RHO_RHOKT6PFJETS);
   muonIdWW->SetPtMin(10.);
   muonIdWW->SetEtaCut(2.4);
+  MuonIDMod * muonsForJetCleaning = muonIdWW;
 
   MuonIDMod *muonIdPOG = new MuonIDMod;
   muonIdPOG->SetOutputName("POGMuons");
   muonIdPOG->SetClassType("GlobalTracker");
   muonIdPOG->SetIDType("NoId");
+  muonIdPOG->SetIsoType("NoIso");
   muonIdPOG->SetApplyD0Cut(true);
   muonIdPOG->SetD0Cut(0.2);
   muonIdPOG->SetApplyDZCut(true);
   muonIdPOG->SetDZCut(0.5);
-  //muonIdPOG->SetIsoType("PFIsoBetaPUCorrected");
-  //muonIdPOG->SetPFNoPileUpName("pfnopileupcands");
-  //muonIdPOG->SetPFPileUpName("pfpileupcands");
-  muonIdPOG->SetIsoType("NoIso");
   muonIdPOG->SetPtMin(10.);
   muonIdPOG->SetEtaCut(2.4);
 
-  MuonIDMod* muonIdIso = new MuonIDMod;
-  muonIdIso->SetOutputName("IsolatedPOGMuons");
-  muonIdIso->SetClassType("GlobalorTracker");
-  muonIdIso->SetIDType("NoId");
-  muonIdIso->SetApplyD0Cut(true);
-  muonIdIso->SetD0Cut(0.2);
-  muonIdIso->SetApplyDZCut(true);
-  muonIdIso->SetDZCut(0.5);
-  muonIdIso->SetIsoType("PFIsoBetaPUCorrected"); //h
-  muonIdIso->SetPFNoPileUpName("pfnopileupcands");
-  muonIdIso->SetPFPileUpName("pfpileupcands");
-  muonIdIso->SetPtMin(10.);
-  muonIdIso->SetEtaCut(2.4);
+  MuonIDMod *muonIdLoose = new MuonIDMod;
+  muonIdLoose->SetOutputName("LooseMuons");
+  muonIdLoose->SetClassType("All");
+  muonIdLoose->SetIDType("NoId");
+  muonIdLoose->SetIsoType("NoIso");
+  muonIdLoose->SetApplyD0Cut(false);
+  muonIdLoose->SetApplyDZCut(false);
+  muonIdLoose->SetPtMin(10.);
+  muonIdLoose->SetEtaCut(2.4);
 
   MuonIDMod *muonId = muonIdPOG;
-  //MuonIDMod *muonId = muonIdIso;
+  //MuonIDMod *muonId = muonIdLoose;
 
   ElectronCleaningMod *electronCleaning = new ElectronCleaningMod;
   electronCleaning->SetCleanMuonsName(muonId->GetOutputName());
@@ -250,14 +261,12 @@ void runMonoJet(const char *fileset    = "0000",
   merger->SetElectronsName(electronCleaning->GetOutputName());
   merger->SetMergedName("MergedLeptons");
 
-//-----------------------------------
+  //-----------------------------------
   // Photon Regression + ID
   //-----------------------------------
   PhotonMvaMod *photreg = new PhotonMvaMod;
   photreg->SetRegressionVersion(3);
-  photreg->SetRegressionWeights(std::string(
-    (gSystem->Getenv("MIT_DATA") + TString("/gbrv3ph_52x.root")).Data()
-    ));
+  photreg->SetRegressionWeights(std::string((gSystem->Getenv("MIT_DATA") + TString("/gbrv3ph_52x.root")).Data()));
   photreg->SetOutputName("GoodPhotonsRegr");
   photreg->SetApplyShowerRescaling(kTRUE);
   photreg->SetMinNumPhotons(0);
@@ -276,10 +285,23 @@ void runMonoJet(const char *fileset    = "0000",
   photonIDMod->SetPhotonsFromBranch(kFALSE);
   photonIDMod->SetInputName(photreg->GetOutputName());
 
+//   PhotonIDMod *photonIDMod = new PhotonIDMod;
+//   photonIDMod->SetPtMin(15.0);
+//   photonIDMod->SetOutputName("GoodPhotons");
+//   photonIDMod->SetIDType("EgammaMedium");
+//   photonIDMod->SetIsoType("NoIso");
+//   photonIDMod->SetApplyElectronVeto(kTRUE);
+//   photonIDMod->SetApplyPixelSeed(kFALSE);
+//   photonIDMod->SetApplyConversionId(kTRUE);
+//   photonIDMod->SetApplyFiduciality(kTRUE);       
+//   photonIDMod->SetIsData(isData);
+//   photonIDMod->SetPhotonsFromBranch(kTRUE);
+
   PFTauIDMod *pftauIDMod = new PFTauIDMod;
   pftauIDMod->SetPFTausName("HPSTaus");
-  pftauIDMod->SetIsLooseId(kFALSE);
-  pftauIDMod->SetIsHPSSel(kTRUE); // to get >= 5_3_14 samples running
+  pftauIDMod->SetIsLooseId(true);
+  pftauIDMod->SetIsHPSSel(true);
+  pftauIDMod->SetPtMin(10);
 
   PhotonCleaningMod *photonCleaningMod = new PhotonCleaningMod;
   photonCleaningMod->SetCleanElectronsName(electronCleaning->GetOutputName());
@@ -289,6 +311,7 @@ void runMonoJet(const char *fileset    = "0000",
   PFTauCleaningMod *pftauCleaningMod = new PFTauCleaningMod;
   pftauCleaningMod->SetGoodPFTausName(pftauIDMod->GetGoodPFTausName());
   pftauCleaningMod->SetCleanMuonsName(muonId->GetOutputName());
+  pftauCleaningMod->SetCleanElectronsName(electronCleaning->GetOutputName());
 
   PublisherMod<PFJet,Jet> *pubJet = new PublisherMod<PFJet,Jet>("JetPub");
   pubJet->SetInputName("AKt5PFJets");
@@ -320,9 +343,11 @@ void runMonoJet(const char *fileset    = "0000",
 
   JetCleaningMod *jetCleaning = new JetCleaningMod;
   jetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());
-  jetCleaning->SetCleanMuonsName(muonIdIso->GetOutputName()); // clean up isolated muons (instead of the loose ones)
+  jetCleaning->SetCleanMuonsName(muonsForJetCleaning->GetOutputName()); // clean up isolated muons (instead of the loose ones)
   jetCleaning->SetCleanPhotonsName(photonCleaningMod->GetOutputName());
-  jetCleaning->SetApplyPhotonRemoval(kTRUE);
+  jetCleaning->SetApplyPhotonRemoval(true);
+  jetCleaning->SetCleanTausName(pftauCleaningMod->GetOutputName());
+  jetCleaning->SetApplyTauRemoval(false);
   jetCleaning->SetGoodJetsName(jetID->GetOutputName());
   jetCleaning->SetCleanJetsName("CleanJets");
 
@@ -346,11 +371,6 @@ void runMonoJet(const char *fileset    = "0000",
   float maxJetEta = 4.7;
   float minMet = 110;
 
-  // Monojet
-//   float minLeadingJetEt = 40;
-//   float maxJetEta = 4.5;
-//   float minMet = 200;
-
   MonoJetAnalysisMod         *jetplusmet = new MonoJetAnalysisMod("MonoJetSelector");
   jetplusmet->SetInputMetName(metCorrT0T1Shift->GetOutputName()); //corrected met
   jetplusmet->SetMetFromBranch(kFALSE);
@@ -368,9 +388,9 @@ void runMonoJet(const char *fileset    = "0000",
   jetplusmet->SetMinChargedHadronFrac(0.2);
   jetplusmet->SetMaxNeutralHadronFrac(0.7);
   jetplusmet->SetMaxNeutralEmFrac(0.7);
-  jetplusmet->SetMinJetEt(minLeadingJetEt); // 40
-  jetplusmet->SetMaxJetEta(maxJetEta); //4.7, FIXME: add cut for 2nd jet offline!
-  jetplusmet->SetMinMetEt(minMet); // 110, too low?
+  jetplusmet->SetMinJetEt(minLeadingJetEt); 
+  jetplusmet->SetMaxJetEta(maxJetEta); 
+  jetplusmet->SetMinMetEt(minMet); 
 
   MonoJetAnalysisMod         *dilepton = new MonoJetAnalysisMod("MonoJetSelector_dilepton");
   dilepton->SetInputMetName(metCorrT0T1Shift->GetOutputName()); //corrected met
@@ -503,10 +523,10 @@ void runMonoJet(const char *fileset    = "0000",
   pubJet           ->Add(jetCorr);
   jetCorr          ->Add(metCorrT0T1Shift);
   metCorrT0T1Shift ->Add(jetID);
-  jetID            ->Add(muonIdIso);
+  jetID            ->Add(muonsForJetCleaning);
 
   // Jet+met selection
-  muonIdIso        ->Add(jetCleaning);
+  muonsForJetCleaning->Add(jetCleaning);
   jetCleaning      ->Add(jetplusmet);
   jetplusmet       ->Add(jetplusmettree);
 
