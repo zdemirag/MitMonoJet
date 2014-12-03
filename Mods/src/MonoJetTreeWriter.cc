@@ -22,7 +22,6 @@
 #include "MitPhysics/Utils/interface/PhotonTools.h"
 #include "MitPhysics/Utils/interface/VertexTools.h"
 #include "MitPhysics/Utils/interface/PFMetCorrectionTools.h"
-#include "MitPhysics/Mods/interface/MuonIDMod.h"
 
 #include "MitMonoJet/Mods/interface/MonoJetTreeWriter.h"
 
@@ -88,6 +87,7 @@ MonoJetTreeWriter::MonoJetTreeWriter(const char *name, const char *title) :
   fSuperClusters          (0),
   fParticles              (0),
   fEvtSelData             (0),
+  fVertices               (0),
   // -------------------------
   fDecay                  (0),
   fFillNtupleType         (0),
@@ -121,6 +121,7 @@ void MonoJetTreeWriter::SlaveTerminate()
 //--------------------------------------------------------------------------------------------------
 void MonoJetTreeWriter::Process()
 {
+
   // Process entries of the tree.
   LoadEventObject(fBeamspotName,      fBeamspot);
   LoadEventObject(fEvtSelDataName,    fEvtSelData,    true);
@@ -150,7 +151,7 @@ void MonoJetTreeWriter::Process()
   LoadEventObject(fTracksName,        fTracks,        true);
 
   ParticleOArr    *leptons  = GetObjThisEvt<ParticleOArr>(ModNames::gkMergedLeptonsName);
-  const VertexCol *vertices = GetObjThisEvt<VertexOArr>(fVertexName);
+  fVertices = GetObjThisEvt<VertexOArr>(fVertexName);
 
   const PFCandidateCol *fPFNoPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFNoPileUpName);    
   const PFCandidateCol *fPFPileUpCands = GetObjThisEvt<PFCandidateCol>(fPFPileUpName);
@@ -180,13 +181,32 @@ void MonoJetTreeWriter::Process()
     pdf2      = fMCEventInfo->Pdf2();
     processId = fMCEventInfo->ProcessId();
 
-    // the Z
+    // the gen bosons and their daughters
     for (UInt_t i=0; i<fParticles->GetEntries(); ++i) {
+      // Z
       if (fParticles->At(i)->Status()==3 and fParticles->At(i)->Is(MCParticle::kZ)) 
 	fMitGPTree.genZ_ = fParticles->At(i)->Mom();
+      // W
+      if (fParticles->At(i)->Status()==3 and fParticles->At(i)->Is(MCParticle::kW)) {
+ 	fMitGPTree.genWDaughterId_ = fParticles->At(i)->Daughter(0)->AbsPdgId();
+ 	// W->tau
+	if (fParticles->At(i)->HasDaughter(MCParticle::kTau)) {
+	  const MCParticle * tauFromW = fParticles->At(i)->FindDaughter(MCParticle::kTau)->Daughter(0);
+	  if ( (tauFromW->Status() == 2) and !(tauFromW->HasDaughter(MCParticle::kEl) || tauFromW->HasDaughter(MCParticle::kMu)) ) {
+	    // correct for tau neutrino 
+	    const MCParticle *tauNeutrino = tauFromW->FindDaughter(MCParticle::kTauNu);
+	    if (tauNeutrino) {
+	      MCParticle *visibleTauFromW = new MCParticle(*tauFromW);
+	      visibleTauFromW->SetMom(tauFromW->Px()-tauNeutrino->Px(), tauFromW->Py()-tauNeutrino->Py(),
+				      tauFromW->Pz()-tauNeutrino->Pz(), tauFromW->E()-tauNeutrino->E());
+	      fMitGPTree.genTauFromW_ = visibleTauFromW->Mom();
+	    }
+	  }
+	}
+      }
+      // Higgs
       if (fParticles->At(i)->Status()==3 and fParticles->At(i)->Is(MCParticle::kH)) 
 	fMitGPTree.genH_ = fParticles->At(i)->Mom();
-
     }
 
     // the muons
@@ -260,6 +280,12 @@ void MonoJetTreeWriter::Process()
       // default single muon
       if (trName.Contains("HLT_IsoMu24_eta2p1_v"))
         fMitGPTree.trigger_ |= 1 << 4;
+      if (trName.Contains("HLT_Photon135_v"))
+        fMitGPTree.trigger_ |= 1 << 5;
+      if (trName.Contains("HLT_Photon150_v"))
+        fMitGPTree.trigger_ |= 1 << 6;
+
+
     }
   }
 
@@ -300,15 +326,14 @@ void MonoJetTreeWriter::Process()
   fMitGPTree.nlep_ = leptons->GetEntries();
   if (leptons->GetEntries() >= 1) {         // loop over all leptons
     const Particle *lep = leptons->At(0);
-    
     fMitGPTree.lep1_ = lep->Mom();
     if      (lep->ObjType() == kMuon) {
       fMitGPTree.lid1_ = 13;
       const Muon* mu = dynamic_cast<const Muon*>(lep);
+      fMitGPTree.lep1IsGlobalOrTrackerMuon_ = IsGlobalTrackerMuon(mu);
       fMitGPTree.lep1IsTightMuon_ = IsTightMuon(mu);
       fMitGPTree.lep1PtErr_ = mu->BestTrk()->PtErr()/mu->BestTrk()->Pt();
-      double totalIso =  IsolationTools::BetaMwithPUCorrection(fPFNoPileUpCands, fPFPileUpCands, mu, 0.4);
-      fMitGPTree.lep1IsIsolated_ = totalIso < (mu->Pt()*0.2);
+      fMitGPTree.lep1IsIsolated_ = PassMuonIsoRingsV0_BDTG_Iso(mu, fVertices->At(0), fPileUpDen);
     }
     else if (lep->ObjType() == kElectron)
       fMitGPTree.lid1_ = 11;
@@ -332,10 +357,10 @@ void MonoJetTreeWriter::Process()
     if     (lep->ObjType() == kMuon) {
       fMitGPTree.lid2_ = 13;
       const Muon* mu = dynamic_cast<const Muon*>(lep);
+      fMitGPTree.lep2IsGlobalOrTrackerMuon_ = IsGlobalTrackerMuon(mu);
       fMitGPTree.lep2IsTightMuon_ = IsTightMuon(mu);
       fMitGPTree.lep2PtErr_ = mu->BestTrk()->PtErr()/mu->BestTrk()->Pt();
-      double totalIso =  IsolationTools::BetaMwithPUCorrection(fPFNoPileUpCands, fPFPileUpCands, mu, 0.4);
-      fMitGPTree.lep2IsIsolated_ = totalIso < (mu->Pt()*0.2);
+      fMitGPTree.lep2IsIsolated_ = PassMuonIsoRingsV0_BDTG_Iso(mu, fVertices->At(0), fPileUpDen);
     }
     else if (lep->ObjType() == kElectron)
       fMitGPTree.lid2_ = 11;
@@ -390,11 +415,33 @@ void MonoJetTreeWriter::Process()
   if (fPFTaus->GetEntries() >= 1) {
     const PFTau *tau = fPFTaus->At(0);
     fMitGPTree.tau1_ = tau->Mom();
+    fMitGPTree.tau1IsIsolated_ = tau->LooseCombinedIsolationDBSumPtCorr3Hits();
+    fMitGPTree.tau1Isolation_ = tau->RawCombinedIsolationDBSumPtCorr3Hits();
     if (fPFTaus->GetEntries() >= 2) {
       tau = fPFTaus->At(1);
       fMitGPTree.tau2_ = tau->Mom();
     }
   }
+
+  // TEST Taus (for Wjets MC only)
+//   if (fMitGPTree.genTauFromW_.pt()>20 and fabs(fMitGPTree.genTauFromW_.eta())<2.4) {
+//     fMitGPTree.ntaus_ = fPFTaus->GetEntries();
+//     float minTauDR=999;
+//     int tauMatchingIndex = -1;
+//     for (UInt_t i=0; i<fPFTaus->GetEntries(); ++i) {
+//       if (MathUtils::DeltaR(*fPFTaus->At(i),fMitGPTree.genTauFromW_)<minTauDR) {
+// 	tauMatchingIndex = i;
+// 	minTauDR=MathUtils::DeltaR(*fPFTaus->At(i),fMitGPTree.genTauFromW_);
+//       }
+//     }
+//     if (tauMatchingIndex>-1) {
+//       const PFTau *tau =  fPFTaus->At(tauMatchingIndex);
+//       fMitGPTree.tau1_ = tau->Mom();
+//       fMitGPTree.tau1IsIsolated_ = tau->LooseCombinedIsolationDBSumPtCorr3Hits();
+//       fMitGPTree.tau1Isolation_ = tau->RawCombinedIsolationDBSumPtCorr3Hits();
+//     }
+//   }
+
 
   // JETS
 
@@ -445,7 +492,7 @@ void MonoJetTreeWriter::Process()
     fMitGPTree.noiseCleaning_ |= int(fMitGPTree.jet1NEMF_>0.7) << 2;
     fMitGPTree.jet1Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
 
-    qgTagger->CalculateVariables(jet, vertices);
+    qgTagger->CalculateVariables(jet, fVertices);
     fMitGPTree.jet1QGtag_ = qgTagger->QGValue();
 
     // variables used for the QG retraining
@@ -517,7 +564,7 @@ void MonoJetTreeWriter::Process()
     fMitGPTree.noiseCleaning_ |= int(fMitGPTree.jet2NHF_>0.7) << 4;
     fMitGPTree.noiseCleaning_ |= int(fMitGPTree.jet2NEMF_>0.7) << 5;
     fMitGPTree.jet2Btag_ = jet->CombinedSecondaryVertexBJetTagsDisc();
-    qgTagger->CalculateVariables(jet, vertices);
+    qgTagger->CalculateVariables(jet, fVertices);
     fMitGPTree.jet2QGtag_ = qgTagger->QGValue();
 
     // trigger matching
@@ -691,18 +738,7 @@ void MonoJetTreeWriter::SlaveBegin()
 
   // Create a new MVA MET object
   fMVAMet = new MVAMet();
-//   fMVAMet->Initialize(TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
-//                       TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
-//                       TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/Utils/python/JetIdParams_cfi.py")),
-//                       //TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmet_53_Dec2012.root")),
-//                       //TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmetphi_53_Dec2012.root")),
-// 		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmet_53_June2013_type1.root")),
-// 		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmetphi_53_June2013_type1.root")),
-//                       TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru1cov_53_Dec2012.root")),
-//                       TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru2cov_53_Dec2012.root")),JetIDMVA::k53MET
-// 		      );
 
-  
   fMVAMet->Initialize(
 		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
 		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
@@ -713,6 +749,22 @@ void MonoJetTreeWriter::SlaveBegin()
 		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru2cov_53_Dec2012.root")),JetIDMVA::k53MET,MVAMet::kUseType1Rho
 		      );
 
+  // muon mva
+  std::vector<std::string> muonidiso_weightfiles;
+  muonidiso_weightfiles.push_back(string((getenv("MIT_DATA")+string("/MuonMVAWeights/MuonIsoMVA_BDTG_V0_barrel_lowpt.weights.xml"))));
+  muonidiso_weightfiles.push_back(string((getenv("MIT_DATA")+string("/MuonMVAWeights/MuonIsoMVA_BDTG_V0_barrel_highpt.weights.xml"))));
+  muonidiso_weightfiles.push_back(string((getenv("MIT_DATA")+string("/MuonMVAWeights/MuonIsoMVA_BDTG_V0_endcap_lowpt.weights.xml"))));
+  muonidiso_weightfiles.push_back(string((getenv("MIT_DATA")+string("/MuonMVAWeights/MuonIsoMVA_BDTG_V0_endcap_highpt.weights.xml"))));
+  muonidiso_weightfiles.push_back(string((getenv("MIT_DATA")+string("/MuonMVAWeights/MuonIsoMVA_BDTG_V0_tracker.weights.xml"))));
+  muonidiso_weightfiles.push_back(string((getenv("MIT_DATA")+string("/MuonMVAWeights/MuonIsoMVA_BDTG_V0_global.weights.xml"))));
+  fMuonIDMVA = new MuonIDMVA();
+  fMuonTools = new MuonTools();
+  fMuonIDMVA->Initialize("MuonIso_BDTG_IsoRings",
+			 MuonIDMVA::kIsoRingsV0,
+			 kTRUE,
+			 muonidiso_weightfiles,
+			 RhoUtilities::CMS_RHO_RHOKT6PFJETS);
+
 
   // Create Ntuple Tree
   fOutputFile = TFile::Open(TString::Format("%s_tmp.root",GetName()),"RECREATE");
@@ -721,6 +773,28 @@ void MonoJetTreeWriter::SlaveBegin()
   fMitGPTree.tree_->SetDirectory(fOutputFile);
   AddOutput(fMitGPTree.tree_);
 }
+
+bool MonoJetTreeWriter::IsGlobalOrTrackerMuon(const Muon *muon)
+{
+
+  return ((muon->HasGlobalTrk() || muon->IsTrackerMuon()) &&
+	  MuonTools::PassD0Cut(muon, fVertices, 0.2,-1) &&
+	  MuonTools::PassDZCut(muon, fVertices, 0.5,-1) )
+	  ;
+}
+
+bool MonoJetTreeWriter::IsGlobalTrackerMuon(const Muon *muon)
+{
+
+  return (((muon->HasGlobalTrk() && muon->GlobalTrk()->Chi2()/muon->GlobalTrk()->Ndof() < 10 &&
+	   (muon->NSegments() > 1 || muon->NMatches() > 1) && muon->NValidHits() > 0) ||
+	   (muon->IsTrackerMuon() && muon->Quality().Quality(MuonQuality::TMLastStationTight))) &&
+	  MuonTools::PassD0Cut(muon, fVertices, 0.2,-1) &&
+	  MuonTools::PassDZCut(muon, fVertices, 0.5,-1) )
+	  ;
+}
+
+
 
 bool MonoJetTreeWriter::IsTightMuon(const Muon *muon)
 {
@@ -733,6 +807,36 @@ bool MonoJetTreeWriter::IsTightMuon(const Muon *muon)
           (muon->NSegments() > 1 || muon->NMatches() > 1)       &&
           muon->BestTrk()->NPixelHits() > 0                     )             );
 }
+
+
+bool MonoJetTreeWriter::PassMuonIsoRingsV0_BDTG_Iso(const Muon *mu, const Vertex *vertex,
+					    const PileupEnergyDensityCol *PileupEnergyDensity) const {
+  
+  ElectronOArr *tempElectrons = new  ElectronOArr;
+  MuonOArr     *tempMuons     = new  MuonOArr;
+  Double_t MVAValue = fMuonIDMVA->MVAValue(mu,vertex,fMuonTools,fPFCandidates,
+					   PileupEnergyDensity,MuonTools::kMuEAFall11MC,tempElectrons,tempMuons,0);
+  delete tempElectrons;
+  delete tempMuons;
+
+  Double_t MVACut = -1.0;
+  Double_t eta = mu->AbsEta();
+
+  if      (mu->Pt() <  20 && eta <  1.479)
+    MVACut = 0.86;
+  else if (mu->Pt() <  20 && eta >= 1.479)
+    MVACut = 0.82;
+  else if (mu->Pt() >= 20 && eta <  1.479)
+    MVACut = 0.82;
+  else if (mu->Pt() >= 20 && eta >= 1.479)
+    MVACut = 0.86;
+
+  if (MVAValue > MVACut)
+    return kTRUE;
+
+  return kFALSE;
+}
+
 
 void MonoJetTreeWriter::CorrectMet(const float met, const float metPhi,
 				   const Particle *l1, const Particle *l2,
