@@ -126,6 +126,23 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   
   
 
+  // For variable binning
+  if (mode == -1) {
+    gSystem->Setenv("MIT_ANA_CFG","boostedv-plots");
+    // plot metRaw, BDT loose
+    plotTask = new PlotTask(0,lumi);
+    plotTask->SetVarBins(true);
+    double bins[] = { 250.0, 260.0, 270.0, 280.0, 290.0, 300.0, 310.0, 
+                      320.0, 330.0, 350.0, 380.0, 430.0, 500.0, 1000.0 };
+    plotTask->SetHistRanges(bins,min,max,0.,0.);
+    int nBins = sizeof(bins)/sizeof(double) - 1;
+    plotTask->SetNBins(nBins);
+    plotTask->SetAxisTitles("E_{T}^{miss} [GeV]","Number of Events");
+    plotTask->SetPngFileName("/tmp/dummy.png");
+    plotTask->Plot(Stacked,nTuple,"metRaw",cuts[0],"BDT_loose_varbins_" + regions[0]);
+    printf("Finished Plot for Region %s and Variable %s!\n",regions[0].Data(),"metRaw");
+    delete plotTask;
+  }
   // For limits
   if (mode == 0) {
     gSystem->Setenv("MIT_ANA_CFG","boostedv-plots");
