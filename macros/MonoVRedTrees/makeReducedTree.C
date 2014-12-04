@@ -19,12 +19,27 @@ using namespace mithep;
 //---
 TString getEnv(const char* name);
 //---
-void fillOutNtuples(TNtuple* ntuple, MitDMSTree &intree, double baseWeight);
+void fillOutNtuples(TNtuple* ntuple, MitDMSTree &intree, double baseWeight, int selMode = 0, bool isData = false);
+//---
+bool eventPassSelection(MitDMSTree &intree, int selMode = 0);
 //==================================================================================================
-void makeReducedTree(double lumi = 19700.0) 
+void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = false) 
 {
   // Define tree name (depends on selection)
   TString ntupleName = "Process_signal";
+  if (selMode == 1) 
+    ntupleName = "Process_di_muon_control";
+  else if (selMode == 2) 
+    ntupleName = "Process_single_muon_control";
+  else if (selMode == 3) 
+    ntupleName = "Process_photon_control";
+  else 
+    cout << "ERROR -- Incorrect selMode parameter, please review!" << endl;
+
+  // Define output files mode
+  TString outFileMode = "RECREATE";
+  if (updateFile)
+    outFileMode = "UPDATE";
 
   // Read all environment variables
   TString anaDir = getEnv("MIT_MONOJET_DIR");
@@ -52,26 +67,25 @@ void makeReducedTree(double lumi = 19700.0)
   for (UInt_t iSample=0; iSample < listOfSamples.size(); iSample++) {
     TString inFilePath = hstDir+"/"+*listOfSamples.at(iSample)->File();
     fin = new TFile(inFilePath,"READ");
-    cout << "read in file" << endl;
+    cout << "INFO -- Reading sample file: " << listOfSamples.at(iSample)->File() << endl;
     // Prepare event weight
     double thisXsec = *listOfSamples.at(iSample)->Xsec();
     double nGenEvts = ((TH1D*)fin->FindObjectAny("hDAllEvents"))->GetEntries();
     double baseWeight = lumi*thisXsec/nGenEvts;
-    cout << "got weight" << endl;
     // Read input tree
     MitDMSTree inTree;
     inTree.LoadTree(inFilePath,0);
     inTree.InitTree(0);
     cout << "setup in tree" << endl;
     // Start a new sample group according to cfg file legend
-    if (*listOfSamples.at(iSample)->Legend() != "~") {
+    if (*listOfSamples.at(iSample)->Legend() != " ") {
       // Close previous group
       if (iSample > 0) {
         fout->cd();
         ntuple->Write();
         fout->Close();
       }      
-      fout = new TFile(*listOfSamples.at(iSample)->Legend()+".root","RECREATE");
+      fout = new TFile(*listOfSamples.at(iSample)->Legend()+".root",outFileMode);
       fout->cd();
       ntuple = new TNtuple(ntupleName,"Limit ntuple","mvamet:jet1pt:genjetpt:genVpt:weight");      
       cout << "opened new ntuple" << endl;
@@ -82,15 +96,16 @@ void makeReducedTree(double lumi = 19700.0)
     
     // Close last group
     //if (iSample == (listOfSamples.size()-1)) {
-    if (iSample == 0) {
+    if (iSample == 5) {
       fout->cd();
       ntuple->Write();
       fout->Close();
+      break;
     }      
 
     fin->Close();
-    break;
   }  
+  
   return;
 }
 
@@ -106,9 +121,10 @@ TString getEnv(const char* name)
 }
 
 //==================================================================================================
-void fillOutNtuples(TNtuple* ntuple, MitDMSTree &intree, double baseWeight)
+void fillOutNtuples(TNtuple* ntuple, MitDMSTree &intree, double baseWeight, int selMode, bool isData)
 {
   double weight = -1;
+  float met = -1;
   // Loop over tree entries
   Int_t nEntries = intree.tree_->GetEntries();
   for ( Int_t iEntry = 0; iEntry < nEntries; iEntry++ ) {
@@ -116,11 +132,103 @@ void fillOutNtuples(TNtuple* ntuple, MitDMSTree &intree, double baseWeight)
     // Get this tree entry
     intree.tree_-> GetEntry(iEntry);
 
-    weight = baseWeight*intree.puweight_;
+    // Determine if event passes selection
+    if (!eventPassSelection(inTree,selMode,met))
+      continue;
+      
+    // Determine correctly the even weights
+    weight = baseWeight*intree.puweight_;    
 
     // Fill output tree
-    ntuple->Fill(intree.mvamet_,intree.fjet1_.Pt(),intree.fjet1_.Pt(),intree.genV_.Pt(),weight);
+    ntuple->Fill(met,intree.fjet1_.Pt(),intree.fjet1_.Pt(),intree.genV_.Pt(),weight);
   }
   
   return;
+}
+
+//==================================================================================================
+bool eventPassSelection(MitDMSTree &intree, int selMode, float &met)
+{
+  // Trigger
+  bool triggerBit = ((intree.trigger_ & (1<<0)) || (intree.trigger_ & (1<<1)));
+  if (selMode == 3)
+    triggerBit = (trigger & (1<<3));
+
+  // Met filters
+  bool metFiltersBit = (intree.metFiltersWord_ == 511 || intree.metFiltersWord_ == 1023);
+  
+  // Preselection
+  bool preselBit = (intree.preselWord_ & (1<<3)); //signal region preselection
+  if (selMode == 1)
+    preselBit = (intree.preselWord_ & (1<<2)); //Z->ll control preselection
+  if (selMode == 2)
+    preselBit = (intree.preselWord_ & (1<<1)); //W->lnu control preselection
+  if (selMode == 3)
+    preselBit = (intree.preselWord_ & (1<<5)); //Photon+jets control preselection
+
+  // Met
+  met = intree.metRaw_;
+  if (selMode == 1)
+    met = TMath::Sqrt(TMath::Power(intree.metRaw_*TMath::Cos(intree.metRawPhi_) + 
+                      intree.lep1_.Px() + intree.lep2_.Px(),2) + 
+                      TMath::Power(intree.metRaw_*TMath::Sin(intree.metRawPhi_) + 
+                      intree.lep1_.Py() + intree.lep2_.Py(),2)); //Z->ll control preselection
+  if (selMode == 2)
+    met = TMath::Sqrt(TMath::Power(intree.metRaw_*TMath::Cos(intree.metRawPhi_) + 
+                      intree.lep1_.Px(),2) + 
+                      TMath::Power(intree.metRaw_*TMath::Sin(intree.metRawPhi_) + 
+                      intree.lep1_.Py(),2)); //W->lnu control preselection
+  if (selMode == 3)
+    met = TMath::Sqrt(TMath::Power(intree.metRaw_*TMath::Cos(intree.metRawPhi_) + 
+                      intree.pho1_.Px(),2) + 
+                      TMath::Power(intree.metRaw_*TMath::Sin(intree.metRawPhi_) + 
+                      intree.pho1_.Py(),2)); //Photon+jets control preselection
+  bool metBit = (met > 250.);
+                      
+  // Narrow jets
+  bool jetBit = ((intree.jet1_.Pt() > 110 && abs(intree.jet1_.eta()) < 2.5));
+  jetBit = jetBit && (intree.njets_ == 1 || (intree.njets_ == 2 && 
+                      MathUtils::DeltaPhi(intree.jet1_.phi(),intree.jet2_.phi()) < 2.5));
+
+  // Fat jet :: FIXME with bdt
+  bool fatJetBit = (intree.fjet1_.Pt() > 250 && abs(intree.fjet1_.Eta()) < 2.5);
+
+  // Vetoes
+  bool vetoBit = (intree.ntaus_ == 0);
+  if (selMode == 0)
+    vetoBit = vetoBit && (intree.nphotons_ == 0 && intree.nlep_ == 0);
+  if (selMode == 1)
+    vetoBit = vetoBit && (intree.nphotons_ == 0);
+  if (selMode == 2)
+    vetoBit = vetoBit && (intree.nphotons_ == 0);
+  if (selMode == 3)
+    vetoBit = vetoBit && (intree.nlep_ == 0);
+    
+  // Extra
+  bool extraBit = true;
+  if (selMode == 1) {
+    extraBit = extraBit && (intree.nlep_ == 2 && (intree.lid1_==13 && intree.lid2_==13));
+    TLorentzVector tempBos;
+    TLorentzVector tempLep1;
+    tempLep1.SetPtEtaPhiE(intree.lep1_.Pt(),intree.lep1_.Eta(),intree.lep1_.Phi(),intree.lep1_.E());
+    TLorentzVector tempLep2;
+    tempLep2.SetPtEtaPhiE(intree.lep2_.Pt(),intree.lep2_.Eta(),intree.lep2_.Phi(),intree.lep2_.E());
+    tempBos = tempLep1 + tempLep2;
+    extraBit = extraBit && (tempBos.M() > 60. && tempBos.M() < 120.);    
+  } //Zll
+  if (selMode == 2) {
+    extraBit = extraBit && 
+              (intree.nlep_ == 1 && abs(intree.lid1_) == 13 && intree.lep1_.Pt() > 20 && abs(intree.lep1_.Eta()) < 2.4);
+    float mt = sqrt(2*intree.metRaw_*intree.lep1_.Pt()*(1-TMath::Cos(intree.metRawPhi_-intree.lep1_.Phi())));
+    extraBit = extraBit && (mt > 10. && mt < 200.);
+  } //Wlv
+  if (selMode == 3) {
+    extraBit = extraBit && 
+              (intree.nphotons_ == 1 && intree.pho1_.Pt() > 160 && abs(intree.pho1_.Eta()) < 2.5);
+  } //Pj
+        
+  cout << triggerBit << " " << metFiltersBit << " " << preselBit << " " << metBit << " " << jetBit << " " << fatJetBit << " " << vetoBit << " " << extraBit << endl;
+  bool theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && fatJetBit && vetoBit && extraBit;
+  
+  return theDecision;
 }
