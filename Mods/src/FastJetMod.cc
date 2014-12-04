@@ -117,7 +117,6 @@ void FastJetMod::Process()
                               fjOutJets[j].e());
 
     // Setup PFJet area
-    std::cout<< "this jet area " << fjOutJets[j].area() << std::endl;
     outJet->SetJetArea(fjOutJets[j].area());
     
     // Setup PFJet particle flow related quantities

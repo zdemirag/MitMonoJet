@@ -47,8 +47,8 @@ TString getJsonFile(const char* dir);
 void runBavantiBoostedV_CHS
                        (const char *fileset    = "0000",
                         const char *skim       = "noskim",
-                        const char *dataset    = "s12-pj800_1400-v7a",     
-                        //const char *dataset    = "s12-ttj-v1-v7a",     
+                        //const char *dataset    = "s12-pj800_1400-v7a",     
+                        const char *dataset    = "s12-ttj-v1-v7a",     
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
@@ -318,12 +318,14 @@ void runBavantiBoostedV_CHS
 
   PFTauIDMod *pftauIdMod = new PFTauIDMod;
   pftauIdMod->SetPFTausName("HPSTaus");
-  pftauIdMod->SetIsLooseId(kFALSE);
+  pftauIdMod->SetIsLooseId(kTRUE);
   pftauIdMod->SetIsHPSSel(kTRUE); // to get >= 5_3_14 samples running
+  pftauIdMod->SetPtMin(10); // to loosen the WP
   
   PFTauCleaningMod *pftauCleaningMod = new PFTauCleaningMod;
   pftauCleaningMod->SetGoodPFTausName(pftauIdMod->GetGoodPFTausName());
   pftauCleaningMod->SetCleanMuonsName(muonId->GetOutputName());
+  pftauCleaningMod->SetCleanElectronsName(electronCleaning->GetOutputName());
 
   PublisherMod<PFJet,Jet> *pubJet = new PublisherMod<PFJet,Jet>("JetPub");
   pubJet->SetInputName("AKt5PFJets");
