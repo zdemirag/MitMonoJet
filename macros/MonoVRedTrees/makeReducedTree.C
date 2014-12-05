@@ -10,8 +10,12 @@
 #include <TNtuple.h>
 #include <TTree.h>
 #include <TH1D.h>
+#include <TMath.h>
+#include "MitCommon/MathTools/interface/MathUtils.h"
 #include "MitPlots/Input/interface/TaskSamples.h"
 #include "MitMonoJet/Core/MitDMSTree.h"
+
+#include "TLorentzVector.h"
 
 using namespace std;
 using namespace mithep;
@@ -21,7 +25,7 @@ TString getEnv(const char* name);
 //---
 void fillOutNtuples(TNtuple* ntuple, MitDMSTree &intree, double baseWeight, int selMode = 0, bool isData = false);
 //---
-bool eventPassSelection(MitDMSTree &intree, int selMode = 0);
+bool eventPassSelection(MitDMSTree &intree, float &met, int selMode = 0);
 //==================================================================================================
 void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = false) 
 {
@@ -46,13 +50,17 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
   TString hstDir = getEnv("MIT_ANA_HIST");
   TString anaCfg = "boostedv-ana";
   TString prdCfg = getEnv("MIT_PROD_CFG");
+  
+  // Fix data list for photons
+  if (selMode == 3)
+    anaCfg = "boostedv-ana-pj";
 
   // Define samples
   TaskSamples* samples = new TaskSamples(prdCfg.Data(),hstDir.Data());
   samples->SetNameTxt(anaCfg.Data());
   samples->ReadFile((anaDir + TString("/config")).Data());
   vector<const Sample*> listOfSamples;
-  //for (UInt_t iSample=0; iSample < samples->NDataSamples(); iSample++) listOfSamples.push_back(samples->GetDataSample(iSample));
+  for (UInt_t iSample=0; iSample < samples->NDataSamples(); iSample++) listOfSamples.push_back(samples->GetDataSample(iSample));
   for (UInt_t iSample=0; iSample < samples->NSamples(); iSample++) listOfSamples.push_back(samples->GetSample(iSample));  
 
   // Prepare pointer to outfile
@@ -67,16 +75,18 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
   for (UInt_t iSample=0; iSample < listOfSamples.size(); iSample++) {
     TString inFilePath = hstDir+"/"+*listOfSamples.at(iSample)->File();
     fin = new TFile(inFilePath,"READ");
-    cout << "INFO -- Reading sample file: " << listOfSamples.at(iSample)->File() << endl;
+    cout << "INFO -- Reading sample file: " << *listOfSamples.at(iSample)->File() << endl;
     // Prepare event weight
     double thisXsec = *listOfSamples.at(iSample)->Xsec();
     double nGenEvts = ((TH1D*)fin->FindObjectAny("hDAllEvents"))->GetEntries();
     double baseWeight = lumi*thisXsec/nGenEvts;
+    bool isData = false;
+    if (baseWeight < 0)
+      isData = true;
     // Read input tree
     MitDMSTree inTree;
-    inTree.LoadTree(inFilePath,0);
-    inTree.InitTree(0);
-    cout << "setup in tree" << endl;
+    inTree.LoadTree(inFilePath,1);
+    inTree.InitTree(1);
     // Start a new sample group according to cfg file legend
     if (*listOfSamples.at(iSample)->Legend() != " ") {
       // Close previous group
@@ -88,15 +98,14 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
       fout = new TFile(*listOfSamples.at(iSample)->Legend()+".root",outFileMode);
       fout->cd();
       ntuple = new TNtuple(ntupleName,"Limit ntuple","mvamet:jet1pt:genjetpt:genVpt:weight");      
-      cout << "opened new ntuple" << endl;
     }
     // Scan on input and fill output ntuple
-    fillOutNtuples(ntuple,inTree,baseWeight);
-    cout << "called filler function" << endl;
+    cout << "INFO ---> Number of events passing the selection is: ";
+    fillOutNtuples(ntuple,inTree,baseWeight,selMode,isData);
     
     // Close last group
-    //if (iSample == (listOfSamples.size()-1)) {
-    if (iSample == 5) {
+    if (iSample == (listOfSamples.size()-1)) {
+    //if (iSample == 6) {
       fout->cd();
       ntuple->Write();
       fout->Close();
@@ -125,6 +134,7 @@ void fillOutNtuples(TNtuple* ntuple, MitDMSTree &intree, double baseWeight, int 
 {
   double weight = -1;
   float met = -1;
+  double sumweight = 0;
   // Loop over tree entries
   Int_t nEntries = intree.tree_->GetEntries();
   for ( Int_t iEntry = 0; iEntry < nEntries; iEntry++ ) {
@@ -133,26 +143,35 @@ void fillOutNtuples(TNtuple* ntuple, MitDMSTree &intree, double baseWeight, int 
     intree.tree_-> GetEntry(iEntry);
 
     // Determine if event passes selection
-    if (!eventPassSelection(inTree,selMode,met))
+    if (!eventPassSelection(intree,met,selMode))
       continue;
       
-    // Determine correctly the even weights
-    weight = baseWeight*intree.puweight_;    
+    // Determine correctly the event weights
+    if (!isData)
+      weight = baseWeight*intree.puweight_;    
+    sumweight += weight;
 
     // Fill output tree
-    ntuple->Fill(met,intree.fjet1_.Pt(),intree.fjet1_.Pt(),intree.genV_.Pt(),weight);
+    if (!isData)
+      ntuple->Fill(met,intree.fjet1_.Pt(),intree.fjet1_.Pt(),intree.genV_.Pt(),weight);
+    else 
+      ntuple->Fill(met,intree.fjet1_.Pt(),-1.,-1.,-1.);
   }
   
+  if (!isData)
+    cout << sumweight << endl;
+  else 
+    cout << "BLINDED!" << endl;
   return;
 }
 
 //==================================================================================================
-bool eventPassSelection(MitDMSTree &intree, int selMode, float &met)
+bool eventPassSelection(MitDMSTree &intree, float &met, int selMode)
 {
   // Trigger
   bool triggerBit = ((intree.trigger_ & (1<<0)) || (intree.trigger_ & (1<<1)));
   if (selMode == 3)
-    triggerBit = (trigger & (1<<3));
+    triggerBit = (intree.trigger_ & (1<<3));
 
   // Met filters
   bool metFiltersBit = (intree.metFiltersWord_ == 511 || intree.metFiltersWord_ == 1023);
@@ -192,6 +211,7 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, float &met)
 
   // Fat jet :: FIXME with bdt
   bool fatJetBit = (intree.fjet1_.Pt() > 250 && abs(intree.fjet1_.Eta()) < 2.5);
+  fatJetBit = fatJetBit && (intree.bdt_all_ > -0.5);
 
   // Vetoes
   bool vetoBit = (intree.ntaus_ == 0);
@@ -227,7 +247,7 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, float &met)
               (intree.nphotons_ == 1 && intree.pho1_.Pt() > 160 && abs(intree.pho1_.Eta()) < 2.5);
   } //Pj
         
-  cout << triggerBit << " " << metFiltersBit << " " << preselBit << " " << metBit << " " << jetBit << " " << fatJetBit << " " << vetoBit << " " << extraBit << endl;
+  //cout << triggerBit << " " << metFiltersBit << " " << preselBit << " " << metBit << " " << jetBit << " " << fatJetBit << " " << vetoBit << " " << extraBit << endl;
   bool theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && fatJetBit && vetoBit && extraBit;
   
   return theDecision;

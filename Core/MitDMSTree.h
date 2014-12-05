@@ -193,6 +193,8 @@ class MitDMSTree {
   unsigned int   metFiltersWord_;
   unsigned int   preselWord_;
 
+  float          bdt_all_;
+
  public:
   /// this is the main element
   TFile *f_;
@@ -222,12 +224,14 @@ class MitDMSTree {
   /// load a MitDMSTree
   void LoadTree(const char* file, int type = -1){
     // to load three different ntuples in the same job DMTree0/1
-    // type == 0/1 if all variables was added
+    // type == 0 standard variables
+    // type == 1 bdt_all added
     // type = -1 (default) if a minimum set of variables was added with tree as name
     f_ = TFile::Open(file);
     assert(f_);
-    if     (type == 0) tree_ = dynamic_cast<TTree*>(f_->FindObjectAny("DMSTree"));
-    else               tree_ = dynamic_cast<TTree*>(f_->FindObjectAny("tree"));
+    if      (type == 0) tree_ = dynamic_cast<TTree*>(f_->FindObjectAny("DMSTree"));
+    else if (type == 1) tree_ = dynamic_cast<TTree*>(f_->FindObjectAny("DMSTree"));
+    else                tree_ = dynamic_cast<TTree*>(f_->FindObjectAny("tree"));
     assert(tree_);
   }
 
@@ -551,6 +555,8 @@ class MitDMSTree {
     tree_->SetBranchAddress("npuMinusOne"   , &npuMinusOne_   );
     tree_->SetBranchAddress("metFiltersWord" , &metFiltersWord_ );
     tree_->SetBranchAddress("preselWord"    , &preselWord_);
+    
+    if (type == 1) tree_->SetBranchAddress("bdt_all"    , &bdt_all_);
 
     gErrorIgnoreLevel = currentState;
   }
@@ -731,6 +737,8 @@ MitDMSTree::InitVariables(){
   npuMinusOne_   = -999.;
   metFiltersWord_= 0;  
   preselWord_    = 0;  
+
+  bdt_all_ = -999.;
 }
 
 #endif
