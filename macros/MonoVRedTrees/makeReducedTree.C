@@ -14,6 +14,7 @@
 #include "MitCommon/MathTools/interface/MathUtils.h"
 #include "MitPlots/Input/interface/TaskSamples.h"
 #include "MitMonoJet/Core/MitDMSTree.h"
+#include "MitMonoJet/Core/MitLimitTree.h"
 
 #include "TLorentzVector.h"
 
@@ -23,20 +24,22 @@ using namespace mithep;
 //---
 TString getEnv(const char* name);
 //---
-void fillOutNtuples(TNtuple* ntuple, MitDMSTree &intree, double baseWeight, int selMode = 0, bool isData = false);
+void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight, int selMode = 0, bool isData = false);
 //---
 bool eventPassSelection(MitDMSTree &intree, float &met, int selMode = 0);
 //==================================================================================================
 void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = false) 
 {
   // Define tree name (depends on selection)
-  TString ntupleName = "Process_signal";
-  if (selMode == 1) 
-    ntupleName = "Process_di_muon_control";
+  TString outTreeNameExt;
+  if (selMode == 0) 
+    outTreeNameExt = "_signal";
+  else if (selMode == 1) 
+    outTreeNameExt = "_di_muon_control";
   else if (selMode == 2) 
-    ntupleName = "Process_single_muon_control";
+    outTreeNameExt = "_single_muon_control";
   else if (selMode == 3) 
-    ntupleName = "Process_photon_control";
+    outTreeNameExt = "_photon_control";
   else 
     cout << "ERROR -- Incorrect selMode parameter, please review!" << endl;
 
@@ -66,9 +69,10 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
   // Prepare pointer to outfile
   TFile *fin;
   TFile *fout;
+  fout = new TFile("dummy.root",outFileMode);
   
-  // Prepare pointer to outntuple
-  TNtuple *ntuple;
+  // Prepare object to store outtree
+  MitLimitTree outTree;
   
   // Generate reduced trees
   // loop through the samples and produce the reduced trees
@@ -92,22 +96,25 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
       // Close previous group
       if (iSample > 0) {
         fout->cd();
-        ntuple->Write();
+        outTree.tree_->Write();
         fout->Close();
-      }      
-      fout = new TFile(*listOfSamples.at(iSample)->Legend()+".root",outFileMode);
+        fout = TFile::Open("dummy.root","UPDATE");     
+      } 
       fout->cd();
-      ntuple = new TNtuple(ntupleName,"Limit ntuple","mvamet:jet1pt:genjetpt:genVpt:weight");      
+      TString outTreeName = *listOfSamples.at(iSample)->Legend();
+      outTreeName += outTreeNameExt;
+      outTree.CreateTree(outTreeName.Data());
+      outTree.InitVariables();
     }
     // Scan on input and fill output ntuple
     cout << "INFO ---> Number of events passing the selection is: ";
-    fillOutNtuples(ntuple,inTree,baseWeight,selMode,isData);
+    fillOutNtuples(outTree,inTree,baseWeight,selMode,isData);
     
     // Close last group
     if (iSample == (listOfSamples.size()-1)) {
-    //if (iSample == 6) {
+    //if (iSample == 2) {
       fout->cd();
-      ntuple->Write();
+      outTree.tree_->Write(); 
       fout->Close();
       break;
     }      
@@ -130,7 +137,7 @@ TString getEnv(const char* name)
 }
 
 //==================================================================================================
-void fillOutNtuples(TNtuple* ntuple, MitDMSTree &intree, double baseWeight, int selMode, bool isData)
+void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight, int selMode, bool isData)
 {
   double weight = -1;
   float met = -1;
@@ -150,12 +157,21 @@ void fillOutNtuples(TNtuple* ntuple, MitDMSTree &intree, double baseWeight, int 
     if (!isData)
       weight = baseWeight*intree.puweight_;    
     sumweight += weight;
+    
+    // Determine the outtree variables for this event
+    outtree.mvamet_ = met;
+    outtree.jet1pt_ = intree.fjet1_.Pt();
+    outtree.genjetpt_ = intree.fjet1_.Pt();
+    outtree.genVpt_ = intree.genV_.Pt();
+    outtree.weight_ = weight;
+    if (isData) {
+      outtree.genjetpt_ = -1.;
+      outtree.genVpt_ = -1.;
+      outtree.weight_ = -1.;
+    }
 
     // Fill output tree
-    if (!isData)
-      ntuple->Fill(met,intree.fjet1_.Pt(),intree.fjet1_.Pt(),intree.genV_.Pt(),weight);
-    else 
-      ntuple->Fill(met,intree.fjet1_.Pt(),-1.,-1.,-1.);
+    outtree.tree_->Fill();
   }
   
   if (!isData)
