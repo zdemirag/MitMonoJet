@@ -16,26 +16,19 @@
 #include "MitAna/DataTree/interface/PileupInfoCol.h"
 #include "MitAna/DataTree/interface/PileupEnergyDensityCol.h"
 #include "MitAna/DataTree/interface/VertexCol.h"
-#include "MitAna/DataTree/interface/PhotonFwd.h"
-#include "MitAna/DataTree/interface/TrackCol.h"
 #include "MitAna/DataTree/interface/PFCandidateCol.h"
 #include "MitAna/DataTree/interface/DecayParticleCol.h"
-#include "MitAna/DataTree/interface/ElectronCol.h"
-#include "MitAna/DataTree/interface/MuonCol.h"
-#include "MitAna/DataTree/interface/PFTauCol.h"
 #include "MitAna/DataTree/interface/MCParticleCol.h"
-#include "MitAna/DataTree/interface/MetCol.h"
 #include "MitAna/DataTree/interface/PFMetCol.h"
 #include "MitAna/DataTree/interface/JetCol.h"
 #include "MitAna/DataTree/interface/PFJetCol.h"
 #include "MitAna/DataTree/interface/TriggerObjectCol.h"
-#include "MitPhysics/Utils/interface/PhotonFix.h"
-#include "MitPhysics/Utils/interface/PhotonTools.h"
 #include "MitPhysics/Utils/interface/VertexTools.h"
 #include "MitMonoJet/DataTree/interface/XlMetCol.h"
 #include "MitMonoJet/DataTree/interface/XlFatJetCol.h"
 #include "MitMonoJet/DataTree/interface/XlSubJetCol.h"
 #include "MitMonoJet/DataTree/interface/XlEvtSelData.h"
+#include "MitMonoJet/DataTree/interface/XsIsoParticleCol.h"
 
 #include "MitMonoJet/Core/MitDMSTree.h"
 
@@ -55,8 +48,6 @@ namespace mithep
 
     // setting all the input Names
     void    SetRawMetName(const char *n)            { fRawMetName= n;              }
-    void    SetMetName(const char *n)               { fMetName= n;                 }
-    void    SetMetFromBranch(bool b)                { fMetFromBranch = b;          }
     void    SetMetMVAName(const char *n)            { fMetMVAName= n;              }
     void    SetMetMVAFromBranch(bool b)             { fMetMVAFromBranch = b;       }
     void    SetPhotonsName(const char *n)           { fPhotonsName= n;             }
@@ -98,7 +89,6 @@ namespace mithep
 
     TString                        fEvtSelDataName;
     TString                        fRawMetName;
-    TString                        fMetName;
     TString                        fMetMVAName;
     TString                        fPhotonsName;
     TString                        fElectronsName;
@@ -115,7 +105,6 @@ namespace mithep
     TString                        fTriggerObjectsName;
 			           
     Bool_t                         fIsData;
-    Bool_t                         fMetFromBranch;
     Bool_t                         fMetMVAFromBranch;
     Bool_t                         fPhotonsFromBranch;
     Bool_t                         fElectronsFromBranch;
@@ -127,12 +116,11 @@ namespace mithep
     Bool_t                         fPVFromBranch;
 			         
     const PFMetCol                *fRawMet;
-    const MetCol                  *fMet;
     const XlMetCol                *fMetMVA;
-    const PhotonCol               *fPhotons;
-    const ElectronCol             *fElectrons;
-    const MuonCol                 *fMuons;
-    const PFTauCol                *fPFTaus;
+    const XsIsoParticleCol        *fPhotons;
+    const XsIsoParticleCol        *fElectrons;
+    const XsIsoParticleCol        *fMuons;
+    const XsIsoParticleCol        *fPFTaus;
     const PFJetCol                *fJets;
     const XlFatJetCol             *fFatJets;
     const XlSubJetCol             *fSubJets;

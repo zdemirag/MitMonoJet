@@ -25,12 +25,11 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   BaseMod                 (name,title),
   fEvtSelDataName         ("XlEvtSelData"),
   fRawMetName             ("PFMet"),
-  fMetName                ("PFMet"),
   fMetMVAName             ("PFMetMVA"),
-  fPhotonsName            (Names::gkPhotonBrn),
-  fElectronsName          (Names::gkElectronBrn),
-  fMuonsName              (Names::gkMuonBrn),
-  fTausName               (Names::gkPFTauBrn),
+  fPhotonsName            ("XsPhotons"),
+  fElectronsName          ("XsElectrons"),
+  fMuonsName              ("XsMuons"),
+  fTausName               ("XsTaus"),
   fJetsName               (Names::gkPFJetBrn),
   fFatJetsName            ("XlFatJets"),
   fSubJetsName            ("XlSubJets"),
@@ -41,7 +40,6 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   fMCParticlesName        (Names::gkMCPartBrn),
   fTriggerObjectsName     ("MyHltPhotObjs"),
   fIsData                 (false),
-  fMetFromBranch          (kTRUE),
   fMetMVAFromBranch       (kTRUE),
   fPhotonsFromBranch      (kTRUE),
   fElectronsFromBranch    (kTRUE),
@@ -53,7 +51,6 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   fPVFromBranch           (kTRUE),
   // -------------------------
   fRawMet                 (0),
-  fMet                    (0),
   fMetMVA                 (0),
   fPhotons                (0),
   fElectrons              (0),
@@ -107,7 +104,6 @@ void DMSTreeWriter::Process()
   LoadEventObject(fTriggerObjectsName,fTrigObj,       true);
 
   LoadEventObject(fRawMetName,        fRawMet,        true);
-  LoadEventObject(fMetName,           fMet,           fMetFromBranch);
   LoadEventObject(fMetMVAName,        fMetMVA,        fMetMVAFromBranch);
   LoadEventObject(fPhotonsName,       fPhotons,       fPhotonsFromBranch);
   LoadEventObject(fElectronsName,     fElectrons,     fElectronsFromBranch);
@@ -194,8 +190,8 @@ void DMSTreeWriter::Process()
 
   fMitDMSTree.metRaw_        = fRawMet->At(0)->Pt();
   fMitDMSTree.metRawPhi_     = fRawMet->At(0)->Phi();
-  fMitDMSTree.met_           = fMet->At(0)->Pt();
-  fMitDMSTree.metPhi_        = fMet->At(0)->Phi();
+  fMitDMSTree.met_           = -1.;
+  fMitDMSTree.metPhi_        = -1.;
   fMitDMSTree.mvamet_        = fMetMVA->At(0)->Pt();
   fMitDMSTree.mvametPhi_     = fMetMVA->At(0)->Phi();
   fMitDMSTree.mvaCov00_      = fMetMVA->At(0)->Cov00();
@@ -253,7 +249,7 @@ void DMSTreeWriter::Process()
 
   fMitDMSTree.nphotons_ = fPhotons->GetEntries();
   if (fPhotons->GetEntries() >= 1) {
-    const Photon *photon = fPhotons->At(0);
+    const XsIsoParticle *photon = fPhotons->At(0);
     fMitDMSTree.pho1_ = photon->Mom();
     // Make Photon-HLT matching 
     if (IsHLTMatched(fMitDMSTree.pho1_, 
@@ -497,7 +493,6 @@ void DMSTreeWriter::SlaveBegin()
   ReqEventObject(fFatJetsName,       fFatJets,       fFatJetsFromBranch);
   ReqEventObject(fSubJetsName,       fSubJets,       fSubJetsFromBranch);
   ReqEventObject(fRawMetName,        fRawMet,        true);
-  ReqEventObject(fMetName,           fMet,           fMetFromBranch);
   ReqEventObject(fMetMVAName,        fMetMVA,        fMetMVAFromBranch);
 
   // Initialize the PU histrograms and weights

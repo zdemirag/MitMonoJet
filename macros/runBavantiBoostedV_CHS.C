@@ -481,9 +481,9 @@ void runBavantiBoostedV_CHS
   //------------------------------------------------------------------------------------------------
   FillerXsIsoParticles *boostedXsIsoParticlesFiller = new FillerXsIsoParticles;  
   boostedXsIsoParticlesFiller->FillXsMuons(kTRUE);
-  boostedXsIsoParticlesFiller->FillXsElectrons(kFALSE);
-  boostedXsIsoParticlesFiller->FillXsTaus(kFALSE);
-  boostedXsIsoParticlesFiller->FillXsPhotons(kFALSE);
+  boostedXsIsoParticlesFiller->FillXsElectrons(kTRUE);
+  boostedXsIsoParticlesFiller->FillXsTaus(kTRUE);
+  boostedXsIsoParticlesFiller->FillXsPhotons(kTRUE);
   boostedXsIsoParticlesFiller->SetMuonsName(muonIdLooseMod->GetOutputName());
   boostedXsIsoParticlesFiller->SetMuonsFromBranch(kFALSE);
   boostedXsIsoParticlesFiller->SetElectronsName(eleIdMod->GetOutputName());
@@ -499,30 +499,6 @@ void runBavantiBoostedV_CHS
   //SkimMod<PFCandidate> *skmPFCandidates = new SkimMod<PFCandidate>;
   //skmPFCandidates->SetBranchName(Names::gkPFCandidatesBrn);
   //skmPFCandidates->SetPublishArray(kTRUE);
-
-  SkimMod<Photon> *skmPhotons = new SkimMod<Photon>;
-  skmPhotons->SetBranchName(photonCleaningMod->GetOutputName());
-  skmPhotons->SetColFromBranch(kFALSE);
-  skmPhotons->SetColMarkFilter(kFALSE);
-  skmPhotons->SetPublishArray(kTRUE);
-
-  SkimMod<Electron> *skmElectrons = new SkimMod<Electron>;
-  skmElectrons->SetBranchName(electronCleaning->GetOutputName());
-  skmElectrons->SetColFromBranch(kFALSE);
-  skmElectrons->SetColMarkFilter(kFALSE);
-  skmElectrons->SetPublishArray(kTRUE);
-
-  SkimMod<Muon> *skmMuons = new SkimMod<Muon>;
-  skmMuons->SetBranchName(muonIdLooseMod->GetOutputName());
-  skmMuons->SetColFromBranch(kFALSE);
-  skmMuons->SetColMarkFilter(kFALSE);
-  skmMuons->SetPublishArray(kTRUE);
-
-  SkimMod<PFTau> *skmTaus = new SkimMod<PFTau>;
-  skmTaus->SetBranchName(pftauCleaningMod->GetOutputName());
-  skmTaus->SetColFromBranch(kFALSE);
-  skmTaus->SetColMarkFilter(kFALSE);
-  skmTaus->SetPublishArray(kTRUE);
 
   SkimJetsMod *skmJets = new SkimJetsMod;
   skmJets->SetBranchName(jetCleaning->GetOutputName());
@@ -552,10 +528,6 @@ void runBavantiBoostedV_CHS
   outMod->Keep("PFMet");
   outMod->AddNewBranch("XlEvtSelData");
   //outMod->AddNewBranch(TString("Skm") + Names::gkPFCandidatesBrn);
-  outMod->AddNewBranch(TString("Skm") + photonCleaningMod->GetOutputName());
-  outMod->AddNewBranch(TString("Skm") + electronCleaning->GetOutputName());
-  outMod->AddNewBranch(TString("Skm") + muonIdLooseMod->GetOutputName());
-  outMod->AddNewBranch(TString("Skm") + pftauCleaningMod->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + jetCleaning->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + hltModP->GetOutputName());
   outMod->AddNewBranch("PFMetMVA");
@@ -594,11 +566,7 @@ void runBavantiBoostedV_CHS
   jetplusmet                 ->Add(extendedMetFiller);
   extendedMetFiller          ->Add(boostedJetsFiller);
   boostedJetsFiller          ->Add(boostedXsIsoParticlesFiller);
-  boostedXsIsoParticlesFiller->Add(skmPhotons);
-  skmPhotons                 ->Add(skmElectrons);
-  skmElectrons               ->Add(skmMuons);
-  skmMuons                   ->Add(skmTaus);
-  skmTaus                    ->Add(skmJets);
+  boostedXsIsoParticlesFiller->Add(skmJets);
   skmJets                    ->Add(skmTrigger);
   skmTrigger                 ->Add(outMod);
   

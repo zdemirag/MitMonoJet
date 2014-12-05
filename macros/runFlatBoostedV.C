@@ -21,10 +21,10 @@ TString getJsonFile(const char* dir);
 //--------------------------------------------------------------------------------------------------
 void runFlatBoostedV(const char *fileset    = "0000",
                      const char *skim       = "noskim",
-                     const char *dataset    = "s12-sch-v7a",     
+                     const char *dataset    = "s12-ttj-v1-v7a",     
                      const char *book       = "t2mit/filefi/032",
                      const char *catalogDir = "/home/cmsprod/catalog",
-                     const char *outputName = "boostedv-v8",
+                     const char *outputName = "boostedv",
                      int         nEvents    = -1)
 {
   //------------------------------------------------------------------------------------------------
@@ -114,12 +114,11 @@ void runFlatBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   DMSTreeWriter *treeWriter = new DMSTreeWriter();
   treeWriter->SetIsData(isData);
-  treeWriter->SetMetName("SkmPFMetT0T1Shift");
   treeWriter->SetMetMVAName("PFMetMVA");
-  treeWriter->SetPhotonsName("SkmCleanPhotons");
-  treeWriter->SetElectronsName("SkmCleanElectrons");
-  treeWriter->SetMuonsName("SkmHWWMuons");
-  treeWriter->SetTausName("SkmCleanPFTaus");
+  treeWriter->SetPhotonsName("XsPhotons");
+  treeWriter->SetElectronsName("XsElectrons");
+  treeWriter->SetMuonsName("XsMuons");
+  treeWriter->SetTausName("XsTaus");
   treeWriter->SetJetsName("SkmCleanJets");
   treeWriter->SetTriggerObjectsName("SkmHltObjsMonoJet");
   treeWriter->SetInPUHistoFileName(inputPUFile);
