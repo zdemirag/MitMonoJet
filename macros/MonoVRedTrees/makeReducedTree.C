@@ -111,8 +111,8 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
     fillOutNtuples(outTree,inTree,baseWeight,selMode,isData);
     
     // Close last group
-    //if (iSample == (listOfSamples.size()-1)) {
-    if (iSample == 2) {
+    if (iSample == (listOfSamples.size()-1)) {
+    //if (iSample == 2) {
       fout->cd();
       outTree.tree_->Write(); 
       fout->Close();
