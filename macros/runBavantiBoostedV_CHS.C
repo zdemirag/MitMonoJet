@@ -253,46 +253,40 @@ void runBavantiBoostedV_CHS
   eleIdMod->SetGoodElectronsName("GoodElectronsBS");
   eleIdMod->SetRhoType(RhoUtilities::CMS_RHO_RHOKT6PFJETS);
 
-  MuonIDMod* muonIdGammaGamma = new MuonIDMod;
-  // base kinematics
-  muonIdGammaGamma->SetPtMin(10.);
-  muonIdGammaGamma->SetEtaCut(2.4);
-  // base ID
-  muonIdGammaGamma->SetIDType("NoId");
-  muonIdGammaGamma->SetClassType("GlobalorTracker");
-  muonIdGammaGamma->SetWhichVertex(0); // this is a 'hack'.. but hopefully good enough...
-  muonIdGammaGamma->SetD0Cut(0.02);
-  muonIdGammaGamma->SetDZCut(0.5);
-  muonIdGammaGamma->SetIsoType("PFIsoBetaPUCorrected"); //h
-  muonIdGammaGamma->SetPFIsoCut(0.2); //h
-  muonIdGammaGamma->SetOutputName("HggLeptonTagMuons");
-  muonIdGammaGamma->SetPFNoPileUpName("pfnopileupcands");
-  muonIdGammaGamma->SetPFPileUpName("pfpileupcands");
-  muonIdGammaGamma->SetPVName(Names::gkPVBeamSpotBrn);
+  MuonIDMod *muonIdIsoMod = new MuonIDMod;
+  muonIdIsoMod->SetOutputName("HWWMuons");
+  muonIdIsoMod->SetIntRadius(0.0);
+  muonIdIsoMod->SetClassType("GlobalTracker");
+  muonIdIsoMod->SetIDType("WWMuIdV4");
+  muonIdIsoMod->SetIsoType("IsoRingsV0_BDTG_Iso");
+  muonIdIsoMod->SetApplyD0Cut(kTRUE);
+  muonIdIsoMod->SetD0Cut(0.02);
+  muonIdIsoMod->SetApplyDZCut(kTRUE);
+  muonIdIsoMod->SetDZCut(0.1);
+  muonIdIsoMod->SetWhichVertex(0);
+  muonIdIsoMod->SetRhoType(RhoUtilities::CMS_RHO_RHOKT6PFJETS);
+  muonIdIsoMod->SetPtMin(10.);
+  muonIdIsoMod->SetEtaCut(2.4);
 
-  MuonIDMod *muonIdWW = new MuonIDMod;
-  muonIdWW->SetOutputName("HWWMuons");
-  muonIdWW->SetIntRadius(0.0);
-  muonIdWW->SetClassType("GlobalTracker");
-  muonIdWW->SetIDType("WWMuIdV4");
-  muonIdWW->SetIsoType("IsoRingsV0_BDTG_Iso");
-  muonIdWW->SetApplyD0Cut(kTRUE);
-  muonIdWW->SetApplyDZCut(kTRUE);
-  muonIdWW->SetWhichVertex(0);
-  muonIdWW->SetRhoType(RhoUtilities::CMS_RHO_RHOKT6PFJETS);
-  muonIdWW->SetPtMin(10.);
-  muonIdWW->SetEtaCut(2.4);
-
-  MuonIDMod *muonId = muonIdWW;
-  //MuonIDMod *muonId = muonIdGammaGamma;
-
+  MuonIDMod *muonIdLooseMod = new MuonIDMod;
+  muonIdLooseMod->SetOutputName("POGMuons");
+  muonIdLooseMod->SetClassType("GlobalTracker");
+  muonIdLooseMod->SetIDType("NoId");
+  muonIdLooseMod->SetIsoType("NoIso");
+  muonIdLooseMod->SetApplyD0Cut(true);
+  muonIdLooseMod->SetD0Cut(0.2);
+  muonIdLooseMod->SetApplyDZCut(true);
+  muonIdLooseMod->SetDZCut(0.5);
+  muonIdLooseMod->SetPtMin(10.);
+  muonIdLooseMod->SetEtaCut(2.4);
+  
   ElectronCleaningMod *electronCleaning = new ElectronCleaningMod;
-  electronCleaning->SetCleanMuonsName(muonId->GetOutputName());
+  electronCleaning->SetCleanMuonsName(muonIdLooseMod->GetOutputName());
   electronCleaning->SetGoodElectronsName(eleIdMod->GetOutputName());
   electronCleaning->SetCleanElectronsName("CleanElectrons");
 
   MergeLeptonsMod *merger = new MergeLeptonsMod;
-  merger->SetMuonsName(muonId->GetOutputName());
+  merger->SetMuonsName(muonIdLooseMod->GetOutputName());
   merger->SetElectronsName(electronCleaning->GetOutputName());
   merger->SetMergedName("MergedLeptons");
 
@@ -324,7 +318,7 @@ void runBavantiBoostedV_CHS
   
   PFTauCleaningMod *pftauCleaningMod = new PFTauCleaningMod;
   pftauCleaningMod->SetGoodPFTausName(pftauIdMod->GetGoodPFTausName());
-  pftauCleaningMod->SetCleanMuonsName(muonId->GetOutputName());
+  pftauCleaningMod->SetCleanMuonsName(muonIdLooseMod->GetOutputName());
   pftauCleaningMod->SetCleanElectronsName(electronCleaning->GetOutputName());
 
   PublisherMod<PFJet,Jet> *pubJet = new PublisherMod<PFJet,Jet>("JetPub");
@@ -366,17 +360,6 @@ void runBavantiBoostedV_CHS
   fatJetCorr->SetInputName(pubFastJet->GetOutputJetsName());
   fatJetCorr->SetCorrectedName("CorrectedFatJets");    
         
-  MetCorrectionMod *metCorrT0T1Shift = new MetCorrectionMod;
-  metCorrT0T1Shift->SetInputName("PFMet");
-  metCorrT0T1Shift->SetJetsName(pubJet->GetOutputName());    
-  metCorrT0T1Shift->SetCorrectedJetsName(jetCorr->GetOutputName());    
-  metCorrT0T1Shift->SetCorrectedName("PFMetT0T1Shift");   
-  metCorrT0T1Shift->ApplyType0(kTRUE);   
-  metCorrT0T1Shift->ApplyType1(kTRUE);   
-  metCorrT0T1Shift->ApplyShift(kTRUE);   
-  metCorrT0T1Shift->IsData(isData);
-  metCorrT0T1Shift->SetPrint(kFALSE);
-
   JetIDMod *jetId = new JetIDMod;
   jetId->SetInputName(jetCorr->GetOutputName());
   jetId->SetPtCut(30.0);
@@ -398,17 +381,19 @@ void runBavantiBoostedV_CHS
 
   JetCleaningMod *jetCleaning = new JetCleaningMod;
   jetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());
-  jetCleaning->SetCleanMuonsName(muonId->GetOutputName());
+  jetCleaning->SetCleanMuonsName(muonIdIsoMod->GetOutputName());
   jetCleaning->SetCleanPhotonsName(photonCleaningMod->GetOutputName());
   jetCleaning->SetApplyPhotonRemoval(kTRUE);
+  jetCleaning->SetApplyTauRemoval(kFALSE);
   jetCleaning->SetGoodJetsName(jetId->GetOutputName());
   jetCleaning->SetCleanJetsName("CleanJets");
 
   JetCleaningMod *fatJetCleaning = new JetCleaningMod;
   fatJetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());
-  fatJetCleaning->SetCleanMuonsName(muonId->GetOutputName());
+  fatJetCleaning->SetCleanMuonsName(muonIdIsoMod->GetOutputName());
   fatJetCleaning->SetCleanPhotonsName(photonCleaningMod->GetOutputName());
   fatJetCleaning->SetApplyPhotonRemoval(kTRUE);
+  jetCleaning->SetApplyTauRemoval(kFALSE);  
   fatJetCleaning->SetGoodJetsName(fatJetId->GetOutputName());
   fatJetCleaning->SetCleanJetsName("CleanFatJets");
 
@@ -420,11 +405,10 @@ void runBavantiBoostedV_CHS
   fastPresel->SetJetsFromBranch(kFALSE);
   fastPresel->SetElectronsName(electronCleaning->GetOutputName());
   fastPresel->SetElectronsFromBranch(kFALSE);
-  fastPresel->SetMuonsName(muonId->GetOutputName());
+  fastPresel->SetMuonsName(muonIdLooseMod->GetOutputName());
   fastPresel->SetMuonsFromBranch(kFALSE);
   fastPresel->SetPhotonsName(photonCleaningMod->GetOutputName());
   fastPresel->SetPhotonsFromBranch(kFALSE);
-  fastPresel->SetLeptonsName(merger->GetOutputName());
   fastPresel->ApplyTopPresel(kTRUE); 
   fastPresel->ApplyWlepPresel(kTRUE);
   fastPresel->ApplyZlepPresel(kTRUE);
@@ -434,8 +418,8 @@ void runBavantiBoostedV_CHS
   fastPresel->ApplyFatJetPresel(kFALSE);
   // do not use fat jet for this block
   fastPresel->SetMinFatJetPt(10);
-  fastPresel->SetMinTagJetPt(100);
-  fastPresel->SetMinMet(200);    
+  fastPresel->SetMinTagJetPt(110);
+  fastPresel->SetMinMet(150);    
   fastPresel->SetMinPhotonPt(150);    
   fastPresel->FillAndPublishPresel(kFALSE);
 
@@ -449,11 +433,10 @@ void runBavantiBoostedV_CHS
   jetplusmet->SetJetsFromBranch(kFALSE);
   jetplusmet->SetElectronsName(electronCleaning->GetOutputName());
   jetplusmet->SetElectronsFromBranch(kFALSE);
-  jetplusmet->SetMuonsName(muonId->GetOutputName());
+  jetplusmet->SetMuonsName(muonIdLooseMod->GetOutputName());
   jetplusmet->SetMuonsFromBranch(kFALSE);
   jetplusmet->SetPhotonsName(photonCleaningMod->GetOutputName());
   jetplusmet->SetPhotonsFromBranch(kFALSE);
-  jetplusmet->SetLeptonsName(merger->GetOutputName());
   jetplusmet->ApplyTopPresel(kTRUE); 
   jetplusmet->ApplyWlepPresel(kTRUE);
   jetplusmet->ApplyZlepPresel(kTRUE);
@@ -461,8 +444,8 @@ void runBavantiBoostedV_CHS
   jetplusmet->ApplyVbfPresel(kTRUE);
   jetplusmet->ApplyGjetPresel(kTRUE);
   jetplusmet->SetMinFatJetPt(200);
-  jetplusmet->SetMinTagJetPt(100);
-  jetplusmet->SetMinMet(200);    
+  jetplusmet->SetMinTagJetPt(110);
+  jetplusmet->SetMinMet(150);    
   jetplusmet->SetMinPhotonPt(150);    
 
   //------------------------------------------------------------------------------------------------
@@ -473,7 +456,7 @@ void runBavantiBoostedV_CHS
   extendedMetFiller->SetJetsFromBranch(kFALSE);
   extendedMetFiller->SetJetsName(jetCorr->GetOutputName());
   extendedMetFiller->SetMuonsFromBranch(kFALSE);
-  extendedMetFiller->SetMuonsName(muonId->GetOutputName());
+  extendedMetFiller->SetMuonsName(muonIdLooseMod->GetOutputName());
   extendedMetFiller->SetElectronsFromBranch(kFALSE);
   extendedMetFiller->SetElectronsName(electronCleaning->GetOutputName());
   extendedMetFiller->SetTausFromBranch(kFALSE);
@@ -501,8 +484,8 @@ void runBavantiBoostedV_CHS
   boostedXsIsoParticlesFiller->FillXsElectrons(kFALSE);
   boostedXsIsoParticlesFiller->FillXsTaus(kFALSE);
   boostedXsIsoParticlesFiller->FillXsPhotons(kFALSE);
-  //boostedXsIsoParticlesFiller->SetMuonsName(XXX->GetOutputName());
-  //boostedXsIsoParticlesFiller->SetMuonsFromBranch(kFALSE);
+  boostedXsIsoParticlesFiller->SetMuonsName(muonIdLooseMod->GetOutputName());
+  boostedXsIsoParticlesFiller->SetMuonsFromBranch(kFALSE);
   boostedXsIsoParticlesFiller->SetElectronsName(eleIdMod->GetOutputName());
   boostedXsIsoParticlesFiller->SetElectronsFromBranch(kFALSE);
   boostedXsIsoParticlesFiller->SetTausName(pftauCleaningMod->GetOutputName());
@@ -530,7 +513,7 @@ void runBavantiBoostedV_CHS
   skmElectrons->SetPublishArray(kTRUE);
 
   SkimMod<Muon> *skmMuons = new SkimMod<Muon>;
-  skmMuons->SetBranchName(muonId->GetOutputName());
+  skmMuons->SetBranchName(muonIdLooseMod->GetOutputName());
   skmMuons->SetColFromBranch(kFALSE);
   skmMuons->SetColMarkFilter(kFALSE);
   skmMuons->SetPublishArray(kTRUE);
@@ -552,12 +535,6 @@ void runBavantiBoostedV_CHS
   skmTrigger->SetColFromBranch(kFALSE);
   skmTrigger->SetColMarkFilter(kFALSE);
   skmTrigger->SetPublishArray(kTRUE);
-
-  SkimMod<Met> *skmMetCorr = new SkimMod<Met>;
-  skmMetCorr->SetBranchName(metCorrT0T1Shift->GetOutputName());
-  skmMetCorr->SetColFromBranch(kFALSE);
-  skmMetCorr->SetColMarkFilter(kFALSE);
-  skmMetCorr->SetPublishArray(kTRUE);
     
   //------------------------------------------------------------------------------------------------
   // save all this in an output ntuple
@@ -577,11 +554,10 @@ void runBavantiBoostedV_CHS
   //outMod->AddNewBranch(TString("Skm") + Names::gkPFCandidatesBrn);
   outMod->AddNewBranch(TString("Skm") + photonCleaningMod->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + electronCleaning->GetOutputName());
-  outMod->AddNewBranch(TString("Skm") + muonId->GetOutputName());
+  outMod->AddNewBranch(TString("Skm") + muonIdLooseMod->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + pftauCleaningMod->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + jetCleaning->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + hltModP->GetOutputName());
-  outMod->AddNewBranch(TString("Skm") + metCorrT0T1Shift->GetOutputName());
   outMod->AddNewBranch("PFMetMVA");
   outMod->AddNewBranch("XlFatJets");
   outMod->AddNewBranch("XlSubJets");
@@ -596,8 +572,9 @@ void runBavantiBoostedV_CHS
   runLumiSel                 ->Add(goodPVFilterMod);
   goodPVFilterMod            ->Add(hltModP);
   hltModP                    ->Add(sepPuMod);
-  sepPuMod                   ->Add(muonId);
-  muonId                     ->Add(eleIdMod);
+  sepPuMod                   ->Add(muonIdIsoMod);
+  muonIdIsoMod               ->Add(muonIdLooseMod);
+  muonIdLooseMod             ->Add(eleIdMod);
   eleIdMod                   ->Add(electronCleaning);
   electronCleaning           ->Add(merger);
   merger                     ->Add(photonIdMod);
@@ -614,8 +591,7 @@ void runBavantiBoostedV_CHS
   fatJetCorr                 ->Add(fatJetId);
   fatJetId                   ->Add(fatJetCleaning);
   fatJetCleaning             ->Add(jetplusmet);
-  jetplusmet                 ->Add(metCorrT0T1Shift);
-  metCorrT0T1Shift           ->Add(extendedMetFiller);
+  jetplusmet                 ->Add(extendedMetFiller);
   extendedMetFiller          ->Add(boostedJetsFiller);
   boostedJetsFiller          ->Add(boostedXsIsoParticlesFiller);
   boostedXsIsoParticlesFiller->Add(skmPhotons);
@@ -624,8 +600,7 @@ void runBavantiBoostedV_CHS
   skmMuons                   ->Add(skmTaus);
   skmTaus                    ->Add(skmJets);
   skmJets                    ->Add(skmTrigger);
-  skmTrigger                 ->Add(skmMetCorr);
-  skmMetCorr                 ->Add(outMod);
+  skmTrigger                 ->Add(outMod);
   
   //------------------------------------------------------------------------------------------------
   // Say what we are doing

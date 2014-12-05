@@ -31,7 +31,7 @@ ClassImp(mithep::BoostedVAnalysisMod)
     fElectronsName         (Names::gkElectronBrn),
     fMuonsName             (Names::gkMuonBrn),
     fPhotonsName           (Names::gkPhotonBrn),
-    fLeptonsName           (ModNames::gkMergedLeptonsName),
+    fTriggerObjectsName    ("HltObjsMonoJet"),
     fMetFromBranch         (kTRUE),
     fFatJetsFromBranch     (kTRUE),
     fJetsFromBranch        (kTRUE),
@@ -119,8 +119,38 @@ void BoostedVAnalysisMod::Process()
   if (fApplyFatJetPresel)
     fFatJets = GetObjThisEvt<JetOArr>(fFatJetsName);
 
-  ParticleOArr *leptons = GetObjThisEvt<ParticleOArr>(fLeptonsName);
-  
+  // Setup HLT bits
+  Bool_t passSingleMuHLT = kFALSE;
+  Bool_t passMonoJetHLT = kFALSE;
+  Bool_t passVbfHLT = kFALSE;
+  Bool_t passGjetHLT = kFALSE;
+  fTrigObj = GetHLTObjects(fTriggerObjectsName);
+  if (! fTrigObj)
+    printf("BoostedVAnalysisMod::TriggerObjectCol not found\n");
+  else {
+    // Loop through the stored trigger objects and find corresponding trigger name
+    for (UInt_t i=0;i<fTrigObj->GetEntries();++i) {
+      const TriggerObject *to = fTrigObj->At(i);
+      TString trName = to->TrigName();
+      // Default Single muon
+      if (trName.Contains("HLT_IsoMu24") ||
+          trName.Contains("HLT_IsoMu17") ||
+          trName.Contains("HLT_IsoMu15"))
+        passSingleMuHLT = kTRUE;
+      // Default MonoJet
+      if (trName.Contains("MonoCentralPFJet80_PFMETnoMu") ||
+          trName.Contains("HLT_MET120_HBHENoiseCleaned_v"))
+        passMonoJetHLT = kTRUE;
+      // Default VBF
+      if (trName.Contains("HLT_DiPFJet40_PFMETnoMu65_MJJ800VBF_AllJets_v"))
+        passVbfHLT = kTRUE;
+      // Default Photon+jets
+      if (trName.Contains("HLT_Photon135") ||
+          trName.Contains("HLT_Photon150"))
+        passGjetHLT = kTRUE;
+    }
+  }
+ 
   // Initialize selection flags
   Bool_t passTopPresel = kFALSE;
   Bool_t passWlepPresel = kFALSE;
@@ -193,12 +223,12 @@ void BoostedVAnalysisMod::Process()
         nGoodLeptons++;
       }
     }
-    if (nGoodTagJets > 0 && nGoodBJets > 1 && nGoodFatJets > 0 && nGoodLeptons > 0)
+    if (passSingleMuHLT && nGoodTagJets > 0 && nGoodBJets > 1 && nGoodFatJets > 0 && nGoodLeptons > 0)
       passTopPresel = kTRUE;
   }
 
   if (fApplyWlepPresel) {
-    // W Preselection: require high pt jet + lepton + MET
+    // W Preselection: require high pt jet + muon
     int nGoodTagJets = 0;
     int nGoodLeptons = 0;
 
@@ -212,28 +242,22 @@ void BoostedVAnalysisMod::Process()
     }
 
     // Leptons
-    if (leptons->GetEntries() > 0) {
-      for (UInt_t i = 0; i < leptons->GetEntries(); ++i) {
-        const Particle *lep = leptons->At(i);
+    if (fMuons->GetEntries() > 0) {
+      for (UInt_t i = 0; i < fMuons->GetEntries(); ++i) {
+        const Particle *lep = fMuons->At(i);
         // Pt cut
-        if (lep->Pt() < 10.)
+        if (lep->Pt() < 15.)
           continue;
         nGoodLeptons++;
       }
     }
-    
-    // Corrected MET
-    float corrMetPt, corrMetPhi;
-    if (leptons->GetEntries() > 0)
-      CorrectMet(fMet->At(0)->Pt(), fMet->At(0)->Phi(),leptons->At(0),0,
-                 corrMetPt,corrMetPhi);
-        
-    if (nGoodTagJets > 0 && nGoodLeptons > 0 && corrMetPt > fMinMet)
+            
+    if (passMonoJetHLT && nGoodTagJets > 0 && nGoodLeptons > 0)
       passWlepPresel = kTRUE;
   }
 
   if (fApplyZlepPresel) {
-    // Z Preselection: require high pt jet + di-leptons
+    // Z Preselection: require high pt jet + di-muons
     int nGoodTagJets = 0;
     int nGoodLeptons = 0;
 
@@ -247,23 +271,17 @@ void BoostedVAnalysisMod::Process()
     }
 
     // Leptons
-    if (leptons->GetEntries() > 0) {
-      for (UInt_t i = 0; i < leptons->GetEntries(); ++i) {
-        const Particle *lep = leptons->At(i);
+    if (fMuons->GetEntries() > 0) {
+      for (UInt_t i = 0; i < fMuons->GetEntries(); ++i) {
+        const Particle *lep = fMuons->At(i);
         // Pt cut
         if (lep->Pt() < 10.)
           continue;
         nGoodLeptons++;
       }
     }
-    
-    // Corrected MET
-    float corrMetPt, corrMetPhi;
-    if (leptons->GetEntries() > 1)
-      CorrectMet(fMet->At(0)->Pt(), fMet->At(0)->Phi(),leptons->At(0),leptons->At(1),
-                 corrMetPt,corrMetPhi);
-        
-    if (nGoodTagJets > 0 && nGoodLeptons > 1 && corrMetPt > fMinMet)
+            
+    if (passMonoJetHLT && nGoodTagJets > 0 && nGoodLeptons > 1)
       passZlepPresel = kTRUE;
   }
 
@@ -280,7 +298,7 @@ void BoostedVAnalysisMod::Process()
       nGoodTagJets++;
     }
         
-    if (nGoodTagJets > 0 && fMet->At(0)->Pt() > fMinMet)
+    if (passMonoJetHLT && nGoodTagJets > 0 && fMet->At(0)->Pt() > fMinMet)
       passMetPresel = kTRUE;
   }
 
@@ -321,7 +339,7 @@ void BoostedVAnalysisMod::Process()
     else 
       METnoMuPt = fMet->At(0)->Pt();                      
         
-    if (nGoodVbfPairs > 0 && METnoMuPt > fMinVbfMet)
+    if (passVbfHLT && nGoodVbfPairs > 0 && METnoMuPt > fMinVbfMet)
       passVbfPresel = kTRUE;
   }
 
@@ -352,7 +370,7 @@ void BoostedVAnalysisMod::Process()
         nGoodPhotons++;
       }
     }
-    if (nGoodFatJets > 0 && nGoodPhotons > 0)
+    if (passGjetHLT && nGoodFatJets > 0 && nGoodPhotons > 0)
       passGjetPresel = kTRUE;
   }
 
