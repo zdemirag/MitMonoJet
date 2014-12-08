@@ -48,10 +48,11 @@ void runBavantiBoostedV_Synch
                        (const char *fileset    = "0000",
                         const char *skim       = "noskim",
                         const char *dataset    = "s12-ttj-sl-v1-v7c",     
+                        //const char *dataset    = "GJets_HT-400ToInf_8TeV-madgraph+Summer12_DR53X-PU_S10_START53_V7A-v1+AODSIM",                        
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 10)
+                        int         nEvents    = 20)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -462,6 +463,8 @@ void runBavantiBoostedV_Synch
   boostedXsIsoParticlesFiller->FillXsPhotons(kTRUE);
   boostedXsIsoParticlesFiller->SetMuonsName(muonIdLooseMod->GetOutputName());
   boostedXsIsoParticlesFiller->SetMuonsFromBranch(kFALSE);
+  boostedXsIsoParticlesFiller->SetIsoMuonsName(muonIdIsoMod->GetOutputName());
+  boostedXsIsoParticlesFiller->SetIsoMuonsFromBranch(kFALSE);
   boostedXsIsoParticlesFiller->SetElectronsName(eleIdMod->GetOutputName());
   boostedXsIsoParticlesFiller->SetElectronsFromBranch(kFALSE);
   boostedXsIsoParticlesFiller->SetTausName(pftauCleaningMod->GetOutputName());

@@ -7,8 +7,6 @@
 #include "MitCommon/DataFormats/interface/Types.h"
 #include "MitCommon/MathTools/interface/MathUtils.h"
 
-#include "MitPhysics/Utils/interface/IsolationTools.h"
-
 using namespace mithep;
 
 ClassImp(mithep::FillerXsIsoParticles)
@@ -25,6 +23,9 @@ FillerXsIsoParticles::FillerXsIsoParticles(const char *name, const char *title) 
   fMuonsName (Names::gkMuonBrn),
   fMuonsFromBranch (kTRUE),
   fMuons (0),
+  fIsoMuonsName (Names::gkMuonBrn),
+  fIsoMuonsFromBranch (kTRUE),
+  fIsoMuons (0),
   fElectronsName (Names::gkElectronBrn),
   fElectronsFromBranch (kTRUE),
   fElectrons (0),
@@ -34,10 +35,6 @@ FillerXsIsoParticles::FillerXsIsoParticles(const char *name, const char *title) 
   fPhotonsName (Names::gkPhotonBrn),
   fPhotonsFromBranch (kTRUE),
   fPhotons (0),  
-  fPfPuCandsName ("pfpileupcands"),
-  fPfPuCands (0),
-  fPfNoPuCandsName ("pfnopileupcands"),
-  fPfNoPuCands (0),
   fXsMuonsName ("XsMuons"),
   fXsElectronsName ("XsElectrons"),
   fXsTausName ("XsTaus"),
@@ -71,8 +68,7 @@ void FillerXsIsoParticles::Process()
   // Load the branches we want to work with
   if (fFillXsMuons) {
     LoadEventObject(fMuonsName,fMuons,fMuonsFromBranch);
-    LoadEventObject(fPfPuCandsName,fPfPuCands,false);
-    LoadEventObject(fPfNoPuCandsName,fPfNoPuCands,false);
+    LoadEventObject(fIsoMuonsName,fIsoMuons,fIsoMuonsFromBranch);
   }
   if (fFillXsElectrons) 
     LoadEventObject(fElectronsName,fElectrons,fElectronsFromBranch);
@@ -87,9 +83,9 @@ void FillerXsIsoParticles::Process()
       const Particle *muon = dynamic_cast<const Particle*>(fMuons->At(i));
       // Determine if the muon is passing tight selections
       Bool_t isTight = IsTightMuon(fMuons->At(i));
-      double muonIso = IsolationTools::BetaMwithPUCorrection(fPfNoPuCands, fPfPuCands, fMuons->At(i), 0.4);
-      Bool_t isIso = muonIso < (muon->Pt()*0.2);
-            
+      // Determine if the muon is passing isolation requirements
+      Bool_t isIso = IsIsoMuon(fMuons->At(i));
+      
       // Fill the XsMuons collection with the reduced muon object
       FillXsIsoParticle(fXsMuons,muon,isTight,isIso);            
    }
@@ -137,8 +133,7 @@ void FillerXsIsoParticles::SlaveBegin()
   // Run startup code on the computer (slave) doing the actual analysis. 
   if (fFillXsMuons) {
     ReqEventObject(fMuonsName,fMuons,fMuonsFromBranch);
-    ReqEventObject(fPfPuCandsName,fPfPuCands,false);
-    ReqEventObject(fPfNoPuCandsName,fPfNoPuCands,false);
+    ReqEventObject(fIsoMuonsName,fIsoMuons,fIsoMuonsFromBranch);
   }
   if (fFillXsElectrons) 
     ReqEventObject(fElectronsName,fElectrons,fElectronsFromBranch);
@@ -218,4 +213,26 @@ Bool_t FillerXsIsoParticles::IsTightMuon(const Muon *muon)
   (muon->NSegments() > 1 || muon->NMatches() > 1) && muon->BestTrk()->NPixelHits() > 0 );
   
   return theDecision;
+}
+
+//--------------------------------------------------------------------------------------------------
+Bool_t FillerXsIsoParticles::IsIsoMuon(const Muon *muon)
+{
+  float minDr = 999.;
+  float deltaR = 0.01;
+
+  // Loop on the isolated muon collection 
+  // and find a matched object. Matching radius is 0.01
+  for (UInt_t i=0; i<fIsoMuons->GetEntries(); ++i) {
+    const Muon *isomuon = fIsoMuons->At(i);
+    // compute the dR
+    float thisDr = MathUtils::DeltaR(*muon, *isomuon);
+    if (thisDr < minDr) 
+      minDr = thisDr;
+    // check if user match condition is met
+    if (minDr < deltaR)
+      return true;
+  } // end loop on trigger objects
+
+  return false;
 }
