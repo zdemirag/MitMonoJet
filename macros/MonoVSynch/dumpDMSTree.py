@@ -20,6 +20,9 @@ def printMetInfo(tree):
 
 # Print FatJet information
 def printFatJetInfo(tree):
+  # Num jets
+  print '{0:10s}: {1:10d}'\
+  .format('nFatJets',tree.nfjets) 
   # First Jet
   print '{0:10s}: {1:10.4f} | {2:10s}: {3:10.4f} | {4:10s}: {5:10.4f}'\
   .format('FJet1Pt',tree.fjet1.Pt(),'FJet1Eta',tree.fjet1.Eta(),'FJet1Btag',tree.fjet1Btag) 
@@ -31,6 +34,9 @@ def printFatJetInfo(tree):
 
 # Print Jet information
 def printJetInfo(tree):
+  # Num jets
+  print '{0:10s}: {1:10d}'\
+  .format('nJets',tree.njets) 
   # First Jet
   print '{0:10s}: {1:10.4f} | {2:10s}: {3:10.4f}'\
   .format('Jet1Pt',tree.jet1.Pt(),'Jet1Eta',tree.jet1.Eta()) 
@@ -46,6 +52,9 @@ def printJetInfo(tree):
 
 # Print BJet information
 def printBJetInfo(tree):
+  # Num b-jets
+  print '{0:10s}: {1:10d}'\
+  .format('nBJets',tree.nbjets) 
   # First BJet
   print '{0:10s}: {1:10.4f} | {2:10s}: {3:10.4f} | {4:10s}: {5:10.4f}'\
   .format('BJet1Pt',tree.bjet1.Pt(),'BJet1Eta',tree.bjet1.Eta(),'BJet1Btag',tree.bjet1Btag) 
@@ -53,17 +62,6 @@ def printBJetInfo(tree):
   # Second BJet
   print '{0:10s}: {1:10.4f} | {2:10s}: {3:10.4f} | {4:10s}: {5:10.4f}'\
   .format('BJet2Pt',tree.bjet2.Pt(),'BJet2Eta',tree.bjet2.Eta(),'BJet2Btag',tree.bjet2Btag) 
-  return
-
-# Print Lepton information
-def printLepInfo(tree):
-  # First Lepton
-  print '{0:10s}: {1:10.4f} | {2:10s}: {3:10.4f} | {4:10s}: {5:10d}'\
-  .format('Lep1Pt',tree.lep1.Pt(),'Lep1Eta',tree.lep1.Eta(),'Lep1Id',tree.lid1) 
-
-  # Second Lepton
-  print '{0:10s}: {1:10.4f} | {2:10s}: {3:10.4f} | {4:10s}: {5:10d}'\
-  .format('Lep1Pt',tree.lep2.Pt(),'Lep1Eta',tree.lep2.Eta(),'Lep1Id',tree.lid2) 
   return
 
 # Print Sub information
@@ -95,6 +93,40 @@ def printSubInfo(tree):
   print '{0:10s}: {1:10.4f} | {2:10s}: {3:10.4f} | {4:10s}: {5:10.4f} | {6:10s}: {7:10.4f}'\
   .format('PtSub1',tree.fjet1sj1.Pt(),'EtaSub1',tree.fjet1sj1.Eta(),'PtSub2',tree.fjet1sj2.Pt(),'EtaSub2',tree.fjet1sj2.Eta()) 
 
+  return
+
+# Print Lepton information
+def printLepInfo(tree):
+  # Num leptons
+  print '{0:10s}: {1:10d}'\
+  .format('nLeptons',tree.nlep) 
+  # First Lepton
+  print '{0:10s}: {1:10.4f} | {2:10s}: {3:10.4f} | {4:10s}: {5:10d}'\
+  .format('Lep1Pt',tree.lep1.Pt(),'Lep1Eta',tree.lep1.Eta(),'Lep1Id',tree.lid1) 
+
+  # Second Lepton
+  print '{0:10s}: {1:10.4f} | {2:10s}: {3:10.4f} | {4:10s}: {5:10d}'\
+  .format('Lep2Pt',tree.lep2.Pt(),'Lep2Eta',tree.lep2.Eta(),'Lep2Id',tree.lid2) 
+  return
+
+# Print Photon information
+def printPhoInfo(tree):
+  # Num photons
+  print '{0:10s}: {1:10d}'\
+  .format('nPhotons',tree.nphotons) 
+  # Photon
+  print '{0:10s}: {1:10.4f} | {2:10s}: {3:10.4f}'\
+  .format('Pho1Pt',tree.pho1.Pt(),'Pho1Eta',tree.pho1.Eta()) 
+  return
+
+# Print Taus information
+def printTauInfo(tree):
+  # Num taus
+  print '{0:10s}: {1:10d}'\
+  .format('nTaus',tree.ntaus) 
+  # Tau Lepton
+  print '{0:10s}: {1:10.4f} | {2:10s}: {3:10.4f}'\
+  .format('Tau1Pt',tree.tau1.Pt(),'Tau1Eta',tree.tau1.Eta()) 
   return
 
 # - M A I N ----------------------------------------------------------------------------------------
@@ -166,13 +198,21 @@ for ientry in range(0,n_entries):
   print '\n'
   printBJetInfo(input_tree)
 
+  # Print Substructure information
+  print '\n'
+  printSubInfo(input_tree)
+
   # Print Lepton information
   print '\n'
   printLepInfo(input_tree)
 
-  # Print Substructure information
+  # Print Photon information
   print '\n'
-  printSubInfo(input_tree)
+  printPhoInfo(input_tree)
+
+  # Print Tau information
+  print '\n'
+  printTauInfo(input_tree)
 
   print '\n'
 
