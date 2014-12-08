@@ -13,6 +13,7 @@
 #include "MitPhysics/Init/interface/ModNames.h"
 #include "MitPhysics/Utils/interface/MuonTools.h"
 #include "MitMonoJet/DataTree/interface/XlFatJet.h"
+#include "MitMonoJet/DataTree/interface/XsIsoParticle.h"
 
 #include "MitMonoJet/Mods/interface/DMSTreeWriter.h"
 

@@ -64,6 +64,9 @@ namespace mithep
     // decide whether to to fill and publish the preseleciton word or not
     void                  FillAndPublishPresel     (Bool_t b)      { fFillAndPublishPresel = b;   }
 
+    // decide whether to skip events or not if they fail preselection criteria
+    void                  SkipEvents               (Bool_t b)      { fSkipEvents = b;             }
+
     // Setting cut values
     void                  SetMinFatJetPt           (Double_t x)    { fMinFatJetPt = x;            }
     void                  SetMinTagJetPt           (Double_t x)    { fMinTagJetPt = x;            }
@@ -114,8 +117,10 @@ namespace mithep
     Bool_t                fApplyVbfPresel; 
     Bool_t                fApplyGjetPresel; 
     Bool_t                fApplyFatJetPresel;
-    // logical whether to  to to fill and publish the preseleciton word or not
+    // logical whether to fill and publish the preseleciton word or not
     Bool_t                fFillAndPublishPresel; 
+    // logical whether to skip events if they fail preselection criteria
+    Bool_t                fSkipEvents;
     // hooks to the collections
     const PFMetCol       *fMet;
     const JetCol         *fFatJets; 
@@ -138,7 +143,7 @@ namespace mithep
     Long64_t              fAll;
     Long64_t              fPass;
         
-    ClassDef(BoostedVAnalysisMod,2) // MonJet Selection Module
+    ClassDef(BoostedVAnalysisMod,3) // MonJet Selection Module
   };
 }
 #endif

@@ -103,6 +103,7 @@ void FillerXlMet::SlaveBegin()
   ReqEventObject(fMuonsName, fMuons, fMuonsFromBranch);
   ReqEventObject(fElectronsName, fElectrons, fElectronsFromBranch);
   ReqEventObject(fTausName, fPFTaus, fTausFromBranch);
+  ReqEventObject(fPhotonsName, fPhotons, fPhotonsFromBranch);
   ReqEventObject(fPFCandidatesName,  fPFCandidates,  fPFCandidatesFromBranch);
   ReqEventObject(fPVName, fPV, fPVFromBranch);
   ReqEventObject(fRawMetName, fRawMet, true);

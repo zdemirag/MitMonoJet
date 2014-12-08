@@ -46,7 +46,9 @@ ClassImp(mithep::BoostedVAnalysisMod)
     fApplyVbfPresel        (kTRUE),
     fApplyGjetPresel       (kTRUE),
     fApplyFatJetPresel     (kTRUE),
+    // define other flags
     fFillAndPublishPresel  (kTRUE),
+    fSkipEvents            (kTRUE),
     // collections
     fMet                   (0),
     fJets                  (0),
@@ -376,7 +378,8 @@ void BoostedVAnalysisMod::Process()
 
   // Skip event if it does not pass any preselection
   if (!passTopPresel && !passWlepPresel && !passZlepPresel 
-   && !passMetPresel && !passVbfPresel  && !passGjetPresel) {
+   && !passMetPresel && !passVbfPresel  && !passGjetPresel
+   && fSkipEvents) {
     this->SkipEvent(); 
     return;
   }

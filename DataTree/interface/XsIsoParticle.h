@@ -52,6 +52,7 @@ namespace mithep
       void                  SetGammaIso(Double_t t)               { fGammaIso        = t;      }
       void                  SetParticleId(EParticleId t)          { fParticleId      = t;      } 
       void                  SetMom(Double_t px, Double_t py, Double_t pz, Double_t e);
+      void                  SetMom(const Vect4M & mom)            { fMom             = mom;    }
  
       // Some structural tools
       void                  Mark(UInt_t i=1)                const;
@@ -67,7 +68,7 @@ namespace mithep
       Double32_t            fGammaIso;     //PF Photon isolation
       EParticleId           fParticleId;   //Iso particle id flag
 
-    ClassDef(XsIsoParticle, 0) // XsIsoParticle class
+    ClassDef(XsIsoParticle, 1) // XsIsoParticle class
   };
 }
 

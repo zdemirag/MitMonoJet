@@ -92,7 +92,7 @@ void FillerXsIsoParticles::Process()
             
       // Fill the XsMuons collection with the reduced muon object
       FillXsIsoParticle(fXsMuons,muon,isTight,isIso);            
-    }
+   }
 
   // Electrons block
   if (fFillXsElectrons)
@@ -173,7 +173,11 @@ void FillerXsIsoParticles::FillXsIsoParticle(XsIsoParticleArr *pXsArr, const Par
 {
   // Prepare and store in an array a new XsIsoParticle 
   XsIsoParticle *thisXsIsoParticle = pXsArr->Allocate();
-  new (thisXsIsoParticle) XsIsoParticle(*pParticle);
+  new (thisXsIsoParticle) XsIsoParticle();
+
+  // Determine basic particle proprieties
+  thisXsIsoParticle->SetMom(pParticle->Mom());
+  thisXsIsoParticle->SetCharge(pParticle->Charge());
     
   return;
 }
@@ -184,8 +188,12 @@ void FillerXsIsoParticles::FillXsIsoParticle(XsIsoParticleArr *pXsArr, const Par
 {
   // Prepare and store in an array a new XsIsoParticle 
   XsIsoParticle *thisXsIsoParticle = pXsArr->Allocate();
-  new (thisXsIsoParticle) XsIsoParticle(*pParticle);
+  new (thisXsIsoParticle) XsIsoParticle();
   
+  // Determine basic particle proprieties
+  thisXsIsoParticle->SetMom(pParticle->Mom());
+  thisXsIsoParticle->SetCharge(pParticle->Charge());
+    
   // Determine particle quality
   if (isTight) {
     if (isIso)
