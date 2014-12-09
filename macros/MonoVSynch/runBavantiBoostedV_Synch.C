@@ -47,12 +47,12 @@ TString getJsonFile(const char* dir);
 void runBavantiBoostedV_Synch
                        (const char *fileset    = "0000",
                         const char *skim       = "noskim",
-                        const char *dataset    = "s12-ttj-sl-v1-v7c",     
-                        //const char *dataset    = "GJets_HT-400ToInf_8TeV-madgraph+Summer12_DR53X-PU_S10_START53_V7A-v1+AODSIM",                        
+                        //const char *dataset    = "s12-ttj-sl-v1-v7c",     
+                        const char *dataset    = "GJets_HT-400ToInf_8TeV-madgraph+Summer12_DR53X-PU_S10_START53_V7A-v1+AODSIM",                        
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 20)
+                        int         nEvents    = 10)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -378,8 +378,8 @@ void runBavantiBoostedV_Synch
   fatJetId->SetJetEEMFractionMinCut(0.00);
   fatJetId->SetOutputName("GoodFatJets");
   fatJetId->SetApplyBetaCut(kFALSE);
-  fatJetId->SetApplyMVACut(kTRUE);
-  fatJetId->SetApplyMVACHS(kTRUE);
+  fatJetId->SetApplyMVACut(kFALSE);
+  fatJetId->SetApplyMVACHS(kFALSE);
 
   JetCleaningMod *jetCleaning = new JetCleaningMod;
   jetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());

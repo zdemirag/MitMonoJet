@@ -376,8 +376,8 @@ void runBavantiBoostedV_CHS
   fatJetId->SetJetEEMFractionMinCut(0.00);
   fatJetId->SetOutputName("GoodFatJets");
   fatJetId->SetApplyBetaCut(kFALSE);
-  fatJetId->SetApplyMVACut(kTRUE);
-  fatJetId->SetApplyMVACHS(kTRUE);
+  fatJetId->SetApplyMVACut(kFALSE);
+  fatJetId->SetApplyMVACHS(kFALSE);
 
   JetCleaningMod *jetCleaning = new JetCleaningMod;
   jetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());
