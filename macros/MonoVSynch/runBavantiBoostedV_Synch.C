@@ -316,7 +316,7 @@ void runBavantiBoostedV_Synch
   pftauIdMod->SetPFTausName("HPSTaus");
   pftauIdMod->SetIsLooseId(kTRUE);
   pftauIdMod->SetIsHPSSel(kTRUE); // to get >= 5_3_14 samples running
-  pftauIdMod->SetPtMin(10); // to loosen the WP
+  pftauIdMod->SetPtMin(15); // to loosen the WP
   
   PFTauCleaningMod *pftauCleaningMod = new PFTauCleaningMod;
   pftauCleaningMod->SetGoodPFTausName(pftauIdMod->GetGoodPFTausName());
@@ -431,7 +431,7 @@ void runBavantiBoostedV_Synch
   FillerXlMet *extendedMetFiller = new FillerXlMet();
   extendedMetFiller->SetIsData(isData);
   extendedMetFiller->SetJetsFromBranch(kFALSE);
-  extendedMetFiller->SetJetsName(jetCorr->GetOutputName());
+  extendedMetFiller->SetJetsName(pubJet->GetOutputName());
   extendedMetFiller->SetMuonsFromBranch(kTRUE);
   //extendedMetFiller->SetMuonsName(muonIdLooseMod->GetOutputName());
   extendedMetFiller->SetElectronsFromBranch(kTRUE);
