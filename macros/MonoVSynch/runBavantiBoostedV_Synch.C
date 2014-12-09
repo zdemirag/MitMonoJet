@@ -296,13 +296,13 @@ void runBavantiBoostedV_Synch
   // Photon Egamma Medium ID
   //-----------------------------------
   PhotonIDMod *photonIdMod = new PhotonIDMod;
-  photonIdMod->SetPtMin(15.0);
+  photonIdMod->SetPtMin(10.0);
   photonIdMod->SetOutputName("GoodPhotons");
   photonIdMod->SetIDType("EgammaMedium");
   photonIdMod->SetIsoType("NoIso");
   photonIdMod->SetApplyElectronVeto(kTRUE);
   photonIdMod->SetApplyPixelSeed(kFALSE);
-  photonIdMod->SetApplyConversionId(kTRUE);
+  photonIdMod->SetApplyConversionId(kFALSE);
   photonIdMod->SetApplyFiduciality(kTRUE);
   photonIdMod->SetIsData(isData);
   photonIdMod->SetPhotonsFromBranch(kTRUE);
