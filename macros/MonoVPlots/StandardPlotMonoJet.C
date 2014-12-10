@@ -106,12 +106,13 @@ void DrawLegend(Float_t x1,
 class StandardPlot {
 
     public: 
-        StandardPlot() { _hist.resize(nSamples,0); _isBlinded = false; _data = 0; _breakdown = false; _mass = 0;_isHWWOverlaid = false; _nsel = 0;}
+        StandardPlot() { _hist.resize(nSamples,0); _isBlinded = false; _data = 0; _breakdown = false; _mass = 0;_isHWWOverlaid = false; _nsel = 0; _isVarBins = false;}
         void setBlinded  (bool b)                   { _isBlinded       = b;} 
         void setMCHist   (const samp &s, TH1D * h)  { _hist[s]       = h;  } 
         void setDataHist  (TH1D * h)                { _data          = h;  } 
         void setHWWOverlaid(bool b)                 { _isHWWOverlaid = b;  }
         void setNsel  (Int_t x)                     { _nsel          = x;  } 
+        void setVarBins  (bool b)                   { _isVarBins     = b;  } 
  
         TH1D* getDataHist() { return _data; }
 
@@ -236,6 +237,7 @@ class StandardPlot {
 
             if(_data && _data->GetSumOfWeights() > 0 && !(_isBlinded)) {
 	      bool plotCorrectErrorBars = true;
+          if (_isVarBins) plotCorrectErrorBars = false;
 	      if(plotCorrectErrorBars == true) {
   		TGraphAsymmErrors * g = new TGraphAsymmErrors(_data);
   		for (int i = 0; i < g->GetN(); ++i) {
@@ -273,8 +275,14 @@ class StandardPlot {
             }
 
             if (gPad->GetLogy()) {
-            	hstack->SetMaximum(300 * theMax);
-            	hstack->SetMinimum(TMath::Max(0.9 * theMin,0.50));
+                float maxFactor = 300;
+                float minLimit = 0.5;
+                if (_isVarBins) {
+                  maxFactor = 30;
+                  minLimit = 0.005;
+                }
+            	hstack->SetMaximum(maxFactor * theMax);
+            	hstack->SetMinimum(TMath::Max(0.9 * theMin,minLimit));
             } else {
               hstack->SetMaximum(1.55 * theMax);
             }
@@ -355,5 +363,6 @@ class StandardPlot {
         int      _mass;
         int      _nsel;
         bool    _isHWWOverlaid;
+        bool    _isVarBins;
 
 };

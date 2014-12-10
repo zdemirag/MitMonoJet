@@ -12,7 +12,7 @@ using namespace std;
 using namespace mithep;
 
 //==================================================================================================
-void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw", int icut = 0, int nBins = 60, float min = 200, float max = 800)
+void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw", int icut = 0, int nBins = 60, float min = 200, float max = 800, bool varbins = false)
 {
   // Create raw plots for further analysis (limits) or plotting
 
@@ -124,7 +124,10 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
  
   PlotTask *plotTask = 0;
   
-  
+
+  // Prepare variable binning for met and jet pt
+  double metbins[] = { 250.0, 260.0, 270.0, 280.0, 290.0, 300.0, 310.0, 
+                       320.0, 330.0, 350.0, 380.0, 430.0, 500.0, 1000.0 };
 
   // For variable binning
   if (mode == -1) {
@@ -132,10 +135,8 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     // plot metRaw, BDT loose
     plotTask = new PlotTask(0,lumi);
     plotTask->SetVarBins(true);
-    double bins[] = { 250.0, 260.0, 270.0, 280.0, 290.0, 300.0, 310.0, 
-                      320.0, 330.0, 350.0, 380.0, 430.0, 500.0, 1000.0 };
-    plotTask->SetHistRanges(bins,min,max,0.,0.);
-    int nBins = sizeof(bins)/sizeof(double) - 1;
+    plotTask->SetHistRanges(metbins,min,max,0.,0.);
+    int nBins = sizeof(metbins)/sizeof(double) - 1;
     plotTask->SetNBins(nBins);
     plotTask->SetAxisTitles("E_{T}^{miss} [GeV]","Number of Events");
     plotTask->SetPngFileName("/tmp/dummy.png");
@@ -171,7 +172,14 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     gSystem->Setenv("MIT_ANA_CFG","boostedv-plots");
     // plot metRaw
     plotTask = new PlotTask(0,lumi);
-    plotTask->SetHistRanges(min,max,0.,0.);
+    plotTask->SetVarBins(varbins);
+    plotTask->SetNormToWidth(varbins);
+    if (!varbins)
+      plotTask->SetHistRanges(min,max,0.,0.);
+    else {
+      plotTask->SetHistRanges(metbins,min,max,0.,0.);
+      nBins = sizeof(metbins)/sizeof(double) - 1;
+    }
     plotTask->SetNBins(nBins);
     plotTask->SetAxisTitles(variable,"Number of Events");
     plotTask->SetPngFileName("/tmp/dummy.png");
@@ -184,7 +192,14 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     gSystem->Setenv("MIT_ANA_CFG","boostedv-plots-z");
     // plot met corrected
     plotTask = new PlotTask(0,lumi);
-    plotTask->SetHistRanges(min,max,0.,0.);
+    plotTask->SetVarBins(varbins);
+    plotTask->SetNormToWidth(varbins);
+    if (!varbins)
+      plotTask->SetHistRanges(min,max,0.,0.);
+    else {
+      plotTask->SetHistRanges(metbins,min,max,0.,0.);
+      nBins = sizeof(metbins)/sizeof(double) - 1;
+    }
     plotTask->SetNBins(nBins);
     plotTask->SetAxisTitles(variable,"Number of Events");
     plotTask->SetPngFileName("/tmp/dummy.png");
@@ -200,7 +215,14 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     gSystem->Setenv("MIT_ANA_CFG","boostedv-plots-w");
     // plot met corrected
     plotTask = new PlotTask(0,lumi);
-    plotTask->SetHistRanges(min,max,0.,0.);
+    plotTask->SetVarBins(varbins);
+    plotTask->SetNormToWidth(varbins);
+    if (!varbins)
+      plotTask->SetHistRanges(min,max,0.,0.);
+    else {
+      plotTask->SetHistRanges(metbins,min,max,0.,0.);
+      nBins = sizeof(metbins)/sizeof(double) - 1;
+    }
     plotTask->SetNBins(nBins);
     plotTask->SetAxisTitles(variable,"Number of Events");
     plotTask->SetPngFileName("/tmp/dummy.png");
@@ -216,7 +238,14 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     gSystem->Setenv("MIT_ANA_CFG","boostedv-plots-pj");
     // plot met corrected
     plotTask = new PlotTask(0,lumi);
-    plotTask->SetHistRanges(min,max,0.,0.);
+    plotTask->SetVarBins(varbins);
+    plotTask->SetNormToWidth(varbins);
+    if (!varbins)
+      plotTask->SetHistRanges(min,max,0.,0.);
+    else {
+      plotTask->SetHistRanges(metbins,min,max,0.,0.);
+      nBins = sizeof(metbins)/sizeof(double) - 1;
+    }
     plotTask->SetNBins(nBins);
     plotTask->SetAxisTitles(variable,"Number of Events");
     plotTask->SetPngFileName("/tmp/dummy.png");
