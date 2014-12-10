@@ -61,7 +61,8 @@ void atributes(TH1D *histo, TString xtitle = "", TString ytitle = "Fraction", TS
 
 void finalPlotMonoJet(int nsel = 0, int ReBin = 1, TString XTitle = "N_{jets}", TString units = "", 
                       TString plotName = "BDT_loose_metRaw.root", TString outputName = "njets",
-                      bool isLogY = false, double lumi = 19.7, bool isBlinded = true, bool scaleToData = false) {
+                      bool isLogY = false, double lumi = 19.7, bool isBlinded = true, bool scaleToData = false,
+                      bool isVarBins = false) {
 
   gInterpreter->ExecuteMacro("GoodStyle.C");
   gStyle->SetOptStat(0);
@@ -71,6 +72,7 @@ void finalPlotMonoJet(int nsel = 0, int ReBin = 1, TString XTitle = "N_{jets}", 
   StandardPlot myPlot;
   myPlot.setBlinded(isBlinded);
   myPlot.setLabel(XTitle.Data());
+  myPlot.setVarBins(isVarBins);
   if     (lumi ==    4.9) myPlot.setLumiLabel("4.9 fb^{-1} (7 TeV)");
   else if(lumi ==   19.7) myPlot.setLumiLabel("19.7 fb^{-1} (8 TeV)");
   else if(lumi ==   24.4) myPlot.setLumiLabel("4.9 fb^{-1} (7 TeV) + 19.7 fb^{-1} (8 TeV)");
