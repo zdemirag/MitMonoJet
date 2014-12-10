@@ -198,17 +198,10 @@ class StandardPlot {
             }
 
 	    bool plotSystErrorBars = true;
-	    if(plotSystErrorBars == true &&_hist[iTop]&&_hist[iWjets]&&_hist[iZjets]&&_hist[iDiboson]&&_hist[iGjets]) {
+	    if(plotSystErrorBars) {
   	      TGraphAsymmErrors * gsyst = new TGraphAsymmErrors(hSum);
               for (int i = 0; i < gsyst->GetN(); ++i) {
-                double systBck = 0.100*0.100*_hist[iTop  ]->GetBinContent(i+1)*_hist[iTop  ]->GetBinContent(i+1)+
-		                 0.100*0.100*_hist[iWjets]->GetBinContent(i+1)*_hist[iWjets]->GetBinContent(i+1)+
-				 0.100*0.100*_hist[iZjets]->GetBinContent(i+1)*_hist[iZjets]->GetBinContent(i+1)+
-		                 0.100*0.100*_hist[iDiboson   ]->GetBinContent(i+1)*_hist[iDiboson   ]->GetBinContent(i+1)+
-				 0.100*0.100*_hist[iGjets  ]->GetBinContent(i+1)*_hist[iGjets  ]->GetBinContent(i+1);
-                double total = _hist[iTop]->GetBinContent(i+1)+_hist[iWjets]->GetBinContent(i+1)+_hist[iZjets]->GetBinContent(i+1)+
-                               _hist[iDiboson ]->GetBinContent(i+1)+_hist[iGjets  ]->GetBinContent(i+1);
-                if(total > 0) systBck = sqrt(systBck)/total;
+                double systBck = 0.06;
                 gsyst->SetPointEYlow (i, sqrt(hSum->GetBinError(i+1)*hSum->GetBinError(i+1)+hSum->GetBinContent(i+1)*hSum->GetBinContent(i+1)*systBck*systBck));
                 gsyst->SetPointEYhigh(i, sqrt(hSum->GetBinError(i+1)*hSum->GetBinError(i+1)+hSum->GetBinContent(i+1)*hSum->GetBinContent(i+1)*systBck*systBck));
 	      }
@@ -237,18 +230,20 @@ class StandardPlot {
 
             if(_data && _data->GetSumOfWeights() > 0 && !(_isBlinded)) {
 	      bool plotCorrectErrorBars = true;
-          if (_isVarBins) plotCorrectErrorBars = false;
-	      if(plotCorrectErrorBars == true) {
+ 	      if(plotCorrectErrorBars == true) {
   		TGraphAsymmErrors * g = new TGraphAsymmErrors(_data);
   		for (int i = 0; i < g->GetN(); ++i) {
-  	     	   double N = g->GetY()[i];
+               double errScaling = 1.;
+               if (_isVarBins) 
+                 errScaling = _data->GetBinWidth(i+1);
+ 	     	   double N = g->GetY()[i] * errScaling;
   	     	   double alpha=(1-0.6827);
   	     	   double L =  (N==0) ? 0  : (ROOT::Math::gamma_quantile(alpha/2,N,1.));
   	     	   double U =  (N==0) ?  ( ROOT::Math::gamma_quantile_c(alpha,N+1,1.) ) :
   	     	      ( ROOT::Math::gamma_quantile_c(alpha/2,N+1,1.) );
-  	     	   g->SetPointEYlow(i,double(N)-L);
+  	     	   g->SetPointEYlow(i,double(N/errScaling)-L/errScaling);
 		   if(N >= 0)
-  	     	     g->SetPointEYhigh(i, U-double(N));
+  	     	     g->SetPointEYhigh(i, U/errScaling-double(N/errScaling));
 		   else
 		     g->SetPointEYhigh(i, 0.0);
   		}

@@ -126,8 +126,8 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   
 
   // Prepare variable binning for met and jet pt
-  double metbins[] = { 250.0, 260.0, 270.0, 280.0, 290.0, 300.0, 310.0, 
-                       320.0, 330.0, 350.0, 380.0, 430.0, 500.0, 1000.0 };
+  double metbins[] = { 250.0, 260.0, 280.0, 300.0, 320.0, 360.0, 400.0, 
+                       440.0, 500.0, 1000.0 };
 
   // For variable binning
   if (mode == -1) {
