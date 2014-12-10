@@ -355,9 +355,9 @@ void runBavantiBoostedV_Synch
     fatJetCorr->AddCorrectionFromFile((mitData+TString("/FT53_V21A_AN6_L2L3Residual_AK7PFchs.txt")).Data());
   }                                                                                      
   else {                                                                                 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/START53_V27_L1FastJet_AK7PFchs.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/START53_V27_L2Relative_AK7PFchs.txt")).Data()); 
-    fatJetCorr->AddCorrectionFromFile((mitData+TString("/START53_V27_L3Absolute_AK7PFchs.txt")).Data()); 
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/FT53_V21A_AN6_L1FastJet_AK7PFchs.txt")).Data()); 
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/FT53_V21A_AN6_L2Relative_AK7PFchs.txt")).Data()); 
+    fatJetCorr->AddCorrectionFromFile((mitData+TString("/FT53_V21A_AN6_L3Absolute_AK7PFchs.txt")).Data()); 
   }
   fatJetCorr->SetInputName(pubFastJet->GetOutputJetsName());
   fatJetCorr->SetCorrectedName("CorrectedFatJets");    
