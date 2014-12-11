@@ -52,6 +52,9 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   TString tauVeto = "(ntaus == 0)"; //veto on taus
   TString photonVeto = "(nphotons == 0)"; //veto on photons 
   TString lepVeto = "(nlep == 0)"; //veto on leptons
+
+  // Inclusive selection
+  TString inclusiveCut = "(jet1.Pt() > 150 && abs(jet1.Eta()) < 2.0 && fjet1CHF > 0.2 && fjet1CHF > 0.2 && fjet1NHF < 0.7 && fjet1NEMF < 0.7)";
   
   // BoostedV selection
   TString metRawCut250 = "(metRaw > 250)";
@@ -94,9 +97,10 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
       
   // our plot task
   TString regions[4] = {"Met","Zll","Wlv","Pj"};
-  TString cuts[10];
+  TString cuts[14];
   
   TString MonoJetSelection           = eventWeight+monoJetTrigger+andC+nJetCuts+andC+tauVeto+andC+photonVeto+andC+metFiltersCut;
+  TString BoostedVVetoL              = "!("+fjetCut+andC+bdt_loose+")"; //BoostedV MVA loose ANTI selection
   TString BoostedVSelectionL         = fjetCut+andC+bdt_loose; //BoostedV MVA loose selection
   TString BoostedVSelectionT         = fjetCut+andC+bdt_tight; //BoostedV MVA tight selection
   TString SignalRegionSelection      = preselCutsZnunu+andC+lepVeto+andC+metRawCut200;
@@ -105,17 +109,26 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   TString PjControlRegionSelection = eventWeight+singlePhTrigger+andC+preselCutsPj
                                     +andC+jetCuts+andC+tauVeto+andC+metFiltersCut
                                     +andC+SinglePhotonCut+andC+metCorrectedPjCut250;
+  TString InclusiveZllControlRegionSelection  = preselCutsZll+andC+DiMuonCut+andC+InvMassCut+andC+metCorrectedZllCut200;
+  TString InclusiveWlvControlRegionSelection = preselCutsWlv+andC+SingleMuonCut+andC+TransMassCut+andC+metCorrectedWlvCut200;
+  TString InclusivePjControlRegionSelection = eventWeight+singlePhTrigger+andC+preselCutsPj
+                                    +andC+jetCuts+andC+nJetCuts+andC+tauVeto+andC+metFiltersCut
+                                    +andC+SinglePhotonCut+andC+metCorrectedPjCut200;
 
   cuts[0]     = MonoJetSelection+andC+BoostedVSelectionL+andC+SignalRegionSelection+")";      // boostedV signal region selection, MET 200
   cuts[1]     = MonoJetSelection+andC+BoostedVSelectionT+andC+SignalRegionSelection+")";      // boostedV signal region selection, MET 200
   cuts[2]     = MonoJetSelection+andC+BoostedVSelectionL+andC+ZllControlRegionSelection+")";  // boostedV Z->ll control region selection, MET 250
   cuts[3]     = MonoJetSelection+andC+BoostedVSelectionL+andC+WlvControlRegionSelection+")";  // boostedV W->lnu control region selection, MET 250
   cuts[4]     = PjControlRegionSelection+andC+BoostedVSelectionL+")";                         // boostedV Photon+jets control region selection, MET 250
-  cuts[5]     = MonoJetSelection+andC+BoostedVSelectionL+andC+metRawCut250+andC+SignalRegionSelection+")";  // boostedV signal region selection, MET 250
-  cuts[6]     = MonoJetSelection+andC+fjetCut+andC+metRawCut250+andC+SignalRegionSelection+")";  // boostedV signal region selection, MET 250, no BDT cut
-  cuts[7]     = MonoJetSelection+andC+fjetCut+andC+ZllControlRegionSelection+")";             // boostedV Z->ll region selection, MET 250, no BDT cut
-  cuts[8]     = MonoJetSelection+andC+fjetCut+andC+WlvControlRegionSelection+")";             // boostedV W->lnu region selection, MET 250, no BDT cut
-  cuts[9]     = PjControlRegionSelection+andC+fjetCut+")";                                    // boostedV Photon+jets control region selection, MET 250, no BDT cut 
+  cuts[5]     = MonoJetSelection+andC+BoostedVSelectionL+andC+metRawCut250+andC+SignalRegionSelection+")";        // boostedV signal region selection, MET 250
+  cuts[6]     = MonoJetSelection+andC+inclusiveCut+andC+BoostedVVetoL+andC+SignalRegionSelection+")";             // inclusive signal region selection, MET 200
+  cuts[7]     = MonoJetSelection+andC+inclusiveCut+andC+BoostedVVetoL+andC+InclusiveZllControlRegionSelection+")";// inclusive Z->ll region selection, MET 200
+  cuts[8]     = MonoJetSelection+andC+inclusiveCut+andC+BoostedVVetoL+andC+InclusiveWlvControlRegionSelection+")";// inclusive W->lnu region selection, MET 200
+  cuts[9]     = InclusivePjControlRegionSelection+andC+inclusiveCut+andC+BoostedVVetoL+")";                       // inclusive Photon+jets control region selection, MET 200
+  cuts[10]    = MonoJetSelection+andC+inclusiveCut+andC+SignalRegionSelection+")";             // inclusive signal region selection, MET 200, no BDT cut
+  cuts[11]    = MonoJetSelection+andC+inclusiveCut+andC+InclusiveZllControlRegionSelection+")";// inclusive Z->ll region selection, MET 200, no BDT cut
+  cuts[12]    = MonoJetSelection+andC+inclusiveCut+andC+InclusiveWlvControlRegionSelection+")";// inclusive W->lnu region selection, MET 200, no BDT cut
+  cuts[13]    = InclusivePjControlRegionSelection+andC+inclusiveCut+")";                       // inclusive Photon+jets control region selection, MET 200, no BDT cut 
   const int icut_no_BDT = 6;
   // Fix the region name if cut does not contain BDT
   if (icut >= icut_no_BDT)
@@ -126,9 +139,36 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   
 
   // Prepare variable binning for met and jet pt
-  double metbins[] = { 250.0, 260.0, 280.0, 300.0, 320.0, 360.0, 400.0, 
-                       440.0, 500.0, 1000.0 };
+  double metbins150 [] = { 150.0,
+                           160.0, 170.0, 180.0, 190.0, 200.0, 210.0, 220.0, 230.0, 240.0, 250.0,
+                           260.0, 270.0, 280.0, 290.0, 300.0, 310.0, 320.0, 330.0, 350.0, 380.0,
+                           430.0, 500.0, 1000.0 };
+  double metbins200 [] = { 200.0, 210.0, 220.0, 230.0, 240.0, 250.0,
+                           260.0, 270.0, 280.0, 290.0, 300.0, 310.0, 320.0, 330.0, 350.0, 380.0,
+                           430.0, 500.0, 1000.0 };
+  // Prepare variable binning for met and jet pt : boosted
+  double metbins250[] = { 250.0, 300.0, 350.0, 400.0, 450.0, 500.0, 1000.};
+  
+  // Choose the correct binning 
+  int nBinsVar = 0;
+  if ( varbins && fabs(min-150) < 0.1 )
+    nBinsVar =  sizeof(metbins150)/sizeof(double);
+  if ( varbins && fabs(min-200) < 0.1 )
+    nBinsVar =  sizeof(metbins200)/sizeof(double);
+  if ( varbins && fabs(min-250) < 0.1 )
+    nBinsVar =  sizeof(metbins250)/sizeof(double);
 
+  double metbins[nBinsVar];
+  if ( varbins && fabs(min-150) < 0.1 )
+    for (int i=0; i< nBinsVar; i++) 
+      metbins[i] =  metbins150[i];
+  if ( varbins && fabs(min-200) < 0.1 )
+    for (int i=0; i< nBinsVar; i++) 
+      metbins[i] =  metbins200[i];
+  if ( varbins && fabs(min-250) < 0.1 )
+    for (int i=0; i< nBinsVar; i++) 
+      metbins[i] =  metbins250[i];
+    
   // For variable binning
   if (mode == -1) {
     gSystem->Setenv("MIT_ANA_CFG","boostedv-plots");
@@ -136,7 +176,7 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     plotTask = new PlotTask(0,lumi);
     plotTask->SetVarBins(true);
     plotTask->SetHistRanges(metbins,min,max,0.,0.);
-    int nBins = sizeof(metbins)/sizeof(double) - 1;
+    int nBins = nBinsVar - 1;
     plotTask->SetNBins(nBins);
     plotTask->SetAxisTitles("E_{T}^{miss} [GeV]","Number of Events");
     plotTask->SetPngFileName("/tmp/dummy.png");
@@ -178,7 +218,7 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
       plotTask->SetHistRanges(min,max,0.,0.);
     else {
       plotTask->SetHistRanges(metbins,min,max,0.,0.);
-      nBins = sizeof(metbins)/sizeof(double) - 1;
+      nBins = nBinsVar - 1;
     }
     plotTask->SetNBins(nBins);
     plotTask->SetAxisTitles(variable,"Number of Events");
@@ -198,7 +238,7 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
       plotTask->SetHistRanges(min,max,0.,0.);
     else {
       plotTask->SetHistRanges(metbins,min,max,0.,0.);
-      nBins = sizeof(metbins)/sizeof(double) - 1;
+      nBins = nBinsVar - 1;
     }
     plotTask->SetNBins(nBins);
     plotTask->SetAxisTitles(variable,"Number of Events");
@@ -221,7 +261,7 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
       plotTask->SetHistRanges(min,max,0.,0.);
     else {
       plotTask->SetHistRanges(metbins,min,max,0.,0.);
-      nBins = sizeof(metbins)/sizeof(double) - 1;
+      nBins = nBinsVar - 1;
     }
     plotTask->SetNBins(nBins);
     plotTask->SetAxisTitles(variable,"Number of Events");
@@ -244,7 +284,7 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
       plotTask->SetHistRanges(min,max,0.,0.);
     else {
       plotTask->SetHistRanges(metbins,min,max,0.,0.);
-      nBins = sizeof(metbins)/sizeof(double) - 1;
+      nBins = nBinsVar - 1;
     }
     plotTask->SetNBins(nBins);
     plotTask->SetAxisTitles(variable,"Number of Events");

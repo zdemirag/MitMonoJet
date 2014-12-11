@@ -273,7 +273,7 @@ class StandardPlot {
                 float maxFactor = 300;
                 float minLimit = 0.5;
                 if (_isVarBins) {
-                  maxFactor = 30;
+                  maxFactor = 200;
                   minLimit = 0.005;
                 }
             	hstack->SetMaximum(maxFactor * theMax);
