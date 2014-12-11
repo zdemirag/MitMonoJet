@@ -54,7 +54,7 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   TString lepVeto = "(nlep == 0)"; //veto on leptons
 
   // Inclusive selection
-  TString inclusiveCut = "(jet1.Pt() > 150 && abs(jet1.Eta()) < 2.0 && fjet1CHF > 0.2 && fjet1CHF > 0.2 && fjet1NHF < 0.7 && fjet1NEMF < 0.7)";
+  TString inclusiveCut = "(jet1.Pt() > 150 && abs(jet1.Eta()) < 2.0 && fjet1CHF > 0.2 && fjet1NHF < 0.7 && fjet1NEMF < 0.7)";
   
   // BoostedV selection
   TString metRawCut250 = "(metRaw > 250)";
@@ -99,7 +99,7 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   TString regions[4] = {"Met","Zll","Wlv","Pj"};
   TString cuts[14];
   
-  TString MonoJetSelection           = eventWeight+monoJetTrigger+andC+nJetCuts+andC+tauVeto+andC+photonVeto+andC+metFiltersCut;
+  TString MonoJetSelection           = eventWeight+monoJetTrigger+andC+jetCuts+andC+nJetCuts+andC+tauVeto+andC+photonVeto+andC+metFiltersCut;
   TString BoostedVVetoL              = "!("+fjetCut+andC+bdt_loose+")"; //BoostedV MVA loose ANTI selection
   TString BoostedVSelectionL         = fjetCut+andC+bdt_loose; //BoostedV MVA loose selection
   TString BoostedVSelectionT         = fjetCut+andC+bdt_tight; //BoostedV MVA tight selection
@@ -107,7 +107,7 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   TString ZllControlRegionSelection  = preselCutsZll+andC+DiMuonCut+andC+InvMassCut+andC+metCorrectedZllCut250;
   TString WlvControlRegionSelection = preselCutsWlv+andC+SingleMuonCut+andC+TransMassCut+andC+metCorrectedWlvCut250;
   TString PjControlRegionSelection = eventWeight+singlePhTrigger+andC+preselCutsPj
-                                    +andC+jetCuts+andC+tauVeto+andC+metFiltersCut
+                                    +andC+jetCuts+andC+nJetCuts+andC+tauVeto+andC+metFiltersCut
                                     +andC+SinglePhotonCut+andC+metCorrectedPjCut250;
   TString InclusiveZllControlRegionSelection  = preselCutsZll+andC+DiMuonCut+andC+InvMassCut+andC+metCorrectedZllCut200;
   TString InclusiveWlvControlRegionSelection = preselCutsWlv+andC+SingleMuonCut+andC+TransMassCut+andC+metCorrectedWlvCut200;

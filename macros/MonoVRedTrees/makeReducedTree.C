@@ -32,13 +32,13 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
 {
   // Define tree name (depends on selection)
   TString outTreeNameExt;
-  if (selMode == 0) 
+  if (selMode == 0 || selMode == 4) 
     outTreeNameExt = "_signal";
-  else if (selMode == 1) 
+  else if (selMode == 1 || selMode == 5) 
     outTreeNameExt = "_di_muon_control";
-  else if (selMode == 2) 
+  else if (selMode == 2 || selMode == 6) 
     outTreeNameExt = "_single_muon_control";
-  else if (selMode == 3) 
+  else if (selMode == 3 || selMode == 7) 
     outTreeNameExt = "_photon_control";
   else 
     cout << "ERROR -- Incorrect selMode parameter, please review!" << endl;
@@ -55,7 +55,7 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
   TString prdCfg = getEnv("MIT_PROD_CFG");
   
   // Fix data list for photons
-  if (selMode == 3)
+  if (selMode == 3 || selMode == 7)
     anaCfg = "boostedv-ana-pj";
 
   // Define samples
@@ -69,7 +69,10 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
   // Prepare pointer to outfile
   TFile *fin;
   TFile *fout;
-  fout = new TFile("dummy.root",outFileMode);
+  TString outFileName = "boosted.root";
+  if (selMode >= 5)
+    outFileName = "inclusive.root";
+  fout = new TFile(outFileName,outFileMode);
   
   // Prepare object to store outtree
   MitLimitTree outTree;
@@ -98,7 +101,7 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
         fout->cd();
         outTree.tree_->Write();
         fout->Close();
-        fout = TFile::Open("dummy.root","UPDATE");     
+        fout = TFile::Open(outFileName,"UPDATE");     
       } 
       fout->cd();
       TString outTreeName = *listOfSamples.at(iSample)->Legend();
@@ -186,7 +189,7 @@ bool eventPassSelection(MitDMSTree &intree, float &met, int selMode)
 {
   // Trigger
   bool triggerBit = ((intree.trigger_ & (1<<0)) || (intree.trigger_ & (1<<1)));
-  if (selMode == 3)
+  if (selMode == 3 || selMode == 7)
     triggerBit = (intree.trigger_ & (1<<3));
 
   // Met filters
@@ -194,36 +197,42 @@ bool eventPassSelection(MitDMSTree &intree, float &met, int selMode)
   
   // Preselection
   bool preselBit = (intree.preselWord_ & (1<<3)); //signal region preselection
-  if (selMode == 1)
+  if (selMode == 1 || selMode == 5)
     preselBit = (intree.preselWord_ & (1<<2)); //Z->ll control preselection
-  if (selMode == 2)
+  if (selMode == 2 || selMode == 6)
     preselBit = (intree.preselWord_ & (1<<1)); //W->lnu control preselection
-  if (selMode == 3)
+  if (selMode == 3 || selMode == 7)
     preselBit = (intree.preselWord_ & (1<<5)); //Photon+jets control preselection
 
   // Met
   met = intree.metRaw_;
-  if (selMode == 1)
+  if (selMode == 1 || selMode == 5)
     met = TMath::Sqrt(TMath::Power(intree.metRaw_*TMath::Cos(intree.metRawPhi_) + 
                       intree.lep1_.Px() + intree.lep2_.Px(),2) + 
                       TMath::Power(intree.metRaw_*TMath::Sin(intree.metRawPhi_) + 
                       intree.lep1_.Py() + intree.lep2_.Py(),2)); //Z->ll control preselection
-  if (selMode == 2)
+  if (selMode == 2 || selMode == 6)
     met = TMath::Sqrt(TMath::Power(intree.metRaw_*TMath::Cos(intree.metRawPhi_) + 
                       intree.lep1_.Px(),2) + 
                       TMath::Power(intree.metRaw_*TMath::Sin(intree.metRawPhi_) + 
                       intree.lep1_.Py(),2)); //W->lnu control preselection
-  if (selMode == 3)
+  if (selMode == 3 || selMode == 7)
     met = TMath::Sqrt(TMath::Power(intree.metRaw_*TMath::Cos(intree.metRawPhi_) + 
                       intree.pho1_.Px(),2) + 
                       TMath::Power(intree.metRaw_*TMath::Sin(intree.metRawPhi_) + 
                       intree.pho1_.Py(),2)); //Photon+jets control preselection
-  bool metBit = (met > 250.);
+  bool metBit = (met > 200.);
+  if (selMode < 4)
+    metBit = (met > 250.);
                       
   // Narrow jets
   bool jetBit = ((intree.jet1_.Pt() > 110 && abs(intree.jet1_.eta()) < 2.5));
   jetBit = jetBit && (intree.njets_ == 1 || (intree.njets_ == 2 && 
-                      MathUtils::DeltaPhi(intree.jet1_.phi(),intree.jet2_.phi()) < 2.5));
+                      abs(MathUtils::DeltaPhi(intree.jet1_.phi(),intree.jet2_.phi())) < 2.5));
+
+  // Inclusive category
+  bool inclusiveBit = (intree.jet1_.Pt() > 150 && abs(intree.jet1_.Eta()) < 2.0 && 
+                       intree.fjet1CHF_ > 0.2 && intree.fjet1NHF_ < 0.7 && intree.fjet1NEMF_ < 0.7);
 
   // Fat jet :: FIXME with bdt
   bool fatJetBit = (intree.fjet1_.Pt() > 250 && abs(intree.fjet1_.Eta()) < 2.5);
@@ -231,18 +240,18 @@ bool eventPassSelection(MitDMSTree &intree, float &met, int selMode)
 
   // Vetoes
   bool vetoBit = (intree.ntaus_ == 0);
-  if (selMode == 0)
+  if (selMode == 0 || selMode == 4)
     vetoBit = vetoBit && (intree.nphotons_ == 0 && intree.nlep_ == 0);
-  if (selMode == 1)
+  if (selMode == 1 || selMode == 5)
     vetoBit = vetoBit && (intree.nphotons_ == 0);
-  if (selMode == 2)
+  if (selMode == 2 || selMode == 6)
     vetoBit = vetoBit && (intree.nphotons_ == 0);
-  if (selMode == 3)
+  if (selMode == 3 || selMode == 7)
     vetoBit = vetoBit && (intree.nlep_ == 0);
     
   // Extra
   bool extraBit = true;
-  if (selMode == 1) {
+  if (selMode == 1 || selMode == 5) {
     extraBit = extraBit && (intree.nlep_ == 2 && (intree.lid1_==13 && intree.lid2_==13));
     TLorentzVector tempBos;
     TLorentzVector tempLep1;
@@ -252,19 +261,27 @@ bool eventPassSelection(MitDMSTree &intree, float &met, int selMode)
     tempBos = tempLep1 + tempLep2;
     extraBit = extraBit && (tempBos.M() > 60. && tempBos.M() < 120.);    
   } //Zll
-  if (selMode == 2) {
+  if (selMode == 2 || selMode == 6) {
     extraBit = extraBit && 
               (intree.nlep_ == 1 && abs(intree.lid1_) == 13 && intree.lep1_.Pt() > 20 && abs(intree.lep1_.Eta()) < 2.4);
     float mt = sqrt(2*intree.metRaw_*intree.lep1_.Pt()*(1-TMath::Cos(intree.metRawPhi_-intree.lep1_.Phi())));
     extraBit = extraBit && (mt > 10. && mt < 200.);
   } //Wlv
-  if (selMode == 3) {
+  if (selMode == 3 || selMode == 7) {
     extraBit = extraBit && 
               (intree.nphotons_ == 1 && intree.pho1_.Pt() > 160 && abs(intree.pho1_.Eta()) < 2.5);
   } //Pj
         
-  //cout << triggerBit << " " << metFiltersBit << " " << preselBit << " " << metBit << " " << jetBit << " " << fatJetBit << " " << vetoBit << " " << extraBit << endl;
+  //cout 
+  //<< triggerBit << " " << metFiltersBit << " " << preselBit << " " << metBit << " " 
+  //<< jetBit << " " << inclusiveBit << " " <<  fatJetBit << " " << vetoBit << " " << extraBit 
+  //<< endl;
+
+  // Boosted is default
   bool theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && fatJetBit && vetoBit && extraBit;
+  // Otherwise move to inclusive selection and discard boosted events
+  if (selMode >= 4)
+    theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && inclusiveBit && vetoBit && extraBit && !fatJetBit;
   
   return theDecision;
 }
