@@ -413,14 +413,14 @@ void runBavantiBoostedV_CHS
   fastPresel->ApplyWlepPresel(kTRUE);
   fastPresel->ApplyZlepPresel(kTRUE);
   fastPresel->ApplyMetPresel(kTRUE);
-  fastPresel->ApplyVbfPresel(kTRUE);
+  fastPresel->ApplyVbfPresel(kFALSE);
   fastPresel->ApplyGjetPresel(kTRUE);
   fastPresel->ApplyFatJetPresel(kFALSE);
   // do not use fat jet for this block
   fastPresel->SetMinFatJetPt(10);
   fastPresel->SetMinTagJetPt(110);
   fastPresel->SetMinMet(150);    
-  fastPresel->SetMinPhotonPt(150);    
+  fastPresel->SetMinPhotonPt(160);    
   fastPresel->FillAndPublishPresel(kFALSE);
 
   //------------------------------------------------------------------------------------------------
@@ -441,12 +441,12 @@ void runBavantiBoostedV_CHS
   jetplusmet->ApplyWlepPresel(kTRUE);
   jetplusmet->ApplyZlepPresel(kTRUE);
   jetplusmet->ApplyMetPresel(kTRUE);
-  jetplusmet->ApplyVbfPresel(kTRUE);
+  jetplusmet->ApplyVbfPresel(kFALSE);
   jetplusmet->ApplyGjetPresel(kTRUE);
   jetplusmet->SetMinFatJetPt(200);
   jetplusmet->SetMinTagJetPt(110);
   jetplusmet->SetMinMet(150);    
-  jetplusmet->SetMinPhotonPt(150);    
+  jetplusmet->SetMinPhotonPt(160);    
 
   //------------------------------------------------------------------------------------------------
   // prepare the extended MVA met 
