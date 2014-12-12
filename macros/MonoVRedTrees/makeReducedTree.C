@@ -24,11 +24,11 @@ using namespace mithep;
 //---
 TString getEnv(const char* name);
 //---
-void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight, int selMode = 0, bool isData = false);
+void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight, int selMode = 0, bool isData = false, bool exclusive = true);
 //---
-bool eventPassSelection(MitDMSTree &intree, float &met, int selMode = 0);
+bool eventPassSelection(MitDMSTree &intree, float &met, int selMode = 0, bool exclusive = true);
 //==================================================================================================
-void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = false) 
+void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = false, bool exclusive = true) 
 {
   // Define tree name (depends on selection)
   TString outTreeNameExt;
@@ -70,8 +70,10 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
   TFile *fin;
   TFile *fout;
   TString outFileName = "boosted.root";
-  if (selMode >= 5)
+  if (selMode >= 4)
     outFileName = "inclusive.root";
+  if (!exclusive)
+    outFileName = "baseline.root";
   fout = new TFile(outFileName,outFileMode);
   
   // Prepare object to store outtree
@@ -111,7 +113,7 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
     }
     // Scan on input and fill output ntuple
     cout << "INFO ---> Number of events passing the selection is: ";
-    fillOutNtuples(outTree,inTree,baseWeight,selMode,isData);
+    fillOutNtuples(outTree,inTree,baseWeight,selMode,isData,exclusive);
     
     // Close last group
     if (iSample == (listOfSamples.size()-1)) {
@@ -140,7 +142,7 @@ TString getEnv(const char* name)
 }
 
 //==================================================================================================
-void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight, int selMode, bool isData)
+void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight, int selMode, bool isData, bool exclusive)
 {
   double weight = -1;
   float met = -1;
@@ -153,7 +155,7 @@ void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight
     intree.tree_-> GetEntry(iEntry);
 
     // Determine if event passes selection
-    if (!eventPassSelection(intree,met,selMode))
+    if (!eventPassSelection(intree,met,selMode,exclusive))
       continue;
       
     // Determine correctly the event weights
@@ -185,7 +187,7 @@ void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight
 }
 
 //==================================================================================================
-bool eventPassSelection(MitDMSTree &intree, float &met, int selMode)
+bool eventPassSelection(MitDMSTree &intree, float &met, int selMode, bool exclusive)
 {
   // Trigger
   bool triggerBit = ((intree.trigger_ & (1<<0)) || (intree.trigger_ & (1<<1)));
@@ -277,11 +279,18 @@ bool eventPassSelection(MitDMSTree &intree, float &met, int selMode)
   //<< jetBit << " " << inclusiveBit << " " <<  fatJetBit << " " << vetoBit << " " << extraBit 
   //<< endl;
 
-  // Boosted is default
-  bool theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && fatJetBit && vetoBit && extraBit;
-  // Otherwise move to inclusive selection and discard boosted events
-  if (selMode >= 4)
+  bool theDecision;
+  // Boosted selection
+  if (selMode < 4) 
+    theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && fatJetBit && vetoBit && extraBit;
+  // Inclusive selection and discard boosted events
+  else if (selMode >= 4 && exclusive)
     theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && inclusiveBit && vetoBit && extraBit && !fatJetBit;
+  // Inclusive selection keep boosted events
+  else if (selMode >= 4 && !exclusive)
+    theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && inclusiveBit && vetoBit && extraBit;
+  else 
+    cout << "ERROR - Selection logic is wrong! Please fix" << endl;
   
   return theDecision;
 }
