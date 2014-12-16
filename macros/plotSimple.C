@@ -4,20 +4,17 @@
 
 void plotSimple(){
   //TFile* inFile = new TFile("/scratch4/dimatteo/cms/hist/boostedv-v3/t2mit/filefi/032/s12-pj170_300-v7a/boostedv-v3_s12-pj170_300-v7a_noskim_0006_ntuple_000.root");
-  TFile* inFile = new TFile("/scratch1/dimatteo/cmssw/033/CMSSW_5_3_15/src/MitMonoJet/boostedv_s12-pj300_470-v7a_noskim_0000_ntuple_000.root");
+  TFile* inFile = new TFile("/scratch1/dimatteo/cmssw/033/CMSSW_5_3_16/src/MitMonoJet/macros/MonoVSynch/boostedv_s12-ttj-sl-v1-v7c_noskim_0000_ntuple_000.root");
   TTree* inTree = (TTree*) inFile->Get("Events");
 
   TCanvas *can = new TCanvas();
-  inTree->Draw("XlFatJets->At(0)->QGTag()","XlSubJets->GetEntries()>0");
+  inTree->Draw("XsMuons->At(0)->ChHadIso()","XsMuons->GetEntries()>0");
 
   TCanvas *can2 = new TCanvas();
-  inTree->Draw("XlFatJets->At(0)->Pull()","XlSubJets->GetEntries()>0");
+  inTree->Draw("SkmCleanJets->At(0)->NPFCands()","XlSubJets->GetEntries()>0");
 
   TCanvas *can3 = new TCanvas();
-  inTree->Draw("XlFatJets->At(0)->PullAngle()","XlSubJets->GetEntries()>0");
-
-  //TCanvas *can = new TCanvas();
-  //inTree->Draw("SkmCleanJets->At(0)->NPFCands()","XlSubJets->GetEntries()>0");
+  inTree->Draw("XsTaus->At(0)->Mom().Pt()","XsTaus->GetEntries()>0");
   
   //TCanvas *can = new TCanvas();
   //inTree->Draw("(XlFatJets->At(0)->Mom().Pt()-SkmCleanJets->At(0)->Mom().Pt())/SkmCleanJets->At(0)->Mom().Pt()","XlSubJets->GetEntries()>0");

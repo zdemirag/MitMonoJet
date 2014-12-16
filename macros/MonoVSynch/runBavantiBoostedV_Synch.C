@@ -44,15 +44,15 @@ TString getCatalogDir(const char* dir);
 TString getJsonFile(const char* dir);
 
 //--------------------------------------------------------------------------------------------------
-void runBavantiBoostedV_CHS
+void runBavantiBoostedV_Synch
                        (const char *fileset    = "0000",
                         const char *skim       = "noskim",
-                        //const char *dataset    = "s12-pj800_1400-v7a",     
-                        const char *dataset    = "s12-ttj-v1-v7a",     
+                        //const char *dataset    = "s12-ttj-sl-v1-v7c",     
+                        const char *dataset    = "GJets_HT-400ToInf_8TeV-madgraph+Summer12_DR53X-PU_S10_START53_V7A-v1+AODSIM",                        
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 100)
+                        int         nEvents    = 10)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -62,6 +62,8 @@ void runBavantiBoostedV_CHS
   TString json     = Utils::GetEnv("MIT_PROD_JSON");
   TString jsonFile = getJsonFile("/home/cmsprod/cms/json");
   Bool_t  isData   = (json.CompareTo("~") != 0);
+  // only for synchrionization purposes
+  isData = kFALSE;
   printf("\n Initialization worked. Data?: %d\n\n",isData);
 
   //------------------------------------------------------------------------------------------------
@@ -371,7 +373,7 @@ void runBavantiBoostedV_CHS
 
   JetIDMod *fatJetId = new JetIDMod;
   fatJetId->SetInputName(fatJetCorr->GetOutputName());
-  fatJetId->SetPtCut(100.0);
+  fatJetId->SetPtCut(30.0);
   fatJetId->SetEtaMaxCut(4.7);
   fatJetId->SetJetEEMFractionMinCut(0.00);
   fatJetId->SetOutputName("GoodFatJets");
@@ -398,32 +400,6 @@ void runBavantiBoostedV_CHS
   fatJetCleaning->SetCleanJetsName("CleanFatJets");
 
   //------------------------------------------------------------------------------------------------
-  // select events with a monojet topology : no FAT jet preselection (as we have to recreate them)
-  //------------------------------------------------------------------------------------------------
-  BoostedVAnalysisMod *fastPresel = new BoostedVAnalysisMod("MonoJetFastSelector");
-  fastPresel->SetJetsName(jetCleaning->GetOutputName()); //identified jets
-  fastPresel->SetJetsFromBranch(kFALSE);
-  fastPresel->SetElectronsName(electronCleaning->GetOutputName());
-  fastPresel->SetElectronsFromBranch(kFALSE);
-  fastPresel->SetMuonsName(muonIdLooseMod->GetOutputName());
-  fastPresel->SetMuonsFromBranch(kFALSE);
-  fastPresel->SetPhotonsName(photonCleaningMod->GetOutputName());
-  fastPresel->SetPhotonsFromBranch(kFALSE);
-  fastPresel->ApplyTopPresel(kTRUE); 
-  fastPresel->ApplyWlepPresel(kTRUE);
-  fastPresel->ApplyZlepPresel(kTRUE);
-  fastPresel->ApplyMetPresel(kTRUE);
-  fastPresel->ApplyVbfPresel(kFALSE);
-  fastPresel->ApplyGjetPresel(kTRUE);
-  fastPresel->ApplyFatJetPresel(kFALSE);
-  // do not use fat jet for this block
-  fastPresel->SetMinFatJetPt(10);
-  fastPresel->SetMinTagJetPt(110);
-  fastPresel->SetMinMet(150);    
-  fastPresel->SetMinPhotonPt(160);    
-  fastPresel->FillAndPublishPresel(kFALSE);
-
-  //------------------------------------------------------------------------------------------------
   // select events with a monojet topology
   //------------------------------------------------------------------------------------------------
   BoostedVAnalysisMod *jetplusmet = new BoostedVAnalysisMod("MonoJetSelector");
@@ -441,12 +417,13 @@ void runBavantiBoostedV_CHS
   jetplusmet->ApplyWlepPresel(kTRUE);
   jetplusmet->ApplyZlepPresel(kTRUE);
   jetplusmet->ApplyMetPresel(kTRUE);
-  jetplusmet->ApplyVbfPresel(kFALSE);
+  jetplusmet->ApplyVbfPresel(kTRUE);
   jetplusmet->ApplyGjetPresel(kTRUE);
   jetplusmet->SetMinFatJetPt(200);
   jetplusmet->SetMinTagJetPt(110);
   jetplusmet->SetMinMet(150);    
-  jetplusmet->SetMinPhotonPt(160);    
+  jetplusmet->SetMinPhotonPt(150);    
+  jetplusmet->SkipEvents(kFALSE);    
 
   //------------------------------------------------------------------------------------------------
   // prepare the extended MVA met 
@@ -559,8 +536,7 @@ void runBavantiBoostedV_CHS
   pubJet                     ->Add(jetCorr);
   jetCorr                    ->Add(jetId);
   jetId                      ->Add(jetCleaning);
-  jetCleaning                ->Add(fastPresel);
-  fastPresel                 ->Add(pubFastJet);
+  jetCleaning                ->Add(pubFastJet);
   pubFastJet                 ->Add(fatJetCorr);
   fatJetCorr                 ->Add(fatJetId);
   fatJetId                   ->Add(fatJetCleaning);

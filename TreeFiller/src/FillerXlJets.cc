@@ -48,8 +48,8 @@ FillerXlJets::FillerXlJets(const char *name, const char *title) :
   fPruneDistCut (0.5),  
   fFilterN (3),      
   fFilterRad (0.2),     
-  fTrimRad (0.1),       
-  fTrimPtFrac (0.03),    
+  fTrimRad (0.2),       
+  fTrimPtFrac (0.05),    
   fConeSize (0.6),
   fCounter (0)
 {
@@ -153,7 +153,7 @@ void FillerXlJets::SlaveBegin()
                                  fastjet::SelectorPtFractionMin(fTrimPtFrac)));
     
   // CA constructor (fConeSize = 0.6 for antiKt) - reproducing paper 1: http://arxiv.org/abs/1011.2268
-  fCAJetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm, fConeSize);
+  fCAJetDef = new fastjet::JetDefinition(fastjet::cambridge_algorithm, fConeSize);
   
   // Initialize area caculation (done with ghost particles)
   int activeAreaRepeats = 1;
@@ -222,12 +222,13 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   fastjet::PseudoJet fjJet = fjOutJets[0];
     
   // Compute the subjettiness
-  fastjet::contrib::Njettiness::AxesMode axisMode = fastjet::contrib::Njettiness::onepass_wta_kt_axes;
-  fastjet::contrib::Njettiness::MeasureMode measureMode = fastjet::contrib::Njettiness::unnormalized_measure;
+  fastjet::contrib::Njettiness::AxesMode axisMode = fastjet::contrib::Njettiness::onepass_kt_axes;
   double beta = 1.0;
-  fastjet::contrib::Nsubjettiness  nSub1(1,axisMode,measureMode,beta);
-  fastjet::contrib::Nsubjettiness  nSub2(2,axisMode,measureMode,beta);
-  fastjet::contrib::Nsubjettiness  nSub3(3,axisMode,measureMode,beta);
+  double RNsub = 0.5; //FIXME: should revert to RNsub = fConeSize   
+  double Rcutoff = 10000.;  
+  fastjet::contrib::Nsubjettiness  nSub1(1,axisMode,beta,RNsub,Rcutoff);
+  fastjet::contrib::Nsubjettiness  nSub2(2,axisMode,beta,RNsub,Rcutoff);
+  fastjet::contrib::Nsubjettiness  nSub3(3,axisMode,beta,RNsub,Rcutoff);
   double tau1 = nSub1(fjJet);
   double tau2 = nSub2(fjJet);
   double tau3 = nSub3(fjJet);
@@ -283,14 +284,15 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
   // Store the Qjets volatility
   fatJet->SetQJetVol(QJetVol);  
   
-  // Store the groomed masses
-  fatJet->SetMassSDb0(MassSDb0);     
-  fatJet->SetMassSDb1(MassSDb1);     
-  fatJet->SetMassSDb2(MassSDb2);     
-  fatJet->SetMassSDbm1(MassSDbm1);    
-  fatJet->SetMassPruned(MassPruned);   
-  fatJet->SetMassFiltered(MassFiltered);  
-  fatJet->SetMassTrimmed(MassTrimmed);  
+  // Store the groomed masses, apply JEC
+  double thisJEC = fatJet->Pt()/fatJet->RawMom().Pt();
+  fatJet->SetMassSDb0(MassSDb0*thisJEC);     
+  fatJet->SetMassSDb1(MassSDb1*thisJEC);     
+  fatJet->SetMassSDb2(MassSDb2*thisJEC);     
+  fatJet->SetMassSDbm1(MassSDbm1*thisJEC);    
+  fatJet->SetMassPruned(MassPruned*thisJEC);   
+  fatJet->SetMassFiltered(MassFiltered*thisJEC);  
+  fatJet->SetMassTrimmed(MassTrimmed*thisJEC);  
 
   // Store the color pull
   fatJet->SetPull(GetPull(fjJet,0.01).Mod());   

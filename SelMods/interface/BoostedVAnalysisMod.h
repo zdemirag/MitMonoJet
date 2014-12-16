@@ -13,6 +13,7 @@
 #include "MitAna/TreeMod/interface/BaseMod.h" 
 #include "MitAna/DataTree/interface/ElectronCol.h"
 #include "MitAna/DataTree/interface/EvtSelData.h"
+#include "MitAna/DataTree/interface/TriggerObjectCol.h"
 #include "MitAna/DataTree/interface/JetCol.h"
 #include "MitAna/DataTree/interface/MetCol.h"
 #include "MitAna/DataTree/interface/MuonCol.h"
@@ -41,7 +42,7 @@ namespace mithep
     void                  SetElectronsName         (const char *n) { fElectronsName = n;          }
     void                  SetMuonsName             (const char *n) { fMuonsName = n;              }
     void                  SetPhotonsName           (const char *n) { fPhotonsName = n;            }
-    void                  SetLeptonsName           (const char *n) { fLeptonsName = n;            }
+    void                  SetTriggerObjectsName    (const char *n) { fTriggerObjectsName = n;     }
 
     // decide whether to read from branch
     void                  SetMetFromBranch         (Bool_t b)      { fMetFromBranch = b;          }
@@ -62,6 +63,9 @@ namespace mithep
 
     // decide whether to to fill and publish the preseleciton word or not
     void                  FillAndPublishPresel     (Bool_t b)      { fFillAndPublishPresel = b;   }
+
+    // decide whether to skip events or not if they fail preselection criteria
+    void                  SkipEvents               (Bool_t b)      { fSkipEvents = b;             }
 
     // Setting cut values
     void                  SetMinFatJetPt           (Double_t x)    { fMinFatJetPt = x;            }
@@ -97,7 +101,7 @@ namespace mithep
     TString               fElectronsName;
     TString               fMuonsName;
     TString               fPhotonsName;
-    TString               fLeptonsName;
+    TString               fTriggerObjectsName;
     // logical whether to read from branch
     Bool_t                fMetFromBranch;
     Bool_t                fFatJetsFromBranch;
@@ -113,8 +117,10 @@ namespace mithep
     Bool_t                fApplyVbfPresel; 
     Bool_t                fApplyGjetPresel; 
     Bool_t                fApplyFatJetPresel;
-    // logical whether to  to to fill and publish the preseleciton word or not
+    // logical whether to fill and publish the preseleciton word or not
     Bool_t                fFillAndPublishPresel; 
+    // logical whether to skip events if they fail preselection criteria
+    Bool_t                fSkipEvents;
     // hooks to the collections
     const PFMetCol       *fMet;
     const JetCol         *fFatJets; 
@@ -122,6 +128,7 @@ namespace mithep
     const ElectronCol    *fElectrons;
     const MuonCol        *fMuons;
     const PhotonCol      *fPhotons;
+    const TriggerObjectCol *fTrigObj;
     const EvtSelData     *fEvtSelData;
     XlEvtSelData         *fXlEvtSelData;  //extended event selection data object
     // Cuts
@@ -136,7 +143,7 @@ namespace mithep
     Long64_t              fAll;
     Long64_t              fPass;
         
-    ClassDef(BoostedVAnalysisMod,2) // MonJet Selection Module
+    ClassDef(BoostedVAnalysisMod,3) // MonJet Selection Module
   };
 }
 #endif
