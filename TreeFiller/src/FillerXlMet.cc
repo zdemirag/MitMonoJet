@@ -79,7 +79,7 @@ void FillerXlMet::Process()
 
   // Compute the MVA met for this event
   Met mvaMet = fMVAMet->GetMet(fMuons,fElectrons,fPFTaus,fPhotons,fPFCandidates,
-                               fPFJets,0,fPV,fRawMet,fJetCorrector,fPileUpDen);
+                               fPFJets,0,fPV,fRawMet,fJetCorrector,fPileUpDen,false);
   TMatrixD* MVACov = fMVAMet->GetMetCovariance();
   
   // Prepare and store in an array a new XlMet 

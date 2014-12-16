@@ -63,7 +63,7 @@ ClassImp(mithep::BoostedVAnalysisMod)
     fMinMet                (200),
     fMinVbfMass            (800),
     fMinVbfMet             (110),
-    fMinPhotonPt           (150),
+    fMinPhotonPt           (160),
     // counters
     fAll                   (0),
     fPass                  (0)
@@ -346,20 +346,17 @@ void BoostedVAnalysisMod::Process()
   }
 
   if (fApplyGjetPresel) {
-    // G+jets Preselection: require boosted jet + photon
-    int nGoodFatJets = 0;
+    // G+jets Preselection: require tag jet + photon
+    int nGoodTagJets = 0;
     int nGoodPhotons = 0;
 
-    // FatJets: if fatJets not available adjust preselection params
-    if (!fApplyFatJetPresel)
-      nGoodFatJets = 1;
-    if (fApplyFatJetPresel && fFatJets->GetEntries() > 0) { 
-      for (UInt_t i = 0; i < fFatJets->GetEntries(); ++i) {
-        const Jet *jet = fFatJets->At(i);
-        // Pt and eta cuts
-        if (jet->Pt() < fMinFatJetPt || fabs(jet->Eta()) > 2.5)
-          nGoodFatJets++;
-      }
+    // Jets
+    for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
+      const Jet *jet = fJets->At(i);
+      // Pt and eta cuts
+      if (jet->Pt() < fMinTagJetPt || fabs(jet->Eta()) > 2.5)
+        continue;
+      nGoodTagJets++;
     }
 
     // Photons
@@ -372,7 +369,7 @@ void BoostedVAnalysisMod::Process()
         nGoodPhotons++;
       }
     }
-    if (passGjetHLT && nGoodFatJets > 0 && nGoodPhotons > 0)
+    if (passGjetHLT && nGoodTagJets > 0 && nGoodPhotons > 0)
       passGjetPresel = kTRUE;
   }
 
