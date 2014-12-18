@@ -209,11 +209,15 @@ void DMSTreeWriter::Process()
     fMitDMSTree.lid1_ = fMuons->At(0)->Charge()*13;
     if (fMuons->At(0)->ParticleId() == XsIsoParticle::EParticleId::eTightMuon)
       fMitDMSTree.lid1_ = fMitDMSTree.lid1_*10;
+    if (fMuons->At(0)->ParticleId() == XsIsoParticle::EParticleId::eIsoMuon)
+      fMitDMSTree.lid1_ = fMitDMSTree.lid1_*100;
 
     fMitDMSTree.lep2_ = fMuons->At(1)->Mom();
     fMitDMSTree.lid2_ = fMuons->At(1)->Charge()*13;
     if (fMuons->At(1)->ParticleId() == XsIsoParticle::EParticleId::eTightMuon)
       fMitDMSTree.lid2_ = fMitDMSTree.lid2_*10;
+    if (fMuons->At(1)->ParticleId() == XsIsoParticle::EParticleId::eIsoMuon)
+      fMitDMSTree.lid2_ = fMitDMSTree.lid2_*100;
 
     CorrectMet(fMitDMSTree.metRaw_,fMitDMSTree.metRawPhi_,fMitDMSTree.lep1_,fMitDMSTree.lep2_,
                fMitDMSTree.met_,fMitDMSTree.metPhi_);    
@@ -224,6 +228,8 @@ void DMSTreeWriter::Process()
     fMitDMSTree.lid1_ = fMuons->At(0)->Charge()*13;
     if (fMuons->At(0)->ParticleId() == XsIsoParticle::EParticleId::eTightMuon)
       fMitDMSTree.lid1_ = fMitDMSTree.lid1_*10;
+    if (fMuons->At(0)->ParticleId() == XsIsoParticle::EParticleId::eIsoMuon)
+      fMitDMSTree.lid1_ = fMitDMSTree.lid1_*100;
 
     CorrectMet(fMitDMSTree.metRaw_,fMitDMSTree.metRawPhi_,fMitDMSTree.lep1_,
                fMitDMSTree.met_,fMitDMSTree.metPhi_);    

@@ -229,7 +229,7 @@ bool eventPassSelection(MitDMSTree &intree, float &met, int selMode, bool exclus
                       
   // Narrow jets
   bool jetBit = ((intree.jet1_.Pt() > 110 && abs(intree.jet1_.eta()) < 2.5));
-  jetBit = jetBit && (intree.njets_ == 1 || (intree.njets_ >= 2 && 
+  jetBit = jetBit && (intree.njets_ == 1 || (intree.njets_ == 2 && 
                       abs(MathUtils::DeltaPhi(intree.jet1_.phi(),intree.jet2_.phi())) < 2.0));
 
   // Inclusive category
