@@ -24,7 +24,7 @@
   str = str + TString(" -lMitPhysicsMods -lMitPhysicsSelMods -lMitPhysicsUtils");
   str = str + TString(" -lMitMonoJetMods -lMitMonoJetSelMods -lMitMonoJetDataTree -lMitMonoJetTreeFiller");
   str = str + TString(" -lfastjet -lfastjettools -lfastjetcontrib -lqjets");
-  //str = str + TString(" -lMitPlotsStyle -lMitPlotsInput -lMitPlotsPlot");
+  str = str + TString(" -lMitPlotsStyle -lMitPlotsInput -lMitPlotsPlot");
   gSystem->SetMakeSharedLib(str);
 
   if (gDebug)

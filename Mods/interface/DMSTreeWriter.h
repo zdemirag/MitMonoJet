@@ -81,10 +81,12 @@ namespace mithep
     void    SlaveTerminate();
             
   private:  
-    void    CorrectMet(const float met, const float metPhi,
-                                   const Particle *l1, const Particle *l2,
-                                   float &newMet, float &newMetPhi);
-
+    void    CorrectMet(const float met, const float metPhi, const LorentzVector& l1, const LorentzVector& l2,
+                       float& newMet, float& newMetPhi);
+    void    CorrectMet(const float met, const float metPhi, const LorentzVector& l1,
+                       float& newMet, float& newMetPhi);
+    float   GetMt(const LorentzVector& l1, const float met, const float metPhi);
+            
     // Private auxiliary methods... Names of the input Collections
 
     TString                        fEvtSelDataName;

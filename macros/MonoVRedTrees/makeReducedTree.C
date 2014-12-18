@@ -229,12 +229,12 @@ bool eventPassSelection(MitDMSTree &intree, float &met, int selMode, bool exclus
                       
   // Narrow jets
   bool jetBit = ((intree.jet1_.Pt() > 110 && abs(intree.jet1_.eta()) < 2.5));
-  jetBit = jetBit && (intree.njets_ == 1 || (intree.njets_ == 2 && 
-                      abs(MathUtils::DeltaPhi(intree.jet1_.phi(),intree.jet2_.phi())) < 2.5));
+  jetBit = jetBit && (intree.njets_ == 1 || (intree.njets_ >= 2 && 
+                      abs(MathUtils::DeltaPhi(intree.jet1_.phi(),intree.jet2_.phi())) < 2.0));
 
   // Inclusive category
   bool inclusiveBit = (intree.jet1_.Pt() > 150 && abs(intree.jet1_.Eta()) < 2.0 && 
-                       intree.fjet1CHF_ > 0.2 && intree.fjet1NHF_ < 0.7 && intree.fjet1NEMF_ < 0.7);
+                       intree.jet1CHF_ > 0.2 && intree.jet1NHF_ < 0.7 && intree.jet1NEMF_ < 0.7);
 
   // Fat jet :: FIXME with bdt
   bool fatJetBit = (intree.fjet1_.Pt() > 250 && abs(intree.fjet1_.Eta()) < 2.5);
@@ -271,7 +271,7 @@ bool eventPassSelection(MitDMSTree &intree, float &met, int selMode, bool exclus
   } //Wlv
   if (selMode == 3 || selMode == 7) {
     extraBit = extraBit && 
-              (intree.nphotons_ == 1 && intree.pho1_.Pt() > 160 && abs(intree.pho1_.Eta()) < 2.5);
+              (intree.pho1_.Pt() > 160 && abs(intree.pho1_.Eta()) < 2.5);
   } //Pj
         
   //cout 

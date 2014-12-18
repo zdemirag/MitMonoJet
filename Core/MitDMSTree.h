@@ -63,6 +63,8 @@ class MitDMSTree {
   float          mvaCov10_;
   float          mvaCov01_;
   float          mvaCov11_;
+  float          mt_;
+  float          mll_;
  
   unsigned int   nlep_;
   LorentzVector  lep1_;
@@ -268,6 +270,8 @@ class MitDMSTree {
     tree_->Branch("mvaCov10"        , &mvaCov10_        ,   "mvaCov10/F");
     tree_->Branch("mvaCov01"        , &mvaCov01_        ,   "mvaCov01/F");
     tree_->Branch("mvaCov11"        , &mvaCov11_        ,   "mvaCov11/F");
+    tree_->Branch("mt"              , &mt_              ,   "mt/F");
+    tree_->Branch("mll"             , &mll_             ,   "mll/F");
 
     tree_->Branch("nlep"         , &nlep_         ,   "nlep/i");
     tree_->Branch("lep1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &lepPtr1_);
@@ -422,6 +426,8 @@ class MitDMSTree {
     tree_->SetBranchAddress("mvaCov10",      &mvaCov10_);
     tree_->SetBranchAddress("mvaCov01",      &mvaCov01_);
     tree_->SetBranchAddress("mvaCov11",      &mvaCov11_);
+    tree_->SetBranchAddress("mt",            &mt_);
+    tree_->SetBranchAddress("mll",           &mll_);
 
     tree_->SetBranchAddress("nlep",          &nlep_);
     tree_->SetBranchAddress("lep1",          &lepPtr1_);
@@ -544,9 +550,9 @@ class MitDMSTree {
     tree_->SetBranchAddress("npu"           ,	&npu_           );
     tree_->SetBranchAddress("npuPlusOne"    , &npuPlusOne_    );
     tree_->SetBranchAddress("npuMinusOne"   , &npuMinusOne_   );
-    tree_->SetBranchAddress("metFiltersWord" , &metFiltersWord_ );
+    tree_->SetBranchAddress("metFiltersWord", &metFiltersWord_ );
     tree_->SetBranchAddress("preselWord"    , &preselWord_);
-    
+
     if (type == 1) tree_->SetBranchAddress("bdt_all"    , &bdt_all_);
 
     gErrorIgnoreLevel = currentState;
@@ -601,6 +607,8 @@ MitDMSTree::InitVariables(){
   mvaCov10_      = -999.; 
   mvaCov01_      = -999.;
   mvaCov11_      = -999.;
+  mt_            = -999.;
+  mll_           = -999.;
 
   nlep_          = 0;
   lep1_       	 = LorentzVector();
@@ -725,7 +733,7 @@ MitDMSTree::InitVariables(){
   npuMinusOne_   = -999.;
   metFiltersWord_= 0;  
   preselWord_    = 0;  
-
+  
   bdt_all_ = -999.;
 }
 

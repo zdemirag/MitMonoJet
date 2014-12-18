@@ -191,8 +191,8 @@ void DMSTreeWriter::Process()
 
   fMitDMSTree.metRaw_        = fRawMet->At(0)->Pt();
   fMitDMSTree.metRawPhi_     = fRawMet->At(0)->Phi();
-  fMitDMSTree.met_           = -1.;
-  fMitDMSTree.metPhi_        = -1.;
+  fMitDMSTree.met_           = fMitDMSTree.metRaw_;
+  fMitDMSTree.metPhi_        = fMitDMSTree.metRawPhi_;
   fMitDMSTree.mvamet_        = fMetMVA->At(0)->Pt();
   fMitDMSTree.mvametPhi_     = fMetMVA->At(0)->Phi();
   fMitDMSTree.mvaCov00_      = fMetMVA->At(0)->Cov00();
@@ -200,34 +200,48 @@ void DMSTreeWriter::Process()
   fMitDMSTree.mvaCov01_      = fMetMVA->At(0)->Cov01();
   fMitDMSTree.mvaCov11_      = fMetMVA->At(0)->Cov11();
 
-  // LEPTONS (MU+ELE), Apply tight muon id
-  int nGoodMuons = 0;
-  // mu-mu or mu-X
-  if (fMuons->GetEntries() > 0)
-    for (UInt_t iMu = 0; iMu < fMuons->GetEntries(); iMu++) {
-      if (fMuons->At(iMu)->ParticleId() == XsIsoParticle::EParticleId::eTightMuon)
-        if (nGoodMuons == 0)
-          fMitDMSTree.lep1_ = fMuons->At(iMu)->Mom();
-          fMitDMSTree.lid1_ = fMuons->At(iMu)->Charge()*13;
-        if (nGoodMuons == 1)
-          fMitDMSTree.lep2_ = fMuons->At(iMu)->Mom();
-          fMitDMSTree.lid2_ = fMuons->At(iMu)->Charge()*13;          
-        nGoodMuons++;
-      }
-  fMitDMSTree.nlep_ = nGoodMuons + fElectrons->GetEntries();
-  //mu e
-  if (nGoodMuons == 1 && fElectrons->GetEntries() > 0) {
-    fMitDMSTree.lep2_ = fElectrons->At(0)->Mom();
-    fMitDMSTree.lid2_ = fElectrons->At(0)->Charge()*11;
+  // LEPTONS (MU+ELE), save tight id for further studies
+  // Also perform met/mt/mll computation according to the relevant case (muons only)
+  fMitDMSTree.nlep_ = fMuons->GetEntries() + fElectrons->GetEntries();
+  if (fMuons->GetEntries() > 1) {
+    //mu mu
+    fMitDMSTree.lep1_ = fMuons->At(0)->Mom();
+    fMitDMSTree.lid1_ = fMuons->At(0)->Charge()*13;
+    if (fMuons->At(0)->ParticleId() == XsIsoParticle::EParticleId::eTightMuon)
+      fMitDMSTree.lid1_ = fMitDMSTree.lid1_*10;
+
+    fMitDMSTree.lep2_ = fMuons->At(1)->Mom();
+    fMitDMSTree.lid2_ = fMuons->At(1)->Charge()*13;
+    if (fMuons->At(1)->ParticleId() == XsIsoParticle::EParticleId::eTightMuon)
+      fMitDMSTree.lid2_ = fMitDMSTree.lid2_*10;
+
+    CorrectMet(fMitDMSTree.metRaw_,fMitDMSTree.metRawPhi_,fMitDMSTree.lep1_,fMitDMSTree.lep2_,
+               fMitDMSTree.met_,fMitDMSTree.metPhi_);    
+    fMitDMSTree.mll_ = (fMitDMSTree.lep1_ + fMitDMSTree.lep2_).M();
+  }
+  else if (fMuons->GetEntries() == 1) {
+    fMitDMSTree.lep1_ = fMuons->At(0)->Mom();
+    fMitDMSTree.lid1_ = fMuons->At(0)->Charge()*13;
+    if (fMuons->At(0)->ParticleId() == XsIsoParticle::EParticleId::eTightMuon)
+      fMitDMSTree.lid1_ = fMitDMSTree.lid1_*10;
+
+    CorrectMet(fMitDMSTree.metRaw_,fMitDMSTree.metRawPhi_,fMitDMSTree.lep1_,
+               fMitDMSTree.met_,fMitDMSTree.metPhi_);    
+    fMitDMSTree.mt_ = GetMt(fMitDMSTree.lep1_,fMitDMSTree.metRaw_,fMitDMSTree.metRawPhi_);
+    //mu e
+    if (fElectrons->GetEntries() > 0) {
+      fMitDMSTree.lep2_ = fElectrons->At(0)->Mom();
+      fMitDMSTree.lid2_ = fElectrons->At(0)->Charge()*11;
+    }             
   }
   //e e
-  else if (nGoodMuons == 0 && fElectrons->GetEntries() > 1) {
+  else if (fMuons->GetEntries() == 0 && fElectrons->GetEntries() > 1) {
     fMitDMSTree.lep1_ = fElectrons->At(0)->Mom();
     fMitDMSTree.lid1_ = fElectrons->At(0)->Charge()*11;
     fMitDMSTree.lep2_ = fElectrons->At(1)->Mom();
     fMitDMSTree.lid2_ = fElectrons->At(1)->Charge()*11;
   }
-  else if (nGoodMuons == 0 && fElectrons->GetEntries() > 0) {
+  else if (fMuons->GetEntries() == 0 && fElectrons->GetEntries() > 0) {
     //e
     fMitDMSTree.lep1_ = fElectrons->At(0)->Mom();
     fMitDMSTree.lid1_ = fElectrons->At(0)->Charge()*11;
@@ -259,6 +273,10 @@ void DMSTreeWriter::Process()
                      0.3, 
                      130.))
       fMitDMSTree.HLTmatch_ |= MitDMSTree::PhotonMatch;         
+    // Correct MET (only if no leptons and high pt photon!)
+    if (fMitDMSTree.nlep_ == 0 && photon->Pt() > 150.) 
+      CorrectMet(fMitDMSTree.metRaw_,fMitDMSTree.metRawPhi_,fMitDMSTree.pho1_,
+                 fMitDMSTree.met_,fMitDMSTree.metPhi_);    
   }
 
   // FAT JETS  
@@ -535,29 +553,6 @@ void DMSTreeWriter::SlaveBegin()
 }
 
 //--------------------------------------------------------------------------------------------------
-void DMSTreeWriter::CorrectMet(const float met, const float metPhi,
-                               const Particle *l1, const Particle *l2,
-                               float &newMet, float &newMetPhi)
-{
-  // inputs:  met, metPhi, l1,  [ l2  only used if pointer is non-zero ]
-  // outputs: newMet, newMetPhi
-
-  float newMetX;
-  float newMetY;
-  if (l2) {   // these are doubles on the right: need full calculation in one line
-    newMetX = met*TMath::Cos(metPhi) + l1->Mom().Px() + l2->Mom().Px();
-    newMetY = met*TMath::Sin(metPhi) + l1->Mom().Py() + l2->Mom().Py();
-  }
-  else {
-    newMetX = met*TMath::Cos(metPhi) + l1->Mom().Px();
-    newMetY = met*TMath::Sin(metPhi) + l1->Mom().Py();
-  }
-  
-  newMet    = TMath::Sqrt(TMath::Power(newMetX,2) + TMath::Power(newMetY,2));
-  newMetPhi = TMath::ATan2(newMetY,newMetX);
-}
-
-//--------------------------------------------------------------------------------------------------
 Float_t DMSTreeWriter::PUWeight(Float_t npu)
 {
   if (npu<0)
@@ -595,6 +590,13 @@ void DMSTreeWriter::getGenLevelInfo(MitDMSTree& tree)
       } // end top scope
       
     } // end boson scope 
+    // Check if the particle is a high Pt photon
+    else if (p->Is(MCParticle::kGamma) && p->Pt() > 100.) {
+      tree.genV_   = p->Mom();      
+      tree.genVid_ = p->AbsPdgId();            
+    }
+    else
+      continue;
     
   } // end loop on MC Particles
 
@@ -690,4 +692,47 @@ Float_t DMSTreeWriter::GetFatJetBtag(LorentzVector& v,
   }
       
   return -1;
+}
+
+//--------------------------------------------------------------------------------------------------
+void DMSTreeWriter::CorrectMet(const float met, const float metPhi, const LorentzVector& l1, const LorentzVector& l2,
+                               float& newMet, float& newMetPhi)
+{
+  // inputs:  met, metPhi, l1, l2
+  // outputs: newMet, newMetPhi
+  float newMetX;
+  float newMetY;
+  newMetX = met*TMath::Cos(metPhi) + l1.Px() + l2.Px();
+  newMetY = met*TMath::Sin(metPhi) + l1.Py() + l2.Py();
+  
+  newMet    = TMath::Sqrt(TMath::Power(newMetX,2) + TMath::Power(newMetY,2));
+  newMetPhi = TMath::ATan2(newMetY,newMetX);
+
+  return;
+}
+
+//--------------------------------------------------------------------------------------------------
+void DMSTreeWriter::CorrectMet(const float met, const float metPhi, const LorentzVector& l1,
+                               float& newMet, float& newMetPhi)
+{
+  // inputs:  met, metPhi, l1
+  // outputs: newMet, newMetPhi
+  float newMetX;
+  float newMetY;
+  newMetX = met*TMath::Cos(metPhi) + l1.Px();
+  newMetY = met*TMath::Sin(metPhi) + l1.Py();
+  
+  newMet    = TMath::Sqrt(TMath::Power(newMetX,2) + TMath::Power(newMetY,2));
+  newMetPhi = TMath::ATan2(newMetY,newMetX);
+
+  return;
+}
+
+//--------------------------------------------------------------------------------------------------
+float DMSTreeWriter::GetMt(const LorentzVector& l1, const float met, const float metPhi)
+{
+  // inputs:  l1, met, metPhi
+  // outputs: transverse mass
+  double lepPhi = l1.Phi();
+  return TMath::Sqrt(2*met*l1.Pt()*(1-TMath::Cos(MathUtils::DeltaPhi(lepPhi,(double)metPhi))));
 }
