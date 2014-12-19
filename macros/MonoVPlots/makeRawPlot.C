@@ -20,9 +20,8 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   // here you can change the plot sources, i.e. the list of samples to be processed
   // and the location of the input flat trees
   gSystem->Setenv("MIT_ANA_CFG","boostedv-plots");
-  gSystem->Setenv("MIT_ANA_HIST","/scratch4/dimatteo/cms/hist/boostedv-v9/merged-test/");
-  //gSystem->Setenv("MIT_ANA_HIST","/scratch/dabercro/boostedv-v9/WithBDT/");
-
+  gSystem->Setenv("MIT_ANA_HIST","/mnt/hscratch/dimatteo/boostedv-v9/merged/");
+ 
   // setup graphics stuff before starting
   MitStyle::Init();
 
@@ -46,8 +45,8 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   TString preselCutsPj = "(preselWord & (1<<5))"; //Photon+jets control preselection
   
   // monoJet selection
-  TString metRawCut200 = "(metRaw > 200)";
-  TString jetCuts = "((jet1.Pt() > 110 && abs(jet1.eta()) < 2.5))";
+  TString metRawCut200 = "(metRaw > 200 && metRaw < 1000)";
+  TString jetCuts = "((jet1.Pt() > 110 && abs(jet1.eta()) < 2.5 && jet1CHF > 0.2 && jet1NHF < 0.7 && jet1NEMF < 0.7))";
   TString dPhij1j2 = "TMath::ACos(TMath::Cos(jet2.phi() - jet1.phi()))";
   TString nJetCuts = TString("(njets == 1 || (njets == 2 && (")+dPhij1j2+TString(" < 2.0)))");
   TString tauVeto = "(ntaus == 0)"; //veto on taus
@@ -55,15 +54,12 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   TString lepVeto = "(nlep == 0)"; //veto on leptons
 
   // Inclusive selection
-  TString inclusiveCut = "(jet1.Pt() > 150 && abs(jet1.Eta()) < 2.0 && jet1CHF > 0.2 && jet1NHF < 0.7 && jet1NEMF < 0.7)";
+  TString inclusiveCut = "(jet1.Pt() > 150 && abs(jet1.Eta()) < 2.0)";
   
   // BoostedV selection
-  TString metRawCut250 = "(metRaw > 250)";
+  TString metRawCut250 = "(metRaw > 250 && metRaw < 1000)";
   TString fjetCut = "(fjet1.Pt() > 250 && abs(fjet1.Eta()) < 2.5)";
   TString bdt_loose = "(fjet1Tau2/fjet1Tau1 < 0.5 && 60 < fjet1MassPruned && fjet1MassPruned < 110)";
-  //TString bdt_loose = "(bdt_noMass > 0.6)";
-  //TString bdt_loose = "(bdt_pTOverM > 0.6)";
-  TString bdt_tight = "(bdt_all > -0.1)";
   TString dPhifj1j2 = "TMath::ACos(TMath::Cos(jet2.phi() - fjet1.phi()))";
   TString fjetMassCut = "(fjet1.M() < 200.0)";
   TString sdCut = "(fjet1MassSDbm1 > 10)";
@@ -73,35 +69,31 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
 
   // Z->ll Control Region selection
   TString ZMuCut = "(genVdaughterId == 13)"; //require Z to decay to muons
-  TString DiMuonCut     = "(nlep == 2 && (abs(lid1)>=13 && abs(lid2)>=13))"; //require two muons 
+  TString DiMuonCut = "(nlep == 2 && (abs(lid1)>=130 && abs(lid2)>=13) && abs(lep1.Eta()) < 2.1 && abs(lep2.Eta()) < 2.1)"; //require tight-loose muons 
   TString InvMassCut = "(60 < mll && mll < 120)"; // require dilepton invariant mass to be within 30 GeV of Z mass
-  TString metCorrectedZll = "TMath::Sqrt(TMath::Power(metRaw*TMath::Cos(metRawPhi) + lep1.Px() + lep2.Px(),2) + TMath::Power(metRaw*TMath::Sin(metRawPhi) + lep1.Py() + lep2.Py(),2))"; // MET calculated as if both muons were invisible
-  TString metCorrectedZllCut200 = "(met > 200)"; // met corrected cut
-  TString metCorrectedZllCut250 = "(met > 250)"; // met corrected cut
+  TString metCorrectedZllCut200 = "(met > 200 && met < 1000)"; // met corrected cut
+  TString metCorrectedZllCut250 = "(met > 250 && met < 1000)"; // met corrected cut
   
   // W->lv Control Region selection
   TString WMuCut = "(genVdaughterId == 13)"; // require W to decay to muon
-  TString SingleMuonCut = "(nlep == 1 && abs(lid1) >= 13 && lep1.Pt() > 20 && abs(lep1.Eta()) < 2.4)"; // require one well defined muon
-  TString JetLepdRWlv = "TMath::Sqrt(TMath::Power(fjet1.Eta() - lep1.Eta(),2)+TMath::Power(TMath::ACos(TMath::Cos(fjet1.phi() - lep1.Eta())),2))";
-  TString JetLepdRWlvCut = TString("(")+JetLepdRWlv+TString(" > 0.3)");
-  TString dPhiLepMet = "lep1.phi() - metRawPhi";
-  TString TransMassCut ="(10 < mt && mt < 200)"; // require lepton tranverse mass to be W like
-  TString metCorrectedWlvCut200 = "(met > 200)"; // met corrected cut
-  TString metCorrectedWlvCut250 = "(met > 250)"; // met corrected cut
+  TString SingleMuonCut = "(nlep == 1 && abs(lid1) >= 1300 && lep1.Pt() > 20 && abs(lep1.Eta()) < 2.1)"; // require one well defined muon passing isolation
+  TString TransMassCut ="(40 < mt && mt < 200)"; // require lepton tranverse mass to be W like
+  TString metCorrectedWlvCut200 = "(met > 200 && met < 1000)"; // met corrected cut
+  TString metCorrectedWlvCut250 = "(met > 250 && met < 1000)"; // met corrected cut
 
   // Photon+jets Control Region selection
   TString SinglePhotonCut = "(pho1.Pt() > 160 && abs(pho1.Eta()) < 2.5)"; // require one well defined photon
-  TString metCorrectedPjCut200 = "(met > 200)"; // met corrected cut
-  TString metCorrectedPjCut250 = "(met > 250)"; // met corrected cut
+  TString metCorrectedPjCut200 = "(met > 200 && met < 1000)"; // met corrected cut
+  TString metCorrectedPjCut250 = "(met > 250 && met < 1000)"; // met corrected cut
       
   // our plot task
   TString regions[4] = {"Met","Zll","Wlv","Pj"};
-  TString cuts[14];
+  TString cuts[18];
   
   TString MonoJetSelection           = eventWeight+monoJetTrigger+andC+jetCuts+andC+nJetCuts+andC+tauVeto+andC+photonVeto+andC+metFiltersCut;
   TString BoostedVVetoL              = "!("+fjetCut+andC+bdt_loose+")"; //BoostedV BDT based loose ANTI selection
   TString BoostedVSelectionL         = fjetCut+andC+bdt_loose; //BoostedV BDT based selection
-  TString BoostedVSelectionT         = fjetCut+andC+bdt_tight; //BoostedV MVA tight selection
+  TString BoostedVnSubOnly           = fjetCut+andC+nSubCut; //BoostedV nSub only selection
   TString SignalRegionSelection      = preselCutsZnunu+andC+lepVeto+andC+metRawCut200;
   TString ZllControlRegionSelection  = preselCutsZll+andC+DiMuonCut+andC+InvMassCut+andC+metCorrectedZllCut250;
   TString WlvControlRegionSelection = preselCutsWlv+andC+SingleMuonCut+andC+TransMassCut+andC+metCorrectedWlvCut250;
@@ -114,8 +106,8 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
                                     +andC+jetCuts+andC+nJetCuts+andC+tauVeto+andC+metFiltersCut
                                     +andC+SinglePhotonCut+andC+metCorrectedPjCut200;
 
-  cuts[0]     = MonoJetSelection+andC+BoostedVSelectionL+andC+SignalRegionSelection+")";      // boostedV signal region selection, MET 200
-  cuts[1]     = MonoJetSelection+andC+BoostedVSelectionT+andC+SignalRegionSelection+")";      // boostedV signal region selection, MET 200
+  cuts[0]     = MonoJetSelection+andC+BoostedVSelectionL+andC+SignalRegionSelection+")";       // monojet signal region selection, MET 200
+  cuts[1]     = "";     // FREE slot for signal selection
   cuts[2]     = MonoJetSelection+andC+BoostedVSelectionL+andC+ZllControlRegionSelection+")";  // boostedV Z->ll control region selection, MET 250
   cuts[3]     = MonoJetSelection+andC+BoostedVSelectionL+andC+WlvControlRegionSelection+")";  // boostedV W->lnu control region selection, MET 250
   cuts[4]     = PjControlRegionSelection+andC+BoostedVSelectionL+")";                         // boostedV Photon+jets control region selection, MET 250
@@ -128,11 +120,25 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   cuts[11]    = MonoJetSelection+andC+inclusiveCut+andC+InclusiveZllControlRegionSelection+")";// inclusive Z->ll region selection, MET 200, no BDT cut
   cuts[12]    = MonoJetSelection+andC+inclusiveCut+andC+InclusiveWlvControlRegionSelection+")";// inclusive W->lnu region selection, MET 200, no BDT cut
   cuts[13]    = InclusivePjControlRegionSelection+andC+inclusiveCut+")";                       // inclusive Photon+jets control region selection, MET 200, no BDT cut 
-  const int icut_no_BDT = 6;
+  cuts[14]    = MonoJetSelection+andC+BoostedVnSubOnly+andC+metRawCut250+andC+SignalRegionSelection+")"; // boostedV signal region selection, MET 250, no mass cut
+  cuts[15]    = MonoJetSelection+andC+BoostedVnSubOnly+andC+ZllControlRegionSelection+")";// boostedV Z->ll control region selection, MET 250, no mass cut
+  cuts[16]    = MonoJetSelection+andC+BoostedVnSubOnly+andC+WlvControlRegionSelection+")";// boostedV W->lnu control region selection, MET 250, no mass cut
+  cuts[17]    = PjControlRegionSelection+andC+BoostedVnSubOnly+")";                       // boostedV Photon+jets control region selection, MET 250, no mass cut
+
+  const int icut_boosted = 5;                                                                   
+  const int icut_inclusive = icut_boosted+4;                                                                   
+  const int icut_baseline = icut_inclusive+4;                                                                   
+  const int icut_boosted_nomasscut = icut_baseline+4;                                                                   
   // Fix the region name if cut does not contain BDT
-  if (icut >= icut_no_BDT)
+  if (icut > icut_boosted && icut <= icut_inclusive)
     for (int i = 0; i < 4; i++)
-      regions[i] = regions[i] + "_noVTagCut";
+      regions[i] = regions[i] + "_inclusive";
+  else if (icut > icut_inclusive && icut <= icut_baseline)
+    for (int i = 0; i < 4; i++)
+      regions[i] = regions[i] + "_baseline";
+  else if (icut > icut_baseline && icut <= icut_boosted_nomasscut)
+    for (int i = 0; i < 4; i++)
+      regions[i] = regions[i] + "_nomasscut";
  
   PlotTask *plotTask = 0;
   
@@ -175,8 +181,8 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     plotTask = new PlotTask(0,lumi);
     plotTask->SetVarBins(true);
     plotTask->SetHistRanges(metbins,min,max,0.,0.);
-    int nBins = nBinsVar - 1;
-    plotTask->SetNBins(nBins);
+    int numBins = nBinsVar - 1;
+    plotTask->SetNBins(numBins);
     plotTask->SetAxisTitles("E_{T}^{miss} [GeV]","Number of Events");
     plotTask->SetPngFileName("/tmp/dummy.png");
     plotTask->Plot(Stacked,nTuple,"metRaw",cuts[0],"BDT_loose_varbins_" + regions[0]);
@@ -193,16 +199,6 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     plotTask->SetAxisTitles("E_{T}^{miss} [GeV]","Number of Events");
     plotTask->SetPngFileName("/tmp/dummy.png");
     plotTask->Plot(Stacked,nTuple,"metRaw",cuts[0],"BDT_loose_" + regions[0]);
-    printf("Finished Plot for Region %s and Variable %s!\n",regions[0].Data(),"metRaw");
-    delete plotTask;
-  
-    // plot metRaw, BDT tight
-    plotTask = new PlotTask(0,lumi);
-    plotTask->SetHistRanges(200.0,800.0,0.,0.);
-    plotTask->SetNBins(60);
-    plotTask->SetAxisTitles("E_{T}^{miss} [GeV]","Number of Events");
-    plotTask->SetPngFileName("/tmp/dummy.png");
-    plotTask->Plot(Stacked,nTuple,"metRaw",cuts[1],"BDT_tight_" + regions[0]);
     printf("Finished Plot for Region %s and Variable %s!\n",regions[0].Data(),"metRaw");
     delete plotTask;
   }
@@ -243,7 +239,7 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     plotTask->SetAxisTitles(variable,"Number of Events");
     plotTask->SetPngFileName("/tmp/dummy.png");
     if (variable == "met")
-      plotTask->Plot(Stacked,nTuple,metCorrectedZll,cuts[icut],"BDT_" + regions[1]);
+      plotTask->Plot(Stacked,nTuple,"met",cuts[icut],"BDT_" + regions[1]);
     else 
       plotTask->Plot(Stacked,nTuple,variable,cuts[icut],"BDT_" + regions[1]);
     printf("Finished Plot for Region %s and Variable %s!\n",regions[1].Data(),variable.Data());
