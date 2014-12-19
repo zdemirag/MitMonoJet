@@ -39,6 +39,7 @@ ClassImp(mithep::BoostedVAnalysisMod)
     fMuonsFromBranch       (kTRUE),
     fPhotonsFromBranch     (kTRUE),
     // define active preselection regions
+    fApplyResolvedPresel   (kTRUE),
     fApplyTopPresel        (kTRUE),
     fApplyWlepPresel       (kTRUE),
     fApplyZlepPresel       (kTRUE),
@@ -57,6 +58,8 @@ ClassImp(mithep::BoostedVAnalysisMod)
     fPhotons               (0),
     fEvtSelData            (0),    
     // cuts
+    fMinResolvedMass       (60),
+    fMaxResolvedMass       (110),
     fMinFatJetPt           (200),
     fMinTagJetPt           (100),
     fMinVbfJetPt           (40),
@@ -154,6 +157,7 @@ void BoostedVAnalysisMod::Process()
   }
  
   // Initialize selection flags
+  Bool_t passResolvedPresel = kFALSE;
   Bool_t passTopPresel = kFALSE;
   Bool_t passWlepPresel = kFALSE;
   Bool_t passZlepPresel = kFALSE;
@@ -168,6 +172,43 @@ void BoostedVAnalysisMod::Process()
   if (fJets->GetEntries() < 1) {
     this->SkipEvent(); 
     return;
+  }
+
+  // Determine if event passes resolved preselection (di-jet, di-jet mass, b-veto)
+  if (fApplyResolvedPresel && fJets->GetEntries() > 1) {
+    int nGoodJetPairs = 0;
+    int nGoodBJets = 0;
+
+    // Jets, check btagging for vetoing
+    for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
+      const Jet *jetOne = fJets->At(i);
+      // Pt and eta cuts
+      if (jetOne->Pt() < 30. || fabs(jetOne->Eta()) > 2.5)
+        continue;
+      // Check btagging
+      if (jetOne->CombinedSecondaryVertexBJetTagsDisc() > 0.679) {
+        nGoodBJets++;
+        continue;
+      }      
+      // di-jet mass cut                
+      for (UInt_t j = i+1; j < fJets->GetEntries(); ++j) {
+        const Jet *jetTwo = fJets->At(j);
+        // Pt and eta cuts
+        if (jetTwo->Pt() < 30. || fabs(jetTwo->Eta()) > 2.5)
+          continue;
+        // Check btagging
+        if (jetTwo->CombinedSecondaryVertexBJetTagsDisc() > 0.679)
+          continue;
+        // Check mass
+        if ((jetOne->Mom() + jetTwo->Mom()).M() > fMinResolvedMass
+          &&(jetOne->Mom() + jetTwo->Mom()).M() < fMaxResolvedMass)
+          nGoodJetPairs++;
+      }
+    }
+    
+    // Decision    
+    if (nGoodJetPairs > 0 && nGoodBJets == 0)
+      passResolvedPresel = kTRUE;
   }
 
   // Determine if the event passes any of the preselection cuts
@@ -230,7 +271,7 @@ void BoostedVAnalysisMod::Process()
   }
 
   if (fApplyWlepPresel) {
-    // W Preselection: require high pt jet + muon
+    // W Preselection: require high pt jet/resolved pair + muon
     int nGoodTagJets = 0;
     int nGoodLeptons = 0;
 
@@ -256,10 +297,12 @@ void BoostedVAnalysisMod::Process()
             
     if (passMonoJetHLT && nGoodTagJets > 0 && nGoodLeptons > 0)
       passWlepPresel = kTRUE;
+    if (passMonoJetHLT && passResolvedPresel && nGoodLeptons > 0)
+      passWlepPresel = kTRUE;
   }
 
   if (fApplyZlepPresel) {
-    // Z Preselection: require high pt jet + di-muons
+    // Z Preselection: require high pt jet/resolved pair + di-muons
     int nGoodTagJets = 0;
     int nGoodLeptons = 0;
 
@@ -285,10 +328,12 @@ void BoostedVAnalysisMod::Process()
             
     if (passMonoJetHLT && nGoodTagJets > 0 && nGoodLeptons > 1)
       passZlepPresel = kTRUE;
+    if (passMonoJetHLT && passResolvedPresel && nGoodLeptons > 1)
+      passZlepPresel = kTRUE;
   }
 
   if (fApplyMetPresel) {
-    // Z Preselection: require boosted jet + MET
+    // Z Preselection: require boosted jet/resolved pair + MET
     int nGoodTagJets = 0;
 
     // Jets
@@ -301,6 +346,8 @@ void BoostedVAnalysisMod::Process()
     }
         
     if (passMonoJetHLT && nGoodTagJets > 0 && fMet->At(0)->Pt() > fMinMet)
+      passMetPresel = kTRUE;
+    if (passMonoJetHLT && passResolvedPresel && fMet->At(0)->Pt() > fMinMet)
       passMetPresel = kTRUE;
   }
 
@@ -346,7 +393,7 @@ void BoostedVAnalysisMod::Process()
   }
 
   if (fApplyGjetPresel) {
-    // G+jets Preselection: require tag jet + photon
+    // G+jets Preselection: require tag jet/resolved pair + photon
     int nGoodTagJets = 0;
     int nGoodPhotons = 0;
 
@@ -370,6 +417,8 @@ void BoostedVAnalysisMod::Process()
       }
     }
     if (passGjetHLT && nGoodTagJets > 0 && nGoodPhotons > 0)
+      passGjetPresel = kTRUE;
+    if (passGjetHLT && passResolvedPresel && nGoodPhotons > 0)
       passGjetPresel = kTRUE;
   }
 

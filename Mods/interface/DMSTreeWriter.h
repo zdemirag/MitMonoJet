@@ -150,6 +150,9 @@ namespace mithep
                                                 Float_t deltaR = 0.5,
                                                 Float_t minPt = 0.,
                                                 Float_t maxEta = 99.);
+    // Jet cleaner   
+    Bool_t                         fjetIsCleaned(LorentzVector& v,
+                                                 Float_t deltaR = 0.5);
     // Jet-Parton Id Matcher   
     Int_t                          JetPartonMatch(LorentzVector& v,
                                                   Float_t deltaR = 0.5);

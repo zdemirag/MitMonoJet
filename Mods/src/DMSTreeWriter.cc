@@ -288,10 +288,14 @@ void DMSTreeWriter::Process()
   // FAT JETS  
   fMitDMSTree.nfjets_ = fFatJets->GetEntries();
   for (UInt_t i = 0; i < fFatJets->GetEntries(); ++i) {
-
+    
     if (i == 0) {
       const XlFatJet *fjet = fFatJets->At(i);    
       fMitDMSTree.fjet1_       = fjet->Mom();
+      // Further cleaning for larger cones
+      if (!fjetIsCleaned(fMitDMSTree.fjet1_,0.5))
+        continue;
+
       fMitDMSTree.fjet1Btag_    = GetFatJetBtag(fMitDMSTree.fjet1_, 0.5);
       fMitDMSTree.fjet1Charge_  = fjet->Charge();
       fMitDMSTree.fjet1QGtag_   = fjet->QGTag();
@@ -339,6 +343,10 @@ void DMSTreeWriter::Process()
     if (i == 1) {
       const XlFatJet *fjet = fFatJets->At(i);    
       fMitDMSTree.fjet2_       = fjet->Mom();
+      // Further cleaning for larger cones
+      if (!fjetIsCleaned(fMitDMSTree.fjet2_,0.5))
+        continue;
+
       fMitDMSTree.fjet2Btag_    = GetFatJetBtag(fMitDMSTree.fjet2_, 0.5);
       fMitDMSTree.fjet2Charge_  = fjet->Charge();
       fMitDMSTree.fjet2QGtag_   = fjet->QGTag();
@@ -637,6 +645,33 @@ Bool_t DMSTreeWriter::IsHLTMatched(LorentzVector& v,
   } // end loop on trigger objects
 
   return false;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+Bool_t DMSTreeWriter::fjetIsCleaned(LorentzVector& v,
+                                    Float_t deltaR)
+{
+  // Loop on tight muons and photons and discard 
+  // jet if overlapping
+  for (UInt_t i=0; i<fMuons->GetEntries(); ++i) {
+    // Discard loose muons
+    if (fMuons->At(i)->ParticleId() == XsIsoParticle::EParticleId::eX)
+      continue;
+    float thisDr = MathUtils::DeltaR(v, fMuons->At(i)->Mom());
+    if (thisDr < deltaR)
+      return false;      
+  }
+  for (UInt_t i=0; i<fPhotons->GetEntries(); ++i) {
+    // Discard soft photons
+    if (fPhotons->At(i)->Pt() < 150.)
+      continue;
+    float thisDr = MathUtils::DeltaR(v, fPhotons->At(i)->Mom());
+    if (thisDr < deltaR)
+      return false;      
+  }
+ 
+  return true;      
 }
 
 //--------------------------------------------------------------------------------------------------

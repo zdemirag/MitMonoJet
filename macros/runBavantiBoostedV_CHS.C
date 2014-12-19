@@ -52,7 +52,7 @@ void runBavantiBoostedV_CHS
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 100)
+                        int         nEvents    = 1000)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -392,6 +392,9 @@ void runBavantiBoostedV_CHS
   fatJetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());
   fatJetCleaning->SetCleanMuonsName(muonIdIsoMod->GetOutputName());
   fatJetCleaning->SetCleanPhotonsName(photonCleaningMod->GetOutputName());
+  fatJetCleaning->SetMinDeltaRToElectron(0.5);
+  fatJetCleaning->SetMinDeltaRToMuon(0.5);
+  fatJetCleaning->SetMinDeltaRToPhoton(0.5);
   fatJetCleaning->SetApplyPhotonRemoval(kTRUE);
   jetCleaning->SetApplyTauRemoval(kFALSE);  
   fatJetCleaning->SetGoodJetsName(fatJetId->GetOutputName());
@@ -409,7 +412,8 @@ void runBavantiBoostedV_CHS
   fastPresel->SetMuonsFromBranch(kFALSE);
   fastPresel->SetPhotonsName(photonCleaningMod->GetOutputName());
   fastPresel->SetPhotonsFromBranch(kFALSE);
-  fastPresel->ApplyTopPresel(kTRUE); 
+  fastPresel->ApplyResolvedPresel(kTRUE); 
+  fastPresel->ApplyTopPresel(kFALSE); 
   fastPresel->ApplyWlepPresel(kTRUE);
   fastPresel->ApplyZlepPresel(kTRUE);
   fastPresel->ApplyMetPresel(kTRUE);
@@ -437,7 +441,8 @@ void runBavantiBoostedV_CHS
   jetplusmet->SetMuonsFromBranch(kFALSE);
   jetplusmet->SetPhotonsName(photonCleaningMod->GetOutputName());
   jetplusmet->SetPhotonsFromBranch(kFALSE);
-  jetplusmet->ApplyTopPresel(kTRUE); 
+  jetplusmet->ApplyResolvedPresel(kTRUE); 
+  jetplusmet->ApplyTopPresel(kFALSE); 
   jetplusmet->ApplyWlepPresel(kTRUE);
   jetplusmet->ApplyZlepPresel(kTRUE);
   jetplusmet->ApplyMetPresel(kTRUE);

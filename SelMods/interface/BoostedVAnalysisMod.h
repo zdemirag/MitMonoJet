@@ -53,6 +53,7 @@ namespace mithep
     void                  SetPhotonsFromBranch     (Bool_t b)      { fPhotonsFromBranch = b;      }
 
     // decide whether to apply given preselections or not
+    void                  ApplyResolvedPresel      (Bool_t b)      { fApplyResolvedPresel = b;    }
     void                  ApplyTopPresel           (Bool_t b)      { fApplyTopPresel = b;         }
     void                  ApplyWlepPresel          (Bool_t b)      { fApplyWlepPresel = b;        }
     void                  ApplyZlepPresel          (Bool_t b)      { fApplyZlepPresel = b;        }
@@ -68,6 +69,8 @@ namespace mithep
     void                  SkipEvents               (Bool_t b)      { fSkipEvents = b;             }
 
     // Setting cut values
+    void                  SetMinResolvedMass       (Double_t x)    { fMinResolvedMass = x;        }
+    void                  SetMaxResolvedMass       (Double_t x)    { fMaxResolvedMass = x;        }
     void                  SetMinFatJetPt           (Double_t x)    { fMinFatJetPt = x;            }
     void                  SetMinTagJetPt           (Double_t x)    { fMinTagJetPt = x;            }
     void                  SetMinVbfJetPt           (Double_t x)    { fMinVbfJetPt = x;            }
@@ -110,6 +113,7 @@ namespace mithep
     Bool_t                fMuonsFromBranch;
     Bool_t                fPhotonsFromBranch;
     // logical whether to apply given preselections or not
+    Bool_t                fApplyResolvedPresel; 
     Bool_t                fApplyTopPresel; 
     Bool_t                fApplyWlepPresel;
     Bool_t                fApplyZlepPresel;
@@ -132,6 +136,8 @@ namespace mithep
     const EvtSelData     *fEvtSelData;
     XlEvtSelData         *fXlEvtSelData;  //extended event selection data object
     // Cuts
+    Double_t              fMinResolvedMass;
+    Double_t              fMaxResolvedMass;
     Double_t              fMinFatJetPt;
     Double_t              fMinTagJetPt;
     Double_t              fMinVbfJetPt;
