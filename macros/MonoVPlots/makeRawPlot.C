@@ -91,7 +91,7 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   TString cuts[18];
   
   TString MonoJetSelection           = eventWeight+monoJetTrigger+andC+jetCuts+andC+nJetCuts+andC+tauVeto+andC+photonVeto+andC+metFiltersCut;
-  TString BoostedVVetoL              = "!("+fjetCut+andC+bdt_loose+")"; //BoostedV BDT based loose ANTI selection
+  TString BoostedVVetoL              = "!("+fjetCut+andC+bdt_loose+andC+"(met > 250)"")"; //BoostedV BDT based loose ANTI selection
   TString BoostedVSelectionL         = fjetCut+andC+bdt_loose; //BoostedV BDT based selection
   TString BoostedVnSubOnly           = fjetCut+andC+nSubCut; //BoostedV nSub only selection
   TString SignalRegionSelection      = preselCutsZnunu+andC+lepVeto+andC+metRawCut200;
