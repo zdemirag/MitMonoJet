@@ -24,11 +24,11 @@ using namespace mithep;
 //---
 TString getEnv(const char* name);
 //---
-void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight, int selMode = 0, bool isData = false, bool exclusive = true);
+void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight, int selMode = 0, bool isData = false, bool exclusive = true, bool testing = false);
 //---
-bool eventPassSelection(MitDMSTree &intree, float &met, int selMode = 0, bool exclusive = true);
+bool eventPassSelection(MitDMSTree &intree, int selMode = 0, bool exclusive = true);
 //==================================================================================================
-void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = false, bool exclusive = true) 
+void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = false, bool exclusive = true, bool testing = false) 
 {
   // Define tree name (depends on selection)
   TString outTreeNameExt;
@@ -58,6 +58,9 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
   if (selMode == 3 || selMode == 7)
     anaCfg = "boostedv-ana-pj";
 
+  if (testing)
+    anaCfg = "boostedv-ana-test";
+
   // Define samples
   TaskSamples* samples = new TaskSamples(prdCfg.Data(),hstDir.Data());
   samples->SetNameTxt(anaCfg.Data());
@@ -74,6 +77,8 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
     outFileName = "inclusive.root";
   if (!exclusive)
     outFileName = "baseline.root";
+  if (testing)
+    outFileName = "testing.root";
   fout = new TFile(outFileName,outFileMode);
   
   // Prepare object to store outtree
@@ -113,11 +118,10 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
     }
     // Scan on input and fill output ntuple
     cout << "INFO ---> Number of events passing the selection is: ";
-    fillOutNtuples(outTree,inTree,baseWeight,selMode,isData,exclusive);
+    fillOutNtuples(outTree,inTree,baseWeight,selMode,isData,exclusive,testing);
     
     // Close last group
     if (iSample == (listOfSamples.size()-1)) {
-    //if (iSample == 2) {
       fout->cd();
       outTree.tree_->Write(); 
       fout->Close();
@@ -142,10 +146,9 @@ TString getEnv(const char* name)
 }
 
 //==================================================================================================
-void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight, int selMode, bool isData, bool exclusive)
+void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight, int selMode, bool isData, bool exclusive, bool testing)
 {
   double weight = -1;
-  float met = -1;
   double sumweight = 0;
   // Loop over tree entries
   Int_t nEntries = intree.tree_->GetEntries();
@@ -155,7 +158,7 @@ void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight
     intree.tree_-> GetEntry(iEntry);
 
     // Determine if event passes selection
-    if (!eventPassSelection(intree,met,selMode,exclusive))
+    if (!eventPassSelection(intree,selMode,exclusive))
       continue;
       
     // Determine correctly the event weights
@@ -164,9 +167,12 @@ void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight
     sumweight += weight;
     
     // Determine the outtree variables for this event
-    outtree.mvamet_ = met;
+    outtree.mvamet_ = intree.met_;
     outtree.jet1pt_ = intree.fjet1_.Pt();
     outtree.genjetpt_ = intree.fjet1_.Pt();
+    if (selMode >= 4)
+      outtree.jet1pt_ = intree.jet1_.Pt();
+      outtree.genjetpt_ = intree.jet1_.Pt();
     outtree.genVpt_ = intree.genV_.Pt();
     outtree.weight_ = weight;
     if (isData) {
@@ -179,7 +185,9 @@ void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight
     outtree.tree_->Fill();
   }
   
-  if (!isData)
+  if (isData)
+    sumweight = -sumweight;
+  if (!isData || testing)
     cout << sumweight << endl;
   else 
     cout << "BLINDED!" << endl;
@@ -187,7 +195,7 @@ void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight
 }
 
 //==================================================================================================
-bool eventPassSelection(MitDMSTree &intree, float &met, int selMode, bool exclusive)
+bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
 {
   // Trigger
   bool triggerBit = ((intree.trigger_ & (1<<0)) || (intree.trigger_ & (1<<1)));
@@ -207,38 +215,24 @@ bool eventPassSelection(MitDMSTree &intree, float &met, int selMode, bool exclus
     preselBit = (intree.preselWord_ & (1<<5)); //Photon+jets control preselection
 
   // Met
-  met = intree.metRaw_;
-  if (selMode == 1 || selMode == 5)
-    met = TMath::Sqrt(TMath::Power(intree.metRaw_*TMath::Cos(intree.metRawPhi_) + 
-                      intree.lep1_.Px() + intree.lep2_.Px(),2) + 
-                      TMath::Power(intree.metRaw_*TMath::Sin(intree.metRawPhi_) + 
-                      intree.lep1_.Py() + intree.lep2_.Py(),2)); //Z->ll control preselection
-  if (selMode == 2 || selMode == 6)
-    met = TMath::Sqrt(TMath::Power(intree.metRaw_*TMath::Cos(intree.metRawPhi_) + 
-                      intree.lep1_.Px(),2) + 
-                      TMath::Power(intree.metRaw_*TMath::Sin(intree.metRawPhi_) + 
-                      intree.lep1_.Py(),2)); //W->lnu control preselection
-  if (selMode == 3 || selMode == 7)
-    met = TMath::Sqrt(TMath::Power(intree.metRaw_*TMath::Cos(intree.metRawPhi_) + 
-                      intree.pho1_.Px(),2) + 
-                      TMath::Power(intree.metRaw_*TMath::Sin(intree.metRawPhi_) + 
-                      intree.pho1_.Py(),2)); //Photon+jets control preselection
-  bool metBit = (met > 200.);
+  bool metBit = (intree.met_ > 200. && intree.met_ < 1000.);
   if (selMode < 4)
-    metBit = (met > 250.);
+    metBit = (intree.met_ > 250.);
                       
   // Narrow jets
-  bool jetBit = ((intree.jet1_.Pt() > 110 && abs(intree.jet1_.eta()) < 2.5));
-  jetBit = jetBit && (intree.njets_ == 1 || (intree.njets_ == 2 && 
-                      abs(MathUtils::DeltaPhi(intree.jet1_.phi(),intree.jet2_.phi())) < 2.0));
+  bool jetBit = ((intree.jet1_.Pt() > 110 && abs(intree.jet1_.eta()) < 2.5)
+               && intree.jet1CHF_ > 0.2 && intree.jet1NHF_ < 0.7 && intree.jet1NEMF_ < 0.7);
+  bool nJetBit = (intree.njets_ == 1 || (intree.njets_ == 2 && 
+                  abs(MathUtils::DeltaPhi(intree.jet1_.phi(),intree.jet2_.phi())) < 2.0));
 
   // Inclusive category
-  bool inclusiveBit = (intree.jet1_.Pt() > 150 && abs(intree.jet1_.Eta()) < 2.0 && 
-                       intree.jet1CHF_ > 0.2 && intree.jet1NHF_ < 0.7 && intree.jet1NEMF_ < 0.7);
+  bool inclusiveBit = (intree.jet1_.Pt() > 150 && abs(intree.jet1_.Eta()) < 2.0);
 
-  // Fat jet :: FIXME with bdt
+  // Fat jet category::cut-based
   bool fatJetBit = (intree.fjet1_.Pt() > 250 && abs(intree.fjet1_.Eta()) < 2.5);
-  fatJetBit = fatJetBit && (intree.bdt_all_ > -0.5);
+  fatJetBit = fatJetBit && (intree.fjet1Tau2_/intree.fjet1Tau1_  < 0.5 
+                            && 60 < intree.fjet1MassPruned_ && intree.fjet1MassPruned_ < 110
+                            && intree.met_ > 250.);
 
   // Vetoes
   bool vetoBit = (intree.ntaus_ == 0);
@@ -254,20 +248,14 @@ bool eventPassSelection(MitDMSTree &intree, float &met, int selMode, bool exclus
   // Extra
   bool extraBit = true;
   if (selMode == 1 || selMode == 5) {
-    extraBit = extraBit && (intree.nlep_ == 2 && (intree.lid1_==13 && intree.lid2_==13));
-    TLorentzVector tempBos;
-    TLorentzVector tempLep1;
-    tempLep1.SetPtEtaPhiE(intree.lep1_.Pt(),intree.lep1_.Eta(),intree.lep1_.Phi(),intree.lep1_.E());
-    TLorentzVector tempLep2;
-    tempLep2.SetPtEtaPhiE(intree.lep2_.Pt(),intree.lep2_.Eta(),intree.lep2_.Phi(),intree.lep2_.E());
-    tempBos = tempLep1 + tempLep2;
-    extraBit = extraBit && (tempBos.M() > 60. && tempBos.M() < 120.);    
+    extraBit = extraBit && (intree.nlep_ == 2 && (abs(intree.lid1_)>=130 && abs(intree.lid2_)>=13)
+                                              && (abs(intree.lep1_.Eta()) < 2.1 && abs(intree.lep2_.Eta()) < 2.1));
+    extraBit = extraBit && (60 < intree.mll_ && intree.mll_ < 120);    
   } //Zll
   if (selMode == 2 || selMode == 6) {
     extraBit = extraBit && 
-              (intree.nlep_ == 1 && abs(intree.lid1_) == 13 && intree.lep1_.Pt() > 20 && abs(intree.lep1_.Eta()) < 2.4);
-    float mt = sqrt(2*intree.metRaw_*intree.lep1_.Pt()*(1-TMath::Cos(intree.metRawPhi_-intree.lep1_.Phi())));
-    extraBit = extraBit && (mt > 10. && mt < 200.);
+              (intree.nlep_ == 1 && abs(intree.lid1_) >= 1300 && intree.lep1_.Pt() > 20 && abs(intree.lep1_.Eta()) < 2.1);
+    extraBit = extraBit && (intree.mt_ > 40. && intree.mt_ < 200.);
   } //Wlv
   if (selMode == 3 || selMode == 7) {
     extraBit = extraBit && 
@@ -282,13 +270,13 @@ bool eventPassSelection(MitDMSTree &intree, float &met, int selMode, bool exclus
   bool theDecision;
   // Boosted selection
   if (selMode < 4) 
-    theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && fatJetBit && vetoBit && extraBit;
+    theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && nJetBit && fatJetBit && vetoBit && extraBit;
   // Inclusive selection and discard boosted events
   else if (selMode >= 4 && exclusive)
-    theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && inclusiveBit && vetoBit && extraBit && !fatJetBit;
+    theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && nJetBit && inclusiveBit && vetoBit && extraBit && !fatJetBit;
   // Inclusive selection keep boosted events
   else if (selMode >= 4 && !exclusive)
-    theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && inclusiveBit && vetoBit && extraBit;
+    theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && nJetBit && inclusiveBit && vetoBit && extraBit;
   else 
     cout << "ERROR - Selection logic is wrong! Please fix" << endl;
   
