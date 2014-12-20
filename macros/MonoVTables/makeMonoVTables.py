@@ -101,17 +101,17 @@ if options.region == 'Met':
   print 'INFO - Creating signal region tables.'
   makeTableHeader(options.region)
 
-  input_file = TFile.Open(options.input_folder + 'BDT_Met_noVTagCut_bdt_all.root')
+  input_file = TFile.Open(options.input_folder + 'BDT_Met_baseline_isData.root')
   if not input_file:
     print 'ERROR - Cannot open input root file: ' + options.input_file + ' , exiting!'
     raise SystemExit
   makeTableRaw(options.region,input_file,'baseline')
-  input_file = TFile.Open(options.input_folder + 'BDT_Met_noVTagCut_fjet1MassPruned.root')
+  input_file = TFile.Open(options.input_folder + 'BDT_Met_inclusive_isData.root')
   if not input_file:
     print 'ERROR - Cannot open input root file: ' + options.input_file + ' , exiting!'
     raise SystemExit
   makeTableRaw(options.region,input_file,'inclusive')
-  input_file = TFile.Open(options.input_folder + 'BDT_Met_fjet1MassPruned.root')
+  input_file = TFile.Open(options.input_folder + 'BDT_Met_isData.root')
   if not input_file:
     print 'ERROR - Cannot open input root file: ' + options.input_file + ' , exiting!'
     raise SystemExit
@@ -122,17 +122,17 @@ if options.region == 'Zll':
   print 'INFO - Creating Zll control region tables.'
   makeTableHeader(options.region)
 
-  input_file = TFile.Open(options.input_folder + 'BDT_Zll_noVTagCut_bdt_all.root')
+  input_file = TFile.Open(options.input_folder + 'BDT_Zll_baseline_isData.root')
   if not input_file:
     print 'ERROR - Cannot open input root file: ' + options.input_file + ' , exiting!'
     raise SystemExit
   makeTableRaw(options.region,input_file,'baseline')
-  input_file = TFile.Open(options.input_folder + 'BDT_Zll_noVTagCut_fjet1MassPruned.root')
+  input_file = TFile.Open(options.input_folder + 'BDT_Zll_inclusive_isData.root')
   if not input_file:
     print 'ERROR - Cannot open input root file: ' + options.input_file + ' , exiting!'
     raise SystemExit
   makeTableRaw(options.region,input_file,'inclusive')
-  input_file = TFile.Open(options.input_folder + 'BDT_Zll_fjet1MassPruned.root')
+  input_file = TFile.Open(options.input_folder + 'BDT_Zll_isData.root')
   if not input_file:
     print 'ERROR - Cannot open input root file: ' + options.input_file + ' , exiting!'
     raise SystemExit
@@ -143,17 +143,17 @@ if options.region == 'Wlv':
   print 'INFO - Creating Wlv control region tables.'
   makeTableHeader(options.region)
 
-  input_file = TFile.Open(options.input_folder + 'BDT_Wlv_noVTagCut_bdt_all.root')
+  input_file = TFile.Open(options.input_folder + 'BDT_Wlv_baseline_isData.root')
   if not input_file:
     print 'ERROR - Cannot open input root file: ' + options.input_file + ' , exiting!'
     raise SystemExit
   makeTableRaw(options.region,input_file,'baseline')
-  input_file = TFile.Open(options.input_folder + 'BDT_Wlv_noVTagCut_fjet1MassPruned.root')
+  input_file = TFile.Open(options.input_folder + 'BDT_Wlv_inclusive_isData.root')
   if not input_file:
     print 'ERROR - Cannot open input root file: ' + options.input_file + ' , exiting!'
     raise SystemExit
   makeTableRaw(options.region,input_file,'inclusive')
-  input_file = TFile.Open(options.input_folder + 'BDT_Wlv_fjet1MassPruned.root')
+  input_file = TFile.Open(options.input_folder + 'BDT_Wlv_isData.root')
   if not input_file:
     print 'ERROR - Cannot open input root file: ' + options.input_file + ' , exiting!'
     raise SystemExit
@@ -164,17 +164,17 @@ if options.region == 'Pj':
   print 'INFO - Creating Photon+jets control region tables.'
   makeTableHeader(options.region)
 
-  input_file = TFile.Open(options.input_folder + 'BDT_Pj_noVTagCut_bdt_all.root')
+  input_file = TFile.Open(options.input_folder + 'BDT_Pj_baseline_isData.root')
   if not input_file:
     print 'ERROR - Cannot open input root file: ' + options.input_file + ' , exiting!'
     raise SystemExit
   makeTableRaw(options.region,input_file,'baseline')
-  input_file = TFile.Open(options.input_folder + 'BDT_Pj_noVTagCut_fjet1MassPruned.root')
+  input_file = TFile.Open(options.input_folder + 'BDT_Pj_inclusive_isData.root')
   if not input_file:
     print 'ERROR - Cannot open input root file: ' + options.input_file + ' , exiting!'
     raise SystemExit
   makeTableRaw(options.region,input_file,'inclusive')
-  input_file = TFile.Open(options.input_folder + 'BDT_Pj_fjet1MassPruned.root')
+  input_file = TFile.Open(options.input_folder + 'BDT_Pj_isData.root')
   if not input_file:
     print 'ERROR - Cannot open input root file: ' + options.input_file + ' , exiting!'
     raise SystemExit
