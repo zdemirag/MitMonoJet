@@ -179,7 +179,7 @@ void BoostedVAnalysisMod::Process()
     int nGoodJetPairs = 0;
     int nGoodBJets = 0;
 
-    // Jets, check btagging for vetoing
+    // Jets, check btagging for vetoing. Break loop as soon as one pair is found
     for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
       const Jet *jetOne = fJets->At(i);
       // Pt and eta cuts
@@ -201,9 +201,13 @@ void BoostedVAnalysisMod::Process()
           continue;
         // Check mass
         if ((jetOne->Mom() + jetTwo->Mom()).M() > fMinResolvedMass
-          &&(jetOne->Mom() + jetTwo->Mom()).M() < fMaxResolvedMass)
+          &&(jetOne->Mom() + jetTwo->Mom()).M() < fMaxResolvedMass) {
           nGoodJetPairs++;
+          break;
+        } // end loop on second jet
       }
+      if (nGoodJetPairs > 0)
+        break;        
     }
     
     // Decision    

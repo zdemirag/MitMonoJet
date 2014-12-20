@@ -40,7 +40,7 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   fMCEventInfoName        (Names::gkMCEvtInfoBrn),
   fMCParticlesName        (Names::gkMCPartBrn),
   fTriggerObjectsName     ("MyHltPhotObjs"),
-  fIsData                 (false),
+  fIsData                 (kFALSE),
   fMetMVAFromBranch       (kTRUE),
   fPhotonsFromBranch      (kTRUE),
   fElectronsFromBranch    (kTRUE),
