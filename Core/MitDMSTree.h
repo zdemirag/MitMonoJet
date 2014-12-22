@@ -42,7 +42,8 @@ class MitDMSTree {
     Zlep     = 1UL<<2,    // event passes Z>ll preselection
     Met      = 1UL<<3,    // event passes MET preselection
     Vbf      = 1UL<<4,    // event passes VBF preselection
-    Gjet     = 1UL<<5     // event passes G+jets preselection
+    Gjet     = 1UL<<5,    // event passes G+jets preselection
+    Resolved = 1UL<<6     // event passes Resolved preselection
   };
 
   /// variables
