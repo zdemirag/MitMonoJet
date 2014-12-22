@@ -1,0 +1,12 @@
+<use   name="MitAna/DataTree"/>
+<use   name="MitAna/DataUtil"/>
+<use   name="MitCommon/MathTools"/>
+<use   name="MitMonoJet/DataTree"/>
+<use   name="root"/>
+<use   name="roofit"/>
+<use   name="roottmva"/>
+<use   name="rootcintex"/>
+<flags CXXFLAGS="-g -Wall"/>
+<export>
+  <lib name="1"/>
+</export>

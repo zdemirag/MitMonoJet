@@ -8,10 +8,10 @@
 #include "MitAna/DataTree/interface/PhotonCol.h"
 #include "MitAna/DataTree/interface/GenericParticle.h"
 #include "MitAna/DataTree/interface/PFMet.h"
-#include "MitAna/DataTree/interface/PFJetCol.h"
 #include "MitAna/DataTree/interface/PFTauCol.h"
 #include "MitPhysics/Init/interface/ModNames.h"
 #include "MitPhysics/Utils/interface/MuonTools.h"
+#include "MitMonoJet/DataTree/interface/XlJet.h"
 #include "MitMonoJet/DataTree/interface/XlFatJet.h"
 #include "MitMonoJet/DataTree/interface/XsIsoParticle.h"
 
@@ -31,7 +31,7 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   fElectronsName          ("XsElectrons"),
   fMuonsName              ("XsMuons"),
   fTausName               ("XsTaus"),
-  fJetsName               (Names::gkPFJetBrn),
+  fJetsName               ("XlJets"),
   fFatJetsName            ("XlFatJets"),
   fSubJetsName            ("XlSubJets"),
   fPVName                 (Names::gkPVBeamSpotBrn),
@@ -397,7 +397,7 @@ void DMSTreeWriter::Process()
   // JETS : careful since the hardest could overlap with the fat jets
   fMitDMSTree.njets_ = fJets->GetEntries();
   for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
-    const PFJet *jet = fJets->At(i);
+    const XlJet *jet = fJets->At(i);
 
     if (i == 0) {
       fMitDMSTree.jet1_        = jet->Mom();
@@ -426,9 +426,9 @@ void DMSTreeWriter::Process()
   for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
     const Jet *jet = fJets->At(i);
     
-    // Check that the jet is b-tagged
+    // Check that the jet is b-tagged (medium WP)
     float btag = jet->CombinedSecondaryVertexBJetTagsDisc();  
-    if (btag < 0.244)
+    if (btag < 0.679)
       continue;
 
     // Fill the information for the two hardest b-jets

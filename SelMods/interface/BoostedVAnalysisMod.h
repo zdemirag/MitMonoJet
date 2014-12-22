@@ -95,7 +95,8 @@ namespace mithep
                           bool passZlepPresel,
                           bool passMetPresel, 
                           bool passVbfPresel, 
-                          bool passGjetPresel);
+                          bool passGjetPresel,
+                          bool passResolvedPresel);
                                      
     // names of the collections
     TString               fMetBranchName;
@@ -149,7 +150,7 @@ namespace mithep
     Long64_t              fAll;
     Long64_t              fPass;
         
-    ClassDef(BoostedVAnalysisMod,3) // MonJet Selection Module
+    ClassDef(BoostedVAnalysisMod,4) // MonJet Selection Module
   };
 }
 #endif

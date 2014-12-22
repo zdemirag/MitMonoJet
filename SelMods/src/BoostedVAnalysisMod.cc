@@ -442,7 +442,8 @@ void BoostedVAnalysisMod::Process()
                            passZlepPresel,
                            passMetPresel, 
                            passVbfPresel, 
-                           passGjetPresel); 
+                           passGjetPresel,
+                           passResolvedPresel); 
     fXlEvtSelData->SetFiltersWord(fEvtSelData->metFiltersWord());
     fXlEvtSelData->SetPreselWord(preselectionWord);
   }
@@ -499,7 +500,8 @@ int  BoostedVAnalysisMod::GetPreselWord(
                           bool passZlepPresel,
                           bool passMetPresel, 
                           bool passVbfPresel,
-                          bool passGjetPresel)
+                          bool passGjetPresel,
+                          bool passResolvedPresel)
 {  
   // This function creates the word containing the bit decisions.
   // The bit ordering follows the order of the parameters passed
@@ -515,6 +517,7 @@ int  BoostedVAnalysisMod::GetPreselWord(
   theBits.push_back((int) passMetPresel);
   theBits.push_back((int) passVbfPresel);
   theBits.push_back((int) passGjetPresel);
+  theBits.push_back((int) passResolvedPresel);
   //Create the word
   for (unsigned int iBit = 0; iBit < theBits.size(); iBit++)
     theWord |= theBits[iBit] << iBit;

@@ -21,10 +21,10 @@
 #include "MitAna/DataTree/interface/MCParticleCol.h"
 #include "MitAna/DataTree/interface/PFMetCol.h"
 #include "MitAna/DataTree/interface/JetCol.h"
-#include "MitAna/DataTree/interface/PFJetCol.h"
 #include "MitAna/DataTree/interface/TriggerObjectCol.h"
 #include "MitPhysics/Utils/interface/VertexTools.h"
 #include "MitMonoJet/DataTree/interface/XlMetCol.h"
+#include "MitMonoJet/DataTree/interface/XlJetCol.h"
 #include "MitMonoJet/DataTree/interface/XlFatJetCol.h"
 #include "MitMonoJet/DataTree/interface/XlSubJetCol.h"
 #include "MitMonoJet/DataTree/interface/XlEvtSelData.h"
@@ -123,7 +123,7 @@ namespace mithep
     const XsIsoParticleCol        *fElectrons;
     const XsIsoParticleCol        *fMuons;
     const XsIsoParticleCol        *fPFTaus;
-    const PFJetCol                *fJets;
+    const XlJetCol                *fJets;
     const XlFatJetCol             *fFatJets;
     const XlSubJetCol             *fSubJets;
     const VertexCol               *fPV;

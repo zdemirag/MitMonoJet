@@ -1,7 +1,7 @@
 //--------------------------------------------------------------------------------------------------
 // $Id: PFJet.h,v 1.7 2012/03/28 12:15:34 paus Exp $
 //
-// PFJet
+// XlFatJet
 //
 // This class holds information about reconstructed jets and their substructure
 //
