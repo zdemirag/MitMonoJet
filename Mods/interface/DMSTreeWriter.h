@@ -29,6 +29,7 @@
 #include "MitMonoJet/DataTree/interface/XlSubJetCol.h"
 #include "MitMonoJet/DataTree/interface/XlEvtSelData.h"
 #include "MitMonoJet/DataTree/interface/XsIsoParticleCol.h"
+#include "MitMonoJet/Utils/interface/DiJetMVA.h"
 
 #include "MitMonoJet/Core/MitDMSTree.h"
 
@@ -80,13 +81,7 @@ namespace mithep
     void    SlaveBegin();
     void    SlaveTerminate();
             
-  private:  
-    void    CorrectMet(const float met, const float metPhi, const LorentzVector& l1, const LorentzVector& l2,
-                       float& newMet, float& newMetPhi);
-    void    CorrectMet(const float met, const float metPhi, const LorentzVector& l1,
-                       float& newMet, float& newMetPhi);
-    float   GetMt(const LorentzVector& l1, const float met, const float metPhi);
-            
+  private:              
     // Private auxiliary methods... Names of the input Collections
 
     TString                        fEvtSelDataName;
@@ -141,7 +136,14 @@ namespace mithep
     TH1D                          *fPUTarget;            // target PU histo
     const TH1D                    *fPUWeight;            // target PU histo
     Float_t                        PUWeight(Float_t npu);// PU reweighting function
-
+    // Met helpers  
+    void                           CorrectMet(const float met, const float metPhi, 
+                                              const LorentzVector& l1, const LorentzVector& l2,
+                                              float& newMet, float& newMetPhi);
+    void                           CorrectMet(const float met, const float metPhi, 
+                                              const LorentzVector& l1,
+                                              float& newMet, float& newMetPhi);
+    float                          GetMt(const LorentzVector& l1, const float met, const float metPhi);
     // Gen Level Info Analysis   
     void                           getGenLevelInfo(MitDMSTree& tree);
     // Hlt Objects Matcher   
@@ -160,11 +162,13 @@ namespace mithep
     // Get B-tag via FatJet-Standard Jet matching   
     Float_t                        GetFatJetBtag(LorentzVector& v,
                                                  Float_t deltaR = 0.3);
+
+    DiJetMVA                      *fDiJetMVA; //MVA helper for resolved category
                                                 
     TFile                         *fOutputFile;
     MitDMSTree                     fMitDMSTree;
 
-    ClassDef(DMSTreeWriter,1)
+    ClassDef(DMSTreeWriter,2)
   };
 }
 #endif

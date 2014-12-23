@@ -39,10 +39,9 @@ namespace mithep {
 			                     std::string QGCorrDatabase );
 
       Double_t MVAValue( const XlJet *jet1, const XlJet *jet2,
-                         const Float_t qg1, const Float_t qg2,
-                         const Int_t nvtx, const Float_t rho, 
+                         const Float_t rho, 
                          const MCParticleCol *genParticles = 0, 
-                         Bool_t printDebug = kFALSE);
+                         Bool_t printDebug = kFALSE, float *vars = 0);
 
     protected:      
       // Helper for pull angles
@@ -71,7 +70,6 @@ namespace mithep {
       Float_t                   fMVAVar_qgid1;
       Float_t                   fMVAVar_qgid2; 
       Float_t                   fMVAVar_mdrop;
-      Float_t                   fMVAVar_nvtx; 
 
     ClassDef(DiJetMVA, 0) // DiJet MVA
   };

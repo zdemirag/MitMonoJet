@@ -60,10 +60,6 @@ class MitDMSTree {
   float          metPhi_;
   float          mvamet_;
   float          mvametPhi_;
-  float          mvaCov00_;
-  float          mvaCov10_;
-  float          mvaCov01_;
-  float          mvaCov11_;
   float          mt_;
   float          mll_;
  
@@ -171,6 +167,16 @@ class MitDMSTree {
   float          bjet1Btag_;
   LorentzVector  bjet2_;
   float          bjet2Btag_;
+
+  float          rmvaval_;
+  LorentzVector  rjet1_;
+  float          rjet1_pullang_;
+  float          rjet1_qgl_;
+  LorentzVector  rjet2_;
+  float          rjet2_pullang_;
+  float          rjet2_qgl_;
+  float          rmdrop_;
+  float          rptOverM_;
  
   LorentzVector  genV_;
   unsigned int   genVid_;
@@ -212,6 +218,7 @@ class MitDMSTree {
     fjet2sjPtr1_(&fjet2sj1_),fjet2sjPtr2_(&fjet2sj2_),
     jetPtr1_(&jet1_),jetPtr2_(&jet2_),jetPtr3_(&jet3_),jetPtr4_(&jet4_),jetPtr5_(&jet5_),
     bjetPtr1_(&bjet1_),bjetPtr2_(&bjet2_),
+    rjetPtr1_(&rjet1_),rjetPtr2_(&rjet2_),
     genVPtr_(&genV_) {}
   /// default destructor
   ~MitDMSTree(){
@@ -267,10 +274,6 @@ class MitDMSTree {
     tree_->Branch("metPhi"          , &metPhi_          ,   "metPhi/F");
     tree_->Branch("mvamet"          , &mvamet_          ,   "mvamet/F");
     tree_->Branch("mvametPhi"       , &mvametPhi_       ,   "mvametPhi/F");
-    tree_->Branch("mvaCov00"        , &mvaCov00_        ,   "mvaCov00/F");
-    tree_->Branch("mvaCov10"        , &mvaCov10_        ,   "mvaCov10/F");
-    tree_->Branch("mvaCov01"        , &mvaCov01_        ,   "mvaCov01/F");
-    tree_->Branch("mvaCov11"        , &mvaCov11_        ,   "mvaCov11/F");
     tree_->Branch("mt"              , &mt_              ,   "mt/F");
     tree_->Branch("mll"             , &mll_             ,   "mll/F");
 
@@ -376,6 +379,16 @@ class MitDMSTree {
     tree_->Branch("bjet2", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &bjetPtr2_);
     tree_->Branch("bjet2Btag", &bjet2Btag_, "bjet2Btag/F");
 
+    tree_->Branch("rmvaval"      , &rmvaval_      , "rmvaval/F");
+    tree_->Branch("rjet1", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &rjetPtr1_);
+    tree_->Branch("rjet1_pullang", &rjet1_pullang_, "rjet1_pullang/F");
+    tree_->Branch("rjet1_qgl"    , &rjet1_qgl_    , "rjet1_qgl/F");
+    tree_->Branch("rjet2", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &rjetPtr2_);
+    tree_->Branch("rjet2_pullang", &rjet2_pullang_, "rjet2_pullang/F");
+    tree_->Branch("rjet2_qgl"    , &rjet2_qgl_    , "rjet2_qgl/F");
+    tree_->Branch("rmdrop"       , &rmdrop_       , "rmdrop/F");
+    tree_->Branch("rptOverM"     , &rptOverM_     , "rptOverM_/F");
+
     tree_->Branch("genV", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genVPtr_);
     tree_->Branch("genVid",            &genVid_,             "genVid/i");
     tree_->Branch("genVdaughterId",    &genVdaughterId_,     "genVdaughterId/i");
@@ -423,10 +436,6 @@ class MitDMSTree {
     tree_->SetBranchAddress("metPhi",        &metPhi_);
     tree_->SetBranchAddress("mvamet",        &mvamet_);
     tree_->SetBranchAddress("mvametPhi",     &mvametPhi_);
-    tree_->SetBranchAddress("mvaCov00",      &mvaCov00_);
-    tree_->SetBranchAddress("mvaCov10",      &mvaCov10_);
-    tree_->SetBranchAddress("mvaCov01",      &mvaCov01_);
-    tree_->SetBranchAddress("mvaCov11",      &mvaCov11_);
     tree_->SetBranchAddress("mt",            &mt_);
     tree_->SetBranchAddress("mll",           &mll_);
 
@@ -533,6 +542,16 @@ class MitDMSTree {
     tree_->SetBranchAddress("bjet2"            , &bjetPtr2_         );
     tree_->SetBranchAddress("bjet2Btag"        , &bjet2Btag_        );
 
+    tree_->SetBranchAddress("rmvaval"          , &rmvaval_          );
+    tree_->SetBranchAddress("rjet1"            , &rjetPtr1_         );
+    tree_->SetBranchAddress("rjet1_pullang"    , &rjet1_pullang_    );
+    tree_->SetBranchAddress("rjet1_qgl"        , &rjet1_qgl_        );
+    tree_->SetBranchAddress("rjet2"            , &rjetPtr2_         );
+    tree_->SetBranchAddress("rjet2_pullang"    , &rjet2_pullang_    );
+    tree_->SetBranchAddress("rjet2_qgl"        , &rjet2_qgl_        );
+    tree_->SetBranchAddress("rmdrop"           , &rmdrop_           );
+    tree_->SetBranchAddress("rptOverM"         , &rptOverM_         );
+
     tree_->SetBranchAddress("genV"             , &genVPtr_          );
     tree_->SetBranchAddress("genVid "          , &genVid_           );
     tree_->SetBranchAddress("genVdaughterId"   , &genVdaughterId_   );
@@ -585,6 +604,9 @@ class MitDMSTree {
   LorentzVector* bjetPtr1_;
   LorentzVector* bjetPtr2_;
 
+  LorentzVector* rjetPtr1_;
+  LorentzVector* rjetPtr2_;
+
   LorentzVector* genVPtr_;
 }; 
 
@@ -604,10 +626,6 @@ MitDMSTree::InitVariables(){
   metPhi_        = -999.;
   mvamet_        = -999.;
   mvametPhi_     = -999.;
-  mvaCov00_      = -999.;
-  mvaCov10_      = -999.; 
-  mvaCov01_      = -999.;
-  mvaCov11_      = -999.;
   mt_            = -999.;
   mll_           = -999.;
 
@@ -713,6 +731,16 @@ MitDMSTree::InitVariables(){
   bjet1Btag_     = 0;
   bjet2_         = LorentzVector();
   bjet2Btag_     = 0;
+  
+  rmvaval_      = -999.; 
+  rjet1_        = LorentzVector();
+  rjet1_pullang_= -999.;
+  rjet1_qgl_    = -999.;
+  rjet2_        = LorentzVector();
+  rjet2_pullang_= -999.;
+  rjet2_qgl_    = -999.;
+  rmdrop_       = -999.;
+  rptOverM_     = -999.;
 
   genV_          = LorentzVector();
   genVid_        = 0;

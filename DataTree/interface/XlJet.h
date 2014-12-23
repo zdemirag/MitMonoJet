@@ -56,7 +56,7 @@ namespace mithep
       Double32_t            fPullY;        //Color pull Y directon
       Double32_t            fPullPhi;      //Color pull phi directon
 
-    ClassDef(XlJet, 0) // XlJet class
+    ClassDef(XlJet, 1) // XlJet class
   };
 }
 

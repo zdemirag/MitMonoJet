@@ -14,6 +14,7 @@
 #include "MitMonoJet/DataTree/interface/XlJet.h"
 #include "MitMonoJet/DataTree/interface/XlFatJet.h"
 #include "MitMonoJet/DataTree/interface/XsIsoParticle.h"
+#include "MitMonoJet/Utils/interface/DiJetMVA.h"
 
 #include "MitMonoJet/Mods/interface/DMSTreeWriter.h"
 
@@ -72,6 +73,7 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   fPUInput                (0),       
   fPUTarget               (0),
   fPUWeight               (0),
+  fDiJetMVA               (0),
   // -------------------------
   fOutputFile             (0)
 
@@ -82,6 +84,7 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
 DMSTreeWriter::~DMSTreeWriter()
 {
   // Destructor
+  delete fDiJetMVA;
   fOutputFile->Close();
 }
 
@@ -195,10 +198,6 @@ void DMSTreeWriter::Process()
   fMitDMSTree.metPhi_        = fMitDMSTree.metRawPhi_;
   fMitDMSTree.mvamet_        = fMetMVA->At(0)->Pt();
   fMitDMSTree.mvametPhi_     = fMetMVA->At(0)->Phi();
-  fMitDMSTree.mvaCov00_      = fMetMVA->At(0)->Cov00();
-  fMitDMSTree.mvaCov10_      = fMetMVA->At(0)->Cov10();
-  fMitDMSTree.mvaCov01_      = fMetMVA->At(0)->Cov01();
-  fMitDMSTree.mvaCov11_      = fMetMVA->At(0)->Cov11();
 
   // LEPTONS (MU+ELE), save tight id for further studies
   // Also perform met/mt/mll computation according to the relevant case (muons only)
@@ -395,6 +394,10 @@ void DMSTreeWriter::Process()
   }
   
   // JETS : careful since the hardest could overlap with the fat jets
+  fMitDMSTree.rmvaval_ = -999.;
+  float resolvedVars[7];
+  UInt_t resolvedIndexOne = 0;
+  UInt_t resolvedIndexTwo = 0;
   fMitDMSTree.njets_ = fJets->GetEntries();
   for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
     const XlJet *jet = fJets->At(i);
@@ -419,8 +422,46 @@ void DMSTreeWriter::Process()
       fMitDMSTree.jet4_        = jet->Mom();
     if (i == 4)
       fMitDMSTree.jet5_        = jet->Mom();
+
+    // Start resolved section
+    if (fMitDMSTree.njets_ > i && (fMitDMSTree.preselWord_ & MitDMSTree::Resolved)) {
+      if (jet->CombinedSecondaryVertexBJetTagsDisc() > 0.679)
+        continue;
+      for (UInt_t j = i+1; j < fJets->GetEntries(); ++j) {
+        const XlJet *jetTwo = fJets->At(j);
+        if (jetTwo->CombinedSecondaryVertexBJetTagsDisc() > 0.679)
+          continue;
+        if (jetTwo->CombinedSecondaryVertexBJetTagsDisc() > 0.679)
+        // Check mass
+        if ((jet->Mom() + jetTwo->Mom()).M() < 60.
+          ||(jet->Mom() + jetTwo->Mom()).M() > 110.) 
+          continue;
+        Double_t thisMVAval = fDiJetMVA->MVAValue(
+                              jet,jetTwo,
+                              fPileUpDen->At(0)->RhoRandomLowEta(),
+                              fMCParticles,kFALSE,resolvedVars);
+        if (thisMVAval > fMitDMSTree.rmvaval_) {
+          fMitDMSTree.rmvaval_ = thisMVAval;
+          resolvedIndexOne = i;
+          resolvedIndexTwo = j;
+          fMitDMSTree.rptOverM_     = resolvedVars[0];       
+          fMitDMSTree.rjet1_pullang_= resolvedVars[1];
+          fMitDMSTree.rjet2_pullang_= resolvedVars[2];
+          fMitDMSTree.rjet1_qgl_    = resolvedVars[3];
+          fMitDMSTree.rjet2_qgl_    = resolvedVars[4];
+          fMitDMSTree.rmdrop_       = resolvedVars[5];
+        }
+      } // endl loop on second jet
+    } // end resolved mini-ana
+
   }
 
+  // Fill revant information in case a good diJet pair is found
+  if (fMitDMSTree.rmvaval_ >= -1.) {
+    fMitDMSTree.rjet1_ = fJets->At(resolvedIndexOne)->Mom();
+    fMitDMSTree.rjet2_ = fJets->At(resolvedIndexTwo)->Mom();
+  }
+    
   // B-JETS : careful since the hardest could overlap with the fat jets
   fMitDMSTree.nbjets_ = 0;
   for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
@@ -557,6 +598,13 @@ void DMSTreeWriter::SlaveBegin()
     fPUTarget->Scale(1.0/fPUTarget->GetSumOfWeights());
     fPUWeight = new TH1D((*fPUTarget) / (*fPUInput));
   }
+
+  // Initialize DiJet MVA
+  fDiJetMVA = new DiJetMVA();
+  fDiJetMVA->Initialize(
+          TString(getenv("CMSSW_BASE")+string("/src/MitMonoJet/Utils/data/vmva_weights/vtraining_lowpt_cen.root_BDTG.weights.xml")),
+          TString(getenv("CMSSW_BASE")+string("/src/MitMonoJet/Utils/data/vmva_weights/vtraining_highpt_cen.root_BDTG.weights.xml")),
+          string(getenv("CMSSW_BASE"))+string("/src/MitMonoJet/Utils/data/QGSystDatabase.txt"));          
 
   // Create Ntuple Tree
   fOutputFile = TFile::Open(TString::Format("%s_tmp.root",GetName()),"RECREATE");

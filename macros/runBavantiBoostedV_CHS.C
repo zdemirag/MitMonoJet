@@ -35,6 +35,7 @@
 #include "MitPhysics/Mods/interface/JetCleaningMod.h"
 #include "MitMonoJet/SelMods/interface/BoostedVAnalysisMod.h"
 #include "MitMonoJet/TreeFiller/interface/FillerXlJets.h"
+#include "MitMonoJet/TreeFiller/interface/FillerXlFatJets.h"
 #include "MitMonoJet/TreeFiller/interface/FillerXlMet.h"
 #include "MitMonoJet/TreeFiller/interface/FillerXsIsoParticles.h"
 #include "MitMonoJet/Mods/interface/FastJetMod.h"
@@ -363,7 +364,7 @@ void runBavantiBoostedV_CHS
   JetIDMod *jetId = new JetIDMod;
   jetId->SetInputName(jetCorr->GetOutputName());
   jetId->SetPtCut(30.0);
-  jetId->SetEtaMaxCut(4.7);
+  jetId->SetEtaMaxCut(2.5);
   jetId->SetJetEEMFractionMinCut(0.00);
   jetId->SetOutputName("GoodJets");
   jetId->SetApplyBetaCut(kFALSE);
@@ -372,7 +373,7 @@ void runBavantiBoostedV_CHS
   JetIDMod *fatJetId = new JetIDMod;
   fatJetId->SetInputName(fatJetCorr->GetOutputName());
   fatJetId->SetPtCut(100.0);
-  fatJetId->SetEtaMaxCut(4.7);
+  fatJetId->SetEtaMaxCut(2.5);
   fatJetId->SetJetEEMFractionMinCut(0.00);
   fatJetId->SetOutputName("GoodFatJets");
   fatJetId->SetApplyBetaCut(kFALSE);
@@ -396,7 +397,7 @@ void runBavantiBoostedV_CHS
   fatJetCleaning->SetMinDeltaRToMuon(0.5);
   fatJetCleaning->SetMinDeltaRToPhoton(0.5);
   fatJetCleaning->SetApplyPhotonRemoval(kTRUE);
-  jetCleaning->SetApplyTauRemoval(kFALSE);  
+  fatJetCleaning->SetApplyTauRemoval(kFALSE);  
   fatJetCleaning->SetGoodJetsName(fatJetId->GetOutputName());
   fatJetCleaning->SetCleanJetsName("CleanFatJets");
 
@@ -471,15 +472,22 @@ void runBavantiBoostedV_CHS
   extendedMetFiller->SetPVFromBranch(kFALSE);
   extendedMetFiller->SetPVName(goodPVFilterMod->GetOutputName());
   extendedMetFiller->SetXlMetName("PFMetMVA");     
+
+  //------------------------------------------------------------------------------------------------
+  // prepare the extended jets with QG/color pull information
+  //------------------------------------------------------------------------------------------------
+  FillerXlJets *boostedJetsFiller = new FillerXlJets;  
+  boostedJetsFiller->SetJetsName(jetCleaning->GetOutputName());
+  boostedJetsFiller->SetJetsFromBranch(kFALSE);
   
   //------------------------------------------------------------------------------------------------
   // prepare the extended jets with substructure information
   //------------------------------------------------------------------------------------------------
-  FillerXlJets *boostedJetsFiller = new FillerXlJets;  
-  boostedJetsFiller->FillTopSubJets(kFALSE);
-  boostedJetsFiller->SetJetsName(fatJetCleaning->GetOutputName());
-  boostedJetsFiller->SetJetsFromBranch(kFALSE);
-  boostedJetsFiller->SetConeSize(0.8);      
+  FillerXlFatJets *boostedFatJetsFiller = new FillerXlFatJets;  
+  boostedFatJetsFiller->FillTopSubJets(kFALSE);
+  boostedFatJetsFiller->SetJetsName(fatJetCleaning->GetOutputName());
+  boostedFatJetsFiller->SetJetsFromBranch(kFALSE);
+  boostedFatJetsFiller->SetConeSize(0.8);      
 
   //------------------------------------------------------------------------------------------------
   // prepare the reduced isolated particles
@@ -535,9 +543,9 @@ void runBavantiBoostedV_CHS
   outMod->Keep("PFMet");
   outMod->AddNewBranch("XlEvtSelData");
   //outMod->AddNewBranch(TString("Skm") + Names::gkPFCandidatesBrn);
-  outMod->AddNewBranch(TString("Skm") + jetCleaning->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + hltModP->GetOutputName());
   outMod->AddNewBranch("PFMetMVA");
+  outMod->AddNewBranch("XlJets");
   outMod->AddNewBranch("XlFatJets");
   outMod->AddNewBranch("XlSubJets");
   outMod->AddNewBranch("XsMuons");
@@ -572,7 +580,8 @@ void runBavantiBoostedV_CHS
   fatJetCleaning             ->Add(jetplusmet);
   jetplusmet                 ->Add(extendedMetFiller);
   extendedMetFiller          ->Add(boostedJetsFiller);
-  boostedJetsFiller          ->Add(boostedXsIsoParticlesFiller);
+  boostedJetsFiller          ->Add(boostedFatJetsFiller);
+  boostedFatJetsFiller       ->Add(boostedXsIsoParticlesFiller);
   boostedXsIsoParticlesFiller->Add(skmJets);
   skmJets                    ->Add(skmTrigger);
   skmTrigger                 ->Add(outMod);

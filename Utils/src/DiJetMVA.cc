@@ -1,8 +1,10 @@
-#include "MitMonoJet/Utils/interface/DiJetMVA.h"
 #include <TFile.h>
 #include <TLorentzVector.h>
 #include "TMVA/Tools.h"
 #include "TMVA/Reader.h"
+
+#include "MitAna/DataTree/interface/MCParticleCol.h"
+#include "MitMonoJet/Utils/interface/DiJetMVA.h"
 
 ClassImp(mithep::DiJetMVA)
 
@@ -13,7 +15,7 @@ DiJetMVA::DiJetMVA() :
   fLowPtMethodName ("BDTG"),
   fHighPtMethodName("BDTG"),
   fIsInitialized(kFALSE),
-  fApplyQGCorrection(kFALSE),
+  fApplyQGCorrection(kTRUE),
   fDiJetPtThr(160.),
   fLowPtReader(0),
   fHighPtReader(0),
@@ -41,7 +43,6 @@ void DiJetMVA::Initialize( TString lowPtWeights,
     fQGSyst = new QGSyst;
     fQGSyst->ReadDatabaseDoubleMin(QGCorrDatabase);
   }  
-  
   // Set up low pt MVA 
   fLowPtReader = new TMVA::Reader( "!Color:!Silent:Error" );  
   fLowPtReader->AddSpectator("isSig",   &fMVAVar_isSig);
@@ -51,7 +52,6 @@ void DiJetMVA::Initialize( TString lowPtWeights,
   fLowPtReader->AddVariable ("qgid1",   &fMVAVar_qgid1);
   fLowPtReader->AddVariable ("qgid2",   &fMVAVar_qgid2);
   fLowPtReader->AddVariable ("mdrop",   &fMVAVar_mdrop);
-  fLowPtReader->AddVariable ("nvtx",    &fMVAVar_nvtx); 
   fLowPtReader->BookMVA(fLowPtMethodName, lowPtWeights );
 
   // Set up high pt MVA 
@@ -63,7 +63,6 @@ void DiJetMVA::Initialize( TString lowPtWeights,
   fHighPtReader->AddVariable ("qgid1",   &fMVAVar_qgid1);
   fHighPtReader->AddVariable ("qgid2",   &fMVAVar_qgid2);
   fHighPtReader->AddVariable ("mdrop",   &fMVAVar_mdrop);
-  fHighPtReader->AddVariable ("nvtx",    &fMVAVar_nvtx); 
   fHighPtReader->BookMVA(fHighPtMethodName, highPtWeights );
 
   // Say what we are doing   
@@ -76,10 +75,9 @@ void DiJetMVA::Initialize( TString lowPtWeights,
 
 //--------------------------------------------------------------------------------------------------
 Double_t DiJetMVA::MVAValue( const XlJet *jet1, const XlJet *jet2,
-                             const Float_t qg1, const Float_t qg2,
-                             const Int_t nvtx, const Float_t rho, 
+                             const Float_t rho, 
                              const MCParticleCol *genParticles, 
-                             Bool_t printDebug )
+                             Bool_t printDebug, float* vars )
 //--------------------------------------------------------------------------------------------------
 {  
   if(!fIsInitialized) { 
@@ -93,16 +91,15 @@ Double_t DiJetMVA::MVAValue( const XlJet *jet1, const XlJet *jet2,
   vJet2.SetPtEtaPhiE(jet2->Pt(),jet2->Eta(),jet2->Phi(),jet2->E());
   TLorentzVector vDijet = vJet1 + vJet2;
    
-  // Prepare the variables
+  // Prepare the variables with dummy spectator
   fMVAVar_ptmjj    = vDijet.Pt()/vDijet.M();
   fMVAVar_pull1ang = computePullAngle(jet1,jet2);
   fMVAVar_pull2ang = computePullAngle(jet2,jet1);
   fMVAVar_qgid1    = jet1->QGTag();
   fMVAVar_qgid2    = jet2->QGTag();
   fMVAVar_mdrop    = TMath::Max(vJet1.M(), vJet2.M())/vDijet.M()*(vJet1.DeltaR(vJet2));
-  fMVAVar_nvtx     = nvtx;
-  // Adjust QG if needed
-  if (fApplyQGCorrection) {
+  // Adjust QG if needed and MC is valid
+  if (fApplyQGCorrection && genParticles) {
     int iflav1 = JetPartonMatch(jet1,genParticles,0.5);  
     std::string sflav1="";
     if(abs(iflav1) >= 1 && abs(iflav1) <= 5) { sflav1 = "quark"; } 
@@ -132,10 +129,19 @@ Double_t DiJetMVA::MVAValue( const XlJet *jet1, const XlJet *jet2,
               << fMVAVar_qgid1            << " " 
               << fMVAVar_qgid2            << " "  
               << fMVAVar_mdrop            << " " 
-              << fMVAVar_nvtx             << " " 
               << " === : === "
               << mvaval 
               << std::endl;
+  }
+
+  // Store variables if needed
+  if (vars) {
+    vars[0] = fMVAVar_ptmjj   ;
+    vars[1] = fMVAVar_pull1ang;
+    vars[2] = fMVAVar_pull2ang;
+    vars[3] = fMVAVar_qgid1   ;
+    vars[4] = fMVAVar_qgid2   ; 
+    vars[5] = fMVAVar_mdrop   ;
   }
   
   return mvaval;

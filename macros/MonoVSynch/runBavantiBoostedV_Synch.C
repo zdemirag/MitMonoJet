@@ -35,6 +35,7 @@
 #include "MitPhysics/Mods/interface/JetCleaningMod.h"
 #include "MitMonoJet/SelMods/interface/BoostedVAnalysisMod.h"
 #include "MitMonoJet/TreeFiller/interface/FillerXlJets.h"
+#include "MitMonoJet/TreeFiller/interface/FillerXlFatJets.h"
 #include "MitMonoJet/TreeFiller/interface/FillerXlMet.h"
 #include "MitMonoJet/TreeFiller/interface/FillerXsIsoParticles.h"
 #include "MitMonoJet/Mods/interface/FastJetMod.h"
@@ -365,7 +366,7 @@ void runBavantiBoostedV_Synch
   JetIDMod *jetId = new JetIDMod;
   jetId->SetInputName(jetCorr->GetOutputName());
   jetId->SetPtCut(30.0);
-  jetId->SetEtaMaxCut(4.7);
+  jetId->SetEtaMaxCut(2.5);
   jetId->SetJetEEMFractionMinCut(0.00);
   jetId->SetOutputName("GoodJets");
   jetId->SetApplyBetaCut(kFALSE);
@@ -374,7 +375,7 @@ void runBavantiBoostedV_Synch
   JetIDMod *fatJetId = new JetIDMod;
   fatJetId->SetInputName(fatJetCorr->GetOutputName());
   fatJetId->SetPtCut(30.0);
-  fatJetId->SetEtaMaxCut(4.7);
+  fatJetId->SetEtaMaxCut(2.5);
   fatJetId->SetJetEEMFractionMinCut(0.00);
   fatJetId->SetOutputName("GoodFatJets");
   fatJetId->SetApplyBetaCut(kFALSE);
@@ -394,8 +395,11 @@ void runBavantiBoostedV_Synch
   fatJetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());
   fatJetCleaning->SetCleanMuonsName(muonIdIsoMod->GetOutputName());
   fatJetCleaning->SetCleanPhotonsName(photonCleaningMod->GetOutputName());
+  fatJetCleaning->SetMinDeltaRToElectron(0.5);
+  fatJetCleaning->SetMinDeltaRToMuon(0.5);
+  fatJetCleaning->SetMinDeltaRToPhoton(0.5);
   fatJetCleaning->SetApplyPhotonRemoval(kTRUE);
-  jetCleaning->SetApplyTauRemoval(kFALSE);  
+  fatJetCleaning->SetApplyTauRemoval(kFALSE);  
   fatJetCleaning->SetGoodJetsName(fatJetId->GetOutputName());
   fatJetCleaning->SetCleanJetsName("CleanFatJets");
 
@@ -413,16 +417,17 @@ void runBavantiBoostedV_Synch
   jetplusmet->SetMuonsFromBranch(kFALSE);
   jetplusmet->SetPhotonsName(photonCleaningMod->GetOutputName());
   jetplusmet->SetPhotonsFromBranch(kFALSE);
-  jetplusmet->ApplyTopPresel(kTRUE); 
+  jetplusmet->ApplyResolvedPresel(kTRUE); 
+  jetplusmet->ApplyTopPresel(kFALSE); 
   jetplusmet->ApplyWlepPresel(kTRUE);
   jetplusmet->ApplyZlepPresel(kTRUE);
   jetplusmet->ApplyMetPresel(kTRUE);
-  jetplusmet->ApplyVbfPresel(kTRUE);
+  jetplusmet->ApplyVbfPresel(kFALSE);
   jetplusmet->ApplyGjetPresel(kTRUE);
   jetplusmet->SetMinFatJetPt(200);
   jetplusmet->SetMinTagJetPt(110);
   jetplusmet->SetMinMet(150);    
-  jetplusmet->SetMinPhotonPt(150);    
+  jetplusmet->SetMinPhotonPt(160);    
   jetplusmet->SkipEvents(kFALSE);    
 
   //------------------------------------------------------------------------------------------------
@@ -443,15 +448,22 @@ void runBavantiBoostedV_Synch
   extendedMetFiller->SetPVFromBranch(kFALSE);
   extendedMetFiller->SetPVName(goodPVFilterMod->GetOutputName());
   extendedMetFiller->SetXlMetName("PFMetMVA");     
+
+  //------------------------------------------------------------------------------------------------
+  // prepare the extended jets with QG/color pull information
+  //------------------------------------------------------------------------------------------------
+  FillerXlJets *boostedJetsFiller = new FillerXlJets;  
+  boostedJetsFiller->SetJetsName(jetCleaning->GetOutputName());
+  boostedJetsFiller->SetJetsFromBranch(kFALSE);
   
   //------------------------------------------------------------------------------------------------
   // prepare the extended jets with substructure information
   //------------------------------------------------------------------------------------------------
-  FillerXlJets *boostedJetsFiller = new FillerXlJets;  
-  boostedJetsFiller->FillTopSubJets(kFALSE);
-  boostedJetsFiller->SetJetsName(fatJetCleaning->GetOutputName());
-  boostedJetsFiller->SetJetsFromBranch(kFALSE);
-  boostedJetsFiller->SetConeSize(0.8);      
+  FillerXlFatJets *boostedFatJetsFiller = new FillerXlFatJets;  
+  boostedFatJetsFiller->FillTopSubJets(kFALSE);
+  boostedFatJetsFiller->SetJetsName(fatJetCleaning->GetOutputName());
+  boostedFatJetsFiller->SetJetsFromBranch(kFALSE);
+  boostedFatJetsFiller->SetConeSize(0.8);      
 
   //------------------------------------------------------------------------------------------------
   // prepare the reduced isolated particles
@@ -507,9 +519,9 @@ void runBavantiBoostedV_Synch
   outMod->Keep("PFMet");
   outMod->AddNewBranch("XlEvtSelData");
   //outMod->AddNewBranch(TString("Skm") + Names::gkPFCandidatesBrn);
-  outMod->AddNewBranch(TString("Skm") + jetCleaning->GetOutputName());
   outMod->AddNewBranch(TString("Skm") + hltModP->GetOutputName());
   outMod->AddNewBranch("PFMetMVA");
+  outMod->AddNewBranch("XlJets");
   outMod->AddNewBranch("XlFatJets");
   outMod->AddNewBranch("XlSubJets");
   outMod->AddNewBranch("XsMuons");
@@ -543,7 +555,8 @@ void runBavantiBoostedV_Synch
   fatJetCleaning             ->Add(jetplusmet);
   jetplusmet                 ->Add(extendedMetFiller);
   extendedMetFiller          ->Add(boostedJetsFiller);
-  boostedJetsFiller          ->Add(boostedXsIsoParticlesFiller);
+  boostedJetsFiller          ->Add(boostedFatJetsFiller);
+  boostedFatJetsFiller       ->Add(boostedXsIsoParticlesFiller);
   boostedXsIsoParticlesFiller->Add(skmJets);
   skmJets                    ->Add(skmTrigger);
   skmTrigger                 ->Add(outMod);
