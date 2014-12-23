@@ -24,7 +24,7 @@ void runFlatBoostedV(const char *fileset    = "0000",
                      const char *dataset    = "s12-ttj-v1-v7a",     
                      const char *book       = "t2mit/filefi/032",
                      const char *catalogDir = "/home/cmsprod/catalog",
-                     const char *outputName = "boostedv",
+                     const char *outputName = "boostedv-v9",
                      int         nEvents    = -1)
 {
   //------------------------------------------------------------------------------------------------
@@ -119,7 +119,7 @@ void runFlatBoostedV(const char *fileset    = "0000",
   treeWriter->SetElectronsName("XsElectrons");
   treeWriter->SetMuonsName("XsMuons");
   treeWriter->SetTausName("XsTaus");
-  treeWriter->SetJetsName("SkmCleanJets");
+  treeWriter->SetJetsName("XlJets");
   treeWriter->SetTriggerObjectsName("SkmHltObjsMonoJet");
   treeWriter->SetInPUHistoFileName(inputPUFile);
   treeWriter->SetTargetPUHistoFileName("/home/dimatteo/cms/external/MyDataPileupHistogram.root");
