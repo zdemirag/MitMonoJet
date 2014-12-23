@@ -431,7 +431,6 @@ void DMSTreeWriter::Process()
         const XlJet *jetTwo = fJets->At(j);
         if (jetTwo->CombinedSecondaryVertexBJetTagsDisc() > 0.679)
           continue;
-        if (jetTwo->CombinedSecondaryVertexBJetTagsDisc() > 0.679)
         // Check mass
         if ((jet->Mom() + jetTwo->Mom()).M() < 60.
           ||(jet->Mom() + jetTwo->Mom()).M() > 110.) 
