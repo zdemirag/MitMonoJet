@@ -127,7 +127,7 @@ void FillerXlJets::FillXlJet(const PFJet *pPFJet)
   // Prepare and store jet pull info
   TVector2 newXlJetPull = GetPull(pPFJet);
   newXlJet->SetPullY(newXlJetPull.X());
-  newXlJet->SetPullPhi(newXlJetPull.X());
+  newXlJet->SetPullPhi(newXlJetPull.Y());
       
   return;
 }
