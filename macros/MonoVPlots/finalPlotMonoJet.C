@@ -61,7 +61,8 @@ void atributes(TH1D *histo, TString xtitle = "", TString ytitle = "Fraction", TS
 
 void finalPlotMonoJet(int nsel = 0, int ReBin = 1, TString XTitle = "N_{jets}", TString units = "", 
                       TString plotName = "BDT_loose_metRaw.root", TString outputName = "njets",
-                      bool isLogY = false, double lumi = 19.7, bool isBlinded = true, bool scaleToData = false) {
+                      bool isLogY = false, double lumi = 19.7, bool isBlinded = true, bool scaleToData = false,
+                      bool isVarBins = false) {
 
   gInterpreter->ExecuteMacro("GoodStyle.C");
   gStyle->SetOptStat(0);
@@ -71,6 +72,7 @@ void finalPlotMonoJet(int nsel = 0, int ReBin = 1, TString XTitle = "N_{jets}", 
   StandardPlot myPlot;
   myPlot.setBlinded(isBlinded);
   myPlot.setLabel(XTitle.Data());
+  myPlot.setVarBins(isVarBins);
   if     (lumi ==    4.9) myPlot.setLumiLabel("4.9 fb^{-1} (7 TeV)");
   else if(lumi ==   19.7) myPlot.setLumiLabel("19.7 fb^{-1} (8 TeV)");
   else if(lumi ==   24.4) myPlot.setLumiLabel("4.9 fb^{-1} (7 TeV) + 19.7 fb^{-1} (8 TeV)");
@@ -207,11 +209,18 @@ void finalPlotMonoJet(int nsel = 0, int ReBin = 1, TString XTitle = "N_{jets}", 
   hDataDivision ->Rebin(ReBin);
   hTotalDivision->Rebin(ReBin);
   hRatio        ->Rebin(ReBin);
+  // Compute pull with systematic uncertainties
+  double systBck = 0.06;
+  double poissErrNoEntries = ROOT::Math::gamma_quantile_c(1-0.6827,1,1.);
   for(int i=1; i<=hData->GetNbinsX(); i++){
+    double errorSq = 0;
+    // Add minimal data entries in case of no observed events
+    if (!(hDataDivision->GetBinError(i) > 0))
+      errorSq += poissErrNoEntries*poissErrNoEntries;
     double pull = 0.0;
-    if((hDataDivision->GetBinError(i) > 0 || hTotalDivision->GetBinError(i) > 0) && hDataDivision->GetBinContent(i) > 0){
-      pull = (hDataDivision->GetBinContent(i)-hTotalDivision->GetBinContent(i))/sqrt(hDataDivision->GetBinError(i)*hDataDivision->GetBinError(i)+hTotalDivision->GetBinError(i)*hTotalDivision->GetBinError(i));
-    }
+    errorSq += hDataDivision->GetBinError(i)*hDataDivision->GetBinError(i)+hTotalDivision->GetBinError(i)*hTotalDivision->GetBinError(i);
+    errorSq += hTotalDivision->GetBinContent(i)*hTotalDivision->GetBinContent(i)*systBck*systBck;
+    pull = (hDataDivision->GetBinContent(i)-hTotalDivision->GetBinContent(i))/sqrt(errorSq);    
     hRatio->SetBinContent(i,pull);
     hRatio->SetBinError(i,1.0);
     if (isBlinded) {

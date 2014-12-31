@@ -8,11 +8,13 @@
 #include "MitAna/DataTree/interface/PhotonCol.h"
 #include "MitAna/DataTree/interface/GenericParticle.h"
 #include "MitAna/DataTree/interface/PFMet.h"
-#include "MitAna/DataTree/interface/PFJetCol.h"
 #include "MitAna/DataTree/interface/PFTauCol.h"
 #include "MitPhysics/Init/interface/ModNames.h"
 #include "MitPhysics/Utils/interface/MuonTools.h"
+#include "MitMonoJet/DataTree/interface/XlJet.h"
 #include "MitMonoJet/DataTree/interface/XlFatJet.h"
+#include "MitMonoJet/DataTree/interface/XsIsoParticle.h"
+#include "MitMonoJet/Utils/interface/DiJetMVA.h"
 
 #include "MitMonoJet/Mods/interface/DMSTreeWriter.h"
 
@@ -25,13 +27,12 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   BaseMod                 (name,title),
   fEvtSelDataName         ("XlEvtSelData"),
   fRawMetName             ("PFMet"),
-  fMetName                ("PFMet"),
   fMetMVAName             ("PFMetMVA"),
-  fPhotonsName            (Names::gkPhotonBrn),
-  fElectronsName          (Names::gkElectronBrn),
-  fMuonsName              (Names::gkMuonBrn),
-  fTausName               (Names::gkPFTauBrn),
-  fJetsName               (Names::gkPFJetBrn),
+  fPhotonsName            ("XsPhotons"),
+  fElectronsName          ("XsElectrons"),
+  fMuonsName              ("XsMuons"),
+  fTausName               ("XsTaus"),
+  fJetsName               ("XlJets"),
   fFatJetsName            ("XlFatJets"),
   fSubJetsName            ("XlSubJets"),
   fPVName                 (Names::gkPVBeamSpotBrn),
@@ -40,8 +41,7 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   fMCEventInfoName        (Names::gkMCEvtInfoBrn),
   fMCParticlesName        (Names::gkMCPartBrn),
   fTriggerObjectsName     ("MyHltPhotObjs"),
-  fIsData                 (false),
-  fMetFromBranch          (kTRUE),
+  fIsData                 (kFALSE),
   fMetMVAFromBranch       (kTRUE),
   fPhotonsFromBranch      (kTRUE),
   fElectronsFromBranch    (kTRUE),
@@ -53,7 +53,6 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   fPVFromBranch           (kTRUE),
   // -------------------------
   fRawMet                 (0),
-  fMet                    (0),
   fMetMVA                 (0),
   fPhotons                (0),
   fElectrons              (0),
@@ -74,6 +73,7 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   fPUInput                (0),       
   fPUTarget               (0),
   fPUWeight               (0),
+  fDiJetMVA               (0),
   // -------------------------
   fOutputFile             (0)
 
@@ -84,6 +84,7 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
 DMSTreeWriter::~DMSTreeWriter()
 {
   // Destructor
+  delete fDiJetMVA;
   fOutputFile->Close();
 }
 
@@ -107,7 +108,6 @@ void DMSTreeWriter::Process()
   LoadEventObject(fTriggerObjectsName,fTrigObj,       true);
 
   LoadEventObject(fRawMetName,        fRawMet,        true);
-  LoadEventObject(fMetName,           fMet,           fMetFromBranch);
   LoadEventObject(fMetMVAName,        fMetMVA,        fMetMVAFromBranch);
   LoadEventObject(fPhotonsName,       fPhotons,       fPhotonsFromBranch);
   LoadEventObject(fElectronsName,     fElectrons,     fElectronsFromBranch);
@@ -194,45 +194,62 @@ void DMSTreeWriter::Process()
 
   fMitDMSTree.metRaw_        = fRawMet->At(0)->Pt();
   fMitDMSTree.metRawPhi_     = fRawMet->At(0)->Phi();
-  fMitDMSTree.met_           = fMet->At(0)->Pt();
-  fMitDMSTree.metPhi_        = fMet->At(0)->Phi();
+  fMitDMSTree.met_           = fMitDMSTree.metRaw_;
+  fMitDMSTree.metPhi_        = fMitDMSTree.metRawPhi_;
   fMitDMSTree.mvamet_        = fMetMVA->At(0)->Pt();
   fMitDMSTree.mvametPhi_     = fMetMVA->At(0)->Phi();
-  fMitDMSTree.mvaCov00_      = fMetMVA->At(0)->Cov00();
-  fMitDMSTree.mvaCov10_      = fMetMVA->At(0)->Cov10();
-  fMitDMSTree.mvaCov01_      = fMetMVA->At(0)->Cov01();
-  fMitDMSTree.mvaCov11_      = fMetMVA->At(0)->Cov11();
 
-  // LEPTONS (MU+ELE)
-
+  // LEPTONS (MU+ELE), save tight id for further studies
+  // Also perform met/mt/mll computation according to the relevant case (muons only)
   fMitDMSTree.nlep_ = fMuons->GetEntries() + fElectrons->GetEntries();
   if (fMuons->GetEntries() > 1) {
     //mu mu
     fMitDMSTree.lep1_ = fMuons->At(0)->Mom();
-    fMitDMSTree.lid1_ = 13;
+    fMitDMSTree.lid1_ = fMuons->At(0)->Charge()*13;
+    if (fMuons->At(0)->ParticleId() == XsIsoParticle::EParticleId::eTightMuon)
+      fMitDMSTree.lid1_ = fMitDMSTree.lid1_*10;
+    if (fMuons->At(0)->ParticleId() == XsIsoParticle::EParticleId::eIsoMuon)
+      fMitDMSTree.lid1_ = fMitDMSTree.lid1_*100;
+
     fMitDMSTree.lep2_ = fMuons->At(1)->Mom();
-    fMitDMSTree.lid2_ = 13;
+    fMitDMSTree.lid2_ = fMuons->At(1)->Charge()*13;
+    if (fMuons->At(1)->ParticleId() == XsIsoParticle::EParticleId::eTightMuon)
+      fMitDMSTree.lid2_ = fMitDMSTree.lid2_*10;
+    if (fMuons->At(1)->ParticleId() == XsIsoParticle::EParticleId::eIsoMuon)
+      fMitDMSTree.lid2_ = fMitDMSTree.lid2_*100;
+
+    CorrectMet(fMitDMSTree.metRaw_,fMitDMSTree.metRawPhi_,fMitDMSTree.lep1_,fMitDMSTree.lep2_,
+               fMitDMSTree.met_,fMitDMSTree.metPhi_);    
+    fMitDMSTree.mll_ = (fMitDMSTree.lep1_ + fMitDMSTree.lep2_).M();
   }
-  else if (fMuons->GetEntries() > 0) {
+  else if (fMuons->GetEntries() == 1) {
     fMitDMSTree.lep1_ = fMuons->At(0)->Mom();
-    fMitDMSTree.lid1_ = 13;
+    fMitDMSTree.lid1_ = fMuons->At(0)->Charge()*13;
+    if (fMuons->At(0)->ParticleId() == XsIsoParticle::EParticleId::eTightMuon)
+      fMitDMSTree.lid1_ = fMitDMSTree.lid1_*10;
+    if (fMuons->At(0)->ParticleId() == XsIsoParticle::EParticleId::eIsoMuon)
+      fMitDMSTree.lid1_ = fMitDMSTree.lid1_*100;
+
+    CorrectMet(fMitDMSTree.metRaw_,fMitDMSTree.metRawPhi_,fMitDMSTree.lep1_,
+               fMitDMSTree.met_,fMitDMSTree.metPhi_);    
+    fMitDMSTree.mt_ = GetMt(fMitDMSTree.lep1_,fMitDMSTree.metRaw_,fMitDMSTree.metRawPhi_);
     //mu e
     if (fElectrons->GetEntries() > 0) {
       fMitDMSTree.lep2_ = fElectrons->At(0)->Mom();
-      fMitDMSTree.lid2_ = 11;
+      fMitDMSTree.lid2_ = fElectrons->At(0)->Charge()*11;
     }             
   }
-  else if (fElectrons->GetEntries() > 1) {
-    //e e
+  //e e
+  else if (fMuons->GetEntries() == 0 && fElectrons->GetEntries() > 1) {
     fMitDMSTree.lep1_ = fElectrons->At(0)->Mom();
-    fMitDMSTree.lid1_ = 13;
+    fMitDMSTree.lid1_ = fElectrons->At(0)->Charge()*11;
     fMitDMSTree.lep2_ = fElectrons->At(1)->Mom();
-    fMitDMSTree.lid2_ = 13;
+    fMitDMSTree.lid2_ = fElectrons->At(1)->Charge()*11;
   }
-  else if (fElectrons->GetEntries() > 0) {
+  else if (fMuons->GetEntries() == 0 && fElectrons->GetEntries() > 0) {
     //e
     fMitDMSTree.lep1_ = fElectrons->At(0)->Mom();
-    fMitDMSTree.lid1_ = 13;
+    fMitDMSTree.lid1_ = fElectrons->At(0)->Charge()*11;
   }    
   // Make Muon-HLT matching 
   if (fMitDMSTree.nlep_ && fMitDMSTree.lid1_ == 13
@@ -253,7 +270,7 @@ void DMSTreeWriter::Process()
 
   fMitDMSTree.nphotons_ = fPhotons->GetEntries();
   if (fPhotons->GetEntries() >= 1) {
-    const Photon *photon = fPhotons->At(0);
+    const XsIsoParticle *photon = fPhotons->At(0);
     fMitDMSTree.pho1_ = photon->Mom();
     // Make Photon-HLT matching 
     if (IsHLTMatched(fMitDMSTree.pho1_, 
@@ -261,18 +278,23 @@ void DMSTreeWriter::Process()
                      0.3, 
                      130.))
       fMitDMSTree.HLTmatch_ |= MitDMSTree::PhotonMatch;         
+    // Correct MET (only if no leptons and high pt photon!)
+    if (fMitDMSTree.nlep_ == 0 && photon->Pt() > 150.) 
+      CorrectMet(fMitDMSTree.metRaw_,fMitDMSTree.metRawPhi_,fMitDMSTree.pho1_,
+                 fMitDMSTree.met_,fMitDMSTree.metPhi_);    
   }
 
   // FAT JETS  
   fMitDMSTree.nfjets_ = fFatJets->GetEntries();
   for (UInt_t i = 0; i < fFatJets->GetEntries(); ++i) {
-
+    
     if (i == 0) {
       const XlFatJet *fjet = fFatJets->At(i);    
       fMitDMSTree.fjet1_       = fjet->Mom();
-      fMitDMSTree.fjet1CHF_    = fjet->ChargedHadronEnergy()/fjet->RawMom().E();
-      fMitDMSTree.fjet1NHF_    = fjet->NeutralHadronEnergy()/fjet->RawMom().E();
-      fMitDMSTree.fjet1NEMF_   = fjet->NeutralEmEnergy()/fjet->RawMom().E();
+      // Further cleaning for larger cones
+      if (!fjetIsCleaned(fMitDMSTree.fjet1_,0.5))
+        continue;
+
       fMitDMSTree.fjet1Btag_    = GetFatJetBtag(fMitDMSTree.fjet1_, 0.5);
       fMitDMSTree.fjet1Charge_  = fjet->Charge();
       fMitDMSTree.fjet1QGtag_   = fjet->QGTag();
@@ -320,9 +342,10 @@ void DMSTreeWriter::Process()
     if (i == 1) {
       const XlFatJet *fjet = fFatJets->At(i);    
       fMitDMSTree.fjet2_       = fjet->Mom();
-      fMitDMSTree.fjet2CHF_    = fjet->ChargedHadronEnergy()/fjet->RawMom().E();
-      fMitDMSTree.fjet2NHF_    = fjet->NeutralHadronEnergy()/fjet->RawMom().E();
-      fMitDMSTree.fjet2NEMF_   = fjet->NeutralEmEnergy()/fjet->RawMom().E();
+      // Further cleaning for larger cones
+      if (!fjetIsCleaned(fMitDMSTree.fjet2_,0.5))
+        continue;
+
       fMitDMSTree.fjet2Btag_    = GetFatJetBtag(fMitDMSTree.fjet2_, 0.5);
       fMitDMSTree.fjet2Charge_  = fjet->Charge();
       fMitDMSTree.fjet2QGtag_   = fjet->QGTag();
@@ -371,12 +394,19 @@ void DMSTreeWriter::Process()
   }
   
   // JETS : careful since the hardest could overlap with the fat jets
+  fMitDMSTree.rmvaval_ = -999.;
+  float resolvedVars[7];
+  UInt_t resolvedIndexOne = 0;
+  UInt_t resolvedIndexTwo = 0;
   fMitDMSTree.njets_ = fJets->GetEntries();
   for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
-    const Jet *jet = fJets->At(i);
+    const XlJet *jet = fJets->At(i);
 
     if (i == 0) {
       fMitDMSTree.jet1_        = jet->Mom();
+      fMitDMSTree.jet1CHF_     = jet->ChargedHadronEnergy()/jet->RawMom().E();
+      fMitDMSTree.jet1NHF_     = jet->NeutralHadronEnergy()/jet->RawMom().E();
+      fMitDMSTree.jet1NEMF_    = jet->NeutralEmEnergy()/jet->RawMom().E();
       // Make Jet-HLT matching: this is used for preselection
       if (IsHLTMatched(fMitDMSTree.jet1_, 
                        TriggerObject::TriggerJet,
@@ -392,16 +422,53 @@ void DMSTreeWriter::Process()
       fMitDMSTree.jet4_        = jet->Mom();
     if (i == 4)
       fMitDMSTree.jet5_        = jet->Mom();
+
+    // Start resolved section
+    if (fMitDMSTree.njets_ > i && (fMitDMSTree.preselWord_ & MitDMSTree::Resolved)) {
+      if (jet->CombinedSecondaryVertexBJetTagsDisc() > 0.679)
+        continue;
+      for (UInt_t j = i+1; j < fJets->GetEntries(); ++j) {
+        const XlJet *jetTwo = fJets->At(j);
+        if (jetTwo->CombinedSecondaryVertexBJetTagsDisc() > 0.679)
+          continue;
+        // Check mass
+        if ((jet->Mom() + jetTwo->Mom()).M() < 60.
+          ||(jet->Mom() + jetTwo->Mom()).M() > 110.) 
+          continue;
+        Double_t thisMVAval = fDiJetMVA->MVAValue(
+                              jet,jetTwo,
+                              fPileUpDen->At(0)->RhoRandomLowEta(),
+                              fMCParticles,kFALSE,resolvedVars);
+        if (thisMVAval > fMitDMSTree.rmvaval_) {
+          fMitDMSTree.rmvaval_ = thisMVAval;
+          resolvedIndexOne = i;
+          resolvedIndexTwo = j;
+          fMitDMSTree.rptOverM_     = resolvedVars[0];       
+          fMitDMSTree.rjet1_pullang_= resolvedVars[1];
+          fMitDMSTree.rjet2_pullang_= resolvedVars[2];
+          fMitDMSTree.rjet1_qgl_    = resolvedVars[3];
+          fMitDMSTree.rjet2_qgl_    = resolvedVars[4];
+          fMitDMSTree.rmdrop_       = resolvedVars[5];
+        }
+      } // endl loop on second jet
+    } // end resolved mini-ana
+
   }
 
+  // Fill revant information in case a good diJet pair is found
+  if (fMitDMSTree.rmvaval_ >= -1.) {
+    fMitDMSTree.rjet1_ = fJets->At(resolvedIndexOne)->Mom();
+    fMitDMSTree.rjet2_ = fJets->At(resolvedIndexTwo)->Mom();
+  }
+    
   // B-JETS : careful since the hardest could overlap with the fat jets
   fMitDMSTree.nbjets_ = 0;
   for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
     const Jet *jet = fJets->At(i);
     
-    // Check that the jet is b-tagged
+    // Check that the jet is b-tagged (medium WP)
     float btag = jet->CombinedSecondaryVertexBJetTagsDisc();  
-    if (btag < 0.244)
+    if (btag < 0.679)
       continue;
 
     // Fill the information for the two hardest b-jets
@@ -497,7 +564,6 @@ void DMSTreeWriter::SlaveBegin()
   ReqEventObject(fFatJetsName,       fFatJets,       fFatJetsFromBranch);
   ReqEventObject(fSubJetsName,       fSubJets,       fSubJetsFromBranch);
   ReqEventObject(fRawMetName,        fRawMet,        true);
-  ReqEventObject(fMetName,           fMet,           fMetFromBranch);
   ReqEventObject(fMetMVAName,        fMetMVA,        fMetMVAFromBranch);
 
   // Initialize the PU histrograms and weights
@@ -532,35 +598,19 @@ void DMSTreeWriter::SlaveBegin()
     fPUWeight = new TH1D((*fPUTarget) / (*fPUInput));
   }
 
+  // Initialize DiJet MVA
+  fDiJetMVA = new DiJetMVA();
+  fDiJetMVA->Initialize(
+          TString(getenv("CMSSW_BASE")+string("/src/MitMonoJet/Utils/data/vmva_weights/vtraining_lowpt_cen.root_BDTG.weights.xml")),
+          TString(getenv("CMSSW_BASE")+string("/src/MitMonoJet/Utils/data/vmva_weights/vtraining_highpt_cen.root_BDTG.weights.xml")),
+          string(getenv("CMSSW_BASE"))+string("/src/MitMonoJet/Utils/data/QGSystDatabase.txt"));          
+
   // Create Ntuple Tree
   fOutputFile = TFile::Open(TString::Format("%s_tmp.root",GetName()),"RECREATE");
   fMitDMSTree.CreateTree(0);
   fMitDMSTree.tree_->SetAutoSave(300e9);
   fMitDMSTree.tree_->SetDirectory(fOutputFile);
   AddOutput(fMitDMSTree.tree_);
-}
-
-//--------------------------------------------------------------------------------------------------
-void DMSTreeWriter::CorrectMet(const float met, const float metPhi,
-                               const Particle *l1, const Particle *l2,
-                               float &newMet, float &newMetPhi)
-{
-  // inputs:  met, metPhi, l1,  [ l2  only used if pointer is non-zero ]
-  // outputs: newMet, newMetPhi
-
-  float newMetX;
-  float newMetY;
-  if (l2) {   // these are doubles on the right: need full calculation in one line
-    newMetX = met*TMath::Cos(metPhi) + l1->Mom().Px() + l2->Mom().Px();
-    newMetY = met*TMath::Sin(metPhi) + l1->Mom().Py() + l2->Mom().Py();
-  }
-  else {
-    newMetX = met*TMath::Cos(metPhi) + l1->Mom().Px();
-    newMetY = met*TMath::Sin(metPhi) + l1->Mom().Py();
-  }
-  
-  newMet    = TMath::Sqrt(TMath::Power(newMetX,2) + TMath::Power(newMetY,2));
-  newMetPhi = TMath::ATan2(newMetY,newMetX);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -601,6 +651,13 @@ void DMSTreeWriter::getGenLevelInfo(MitDMSTree& tree)
       } // end top scope
       
     } // end boson scope 
+    // Check if the particle is a high Pt photon
+    else if (p->Is(MCParticle::kGamma) && p->Pt() > 100.) {
+      tree.genV_   = p->Mom();      
+      tree.genVid_ = p->AbsPdgId();            
+    }
+    else
+      continue;
     
   } // end loop on MC Particles
 
@@ -635,6 +692,33 @@ Bool_t DMSTreeWriter::IsHLTMatched(LorentzVector& v,
   } // end loop on trigger objects
 
   return false;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+Bool_t DMSTreeWriter::fjetIsCleaned(LorentzVector& v,
+                                    Float_t deltaR)
+{
+  // Loop on tight muons and photons and discard 
+  // jet if overlapping
+  for (UInt_t i=0; i<fMuons->GetEntries(); ++i) {
+    // Discard loose muons
+    if (fMuons->At(i)->ParticleId() == XsIsoParticle::EParticleId::eX)
+      continue;
+    float thisDr = MathUtils::DeltaR(v, fMuons->At(i)->Mom());
+    if (thisDr < deltaR)
+      return false;      
+  }
+  for (UInt_t i=0; i<fPhotons->GetEntries(); ++i) {
+    // Discard soft photons
+    if (fPhotons->At(i)->Pt() < 150.)
+      continue;
+    float thisDr = MathUtils::DeltaR(v, fPhotons->At(i)->Mom());
+    if (thisDr < deltaR)
+      return false;      
+  }
+ 
+  return true;      
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -696,4 +780,47 @@ Float_t DMSTreeWriter::GetFatJetBtag(LorentzVector& v,
   }
       
   return -1;
+}
+
+//--------------------------------------------------------------------------------------------------
+void DMSTreeWriter::CorrectMet(const float met, const float metPhi, const LorentzVector& l1, const LorentzVector& l2,
+                               float& newMet, float& newMetPhi)
+{
+  // inputs:  met, metPhi, l1, l2
+  // outputs: newMet, newMetPhi
+  float newMetX;
+  float newMetY;
+  newMetX = met*TMath::Cos(metPhi) + l1.Px() + l2.Px();
+  newMetY = met*TMath::Sin(metPhi) + l1.Py() + l2.Py();
+  
+  newMet    = TMath::Sqrt(TMath::Power(newMetX,2) + TMath::Power(newMetY,2));
+  newMetPhi = TMath::ATan2(newMetY,newMetX);
+
+  return;
+}
+
+//--------------------------------------------------------------------------------------------------
+void DMSTreeWriter::CorrectMet(const float met, const float metPhi, const LorentzVector& l1,
+                               float& newMet, float& newMetPhi)
+{
+  // inputs:  met, metPhi, l1
+  // outputs: newMet, newMetPhi
+  float newMetX;
+  float newMetY;
+  newMetX = met*TMath::Cos(metPhi) + l1.Px();
+  newMetY = met*TMath::Sin(metPhi) + l1.Py();
+  
+  newMet    = TMath::Sqrt(TMath::Power(newMetX,2) + TMath::Power(newMetY,2));
+  newMetPhi = TMath::ATan2(newMetY,newMetX);
+
+  return;
+}
+
+//--------------------------------------------------------------------------------------------------
+float DMSTreeWriter::GetMt(const LorentzVector& l1, const float met, const float metPhi)
+{
+  // inputs:  l1, met, metPhi
+  // outputs: transverse mass
+  double lepPhi = l1.Phi();
+  return TMath::Sqrt(2*met*l1.Pt()*(1-TMath::Cos(MathUtils::DeltaPhi(lepPhi,(double)metPhi))));
 }

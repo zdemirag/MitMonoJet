@@ -84,8 +84,7 @@ namespace mithep
       // Objects from fastjet we want to use
       double fJetConeSize;                 //fastjet clustering radius
       double fFatJetConeSize;              //fastjet fat clustering radius
-      fastjet::JetDefinition *fAKJetDef;   //fastjet clustering definition
-      fastjet::JetDefinition *fAKFatJetDef;//fastjet fat clustering definition
+      fastjet::JetDefinition *fJetDef  ;   //fastjet clustering definition
       fastjet::GhostedAreaSpec *fActiveArea;
       fastjet::AreaDefinition *fAreaDefinition;
 

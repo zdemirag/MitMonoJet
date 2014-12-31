@@ -16,26 +16,20 @@
 #include "MitAna/DataTree/interface/PileupInfoCol.h"
 #include "MitAna/DataTree/interface/PileupEnergyDensityCol.h"
 #include "MitAna/DataTree/interface/VertexCol.h"
-#include "MitAna/DataTree/interface/PhotonFwd.h"
-#include "MitAna/DataTree/interface/TrackCol.h"
 #include "MitAna/DataTree/interface/PFCandidateCol.h"
 #include "MitAna/DataTree/interface/DecayParticleCol.h"
-#include "MitAna/DataTree/interface/ElectronCol.h"
-#include "MitAna/DataTree/interface/MuonCol.h"
-#include "MitAna/DataTree/interface/PFTauCol.h"
 #include "MitAna/DataTree/interface/MCParticleCol.h"
-#include "MitAna/DataTree/interface/MetCol.h"
 #include "MitAna/DataTree/interface/PFMetCol.h"
 #include "MitAna/DataTree/interface/JetCol.h"
-#include "MitAna/DataTree/interface/PFJetCol.h"
 #include "MitAna/DataTree/interface/TriggerObjectCol.h"
-#include "MitPhysics/Utils/interface/PhotonFix.h"
-#include "MitPhysics/Utils/interface/PhotonTools.h"
 #include "MitPhysics/Utils/interface/VertexTools.h"
 #include "MitMonoJet/DataTree/interface/XlMetCol.h"
+#include "MitMonoJet/DataTree/interface/XlJetCol.h"
 #include "MitMonoJet/DataTree/interface/XlFatJetCol.h"
 #include "MitMonoJet/DataTree/interface/XlSubJetCol.h"
 #include "MitMonoJet/DataTree/interface/XlEvtSelData.h"
+#include "MitMonoJet/DataTree/interface/XsIsoParticleCol.h"
+#include "MitMonoJet/Utils/interface/DiJetMVA.h"
 
 #include "MitMonoJet/Core/MitDMSTree.h"
 
@@ -55,8 +49,6 @@ namespace mithep
 
     // setting all the input Names
     void    SetRawMetName(const char *n)            { fRawMetName= n;              }
-    void    SetMetName(const char *n)               { fMetName= n;                 }
-    void    SetMetFromBranch(bool b)                { fMetFromBranch = b;          }
     void    SetMetMVAName(const char *n)            { fMetMVAName= n;              }
     void    SetMetMVAFromBranch(bool b)             { fMetMVAFromBranch = b;       }
     void    SetPhotonsName(const char *n)           { fPhotonsName= n;             }
@@ -89,16 +81,11 @@ namespace mithep
     void    SlaveBegin();
     void    SlaveTerminate();
             
-  private:  
-    void    CorrectMet(const float met, const float metPhi,
-                                   const Particle *l1, const Particle *l2,
-                                   float &newMet, float &newMetPhi);
-
+  private:              
     // Private auxiliary methods... Names of the input Collections
 
     TString                        fEvtSelDataName;
     TString                        fRawMetName;
-    TString                        fMetName;
     TString                        fMetMVAName;
     TString                        fPhotonsName;
     TString                        fElectronsName;
@@ -115,7 +102,6 @@ namespace mithep
     TString                        fTriggerObjectsName;
 			           
     Bool_t                         fIsData;
-    Bool_t                         fMetFromBranch;
     Bool_t                         fMetMVAFromBranch;
     Bool_t                         fPhotonsFromBranch;
     Bool_t                         fElectronsFromBranch;
@@ -127,13 +113,12 @@ namespace mithep
     Bool_t                         fPVFromBranch;
 			         
     const PFMetCol                *fRawMet;
-    const MetCol                  *fMet;
     const XlMetCol                *fMetMVA;
-    const PhotonCol               *fPhotons;
-    const ElectronCol             *fElectrons;
-    const MuonCol                 *fMuons;
-    const PFTauCol                *fPFTaus;
-    const PFJetCol                *fJets;
+    const XsIsoParticleCol        *fPhotons;
+    const XsIsoParticleCol        *fElectrons;
+    const XsIsoParticleCol        *fMuons;
+    const XsIsoParticleCol        *fPFTaus;
+    const XlJetCol                *fJets;
     const XlFatJetCol             *fFatJets;
     const XlSubJetCol             *fSubJets;
     const VertexCol               *fPV;
@@ -151,7 +136,14 @@ namespace mithep
     TH1D                          *fPUTarget;            // target PU histo
     const TH1D                    *fPUWeight;            // target PU histo
     Float_t                        PUWeight(Float_t npu);// PU reweighting function
-
+    // Met helpers  
+    void                           CorrectMet(const float met, const float metPhi, 
+                                              const LorentzVector& l1, const LorentzVector& l2,
+                                              float& newMet, float& newMetPhi);
+    void                           CorrectMet(const float met, const float metPhi, 
+                                              const LorentzVector& l1,
+                                              float& newMet, float& newMetPhi);
+    float                          GetMt(const LorentzVector& l1, const float met, const float metPhi);
     // Gen Level Info Analysis   
     void                           getGenLevelInfo(MitDMSTree& tree);
     // Hlt Objects Matcher   
@@ -160,6 +152,9 @@ namespace mithep
                                                 Float_t deltaR = 0.5,
                                                 Float_t minPt = 0.,
                                                 Float_t maxEta = 99.);
+    // Jet cleaner   
+    Bool_t                         fjetIsCleaned(LorentzVector& v,
+                                                 Float_t deltaR = 0.5);
     // Jet-Parton Id Matcher   
     Int_t                          JetPartonMatch(LorentzVector& v,
                                                   Float_t deltaR = 0.5);
@@ -167,11 +162,13 @@ namespace mithep
     // Get B-tag via FatJet-Standard Jet matching   
     Float_t                        GetFatJetBtag(LorentzVector& v,
                                                  Float_t deltaR = 0.3);
+
+    DiJetMVA                      *fDiJetMVA; //MVA helper for resolved category
                                                 
     TFile                         *fOutputFile;
     MitDMSTree                     fMitDMSTree;
 
-    ClassDef(DMSTreeWriter,1)
+    ClassDef(DMSTreeWriter,2)
   };
 }
 #endif

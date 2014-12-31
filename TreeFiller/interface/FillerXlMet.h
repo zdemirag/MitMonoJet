@@ -20,6 +20,7 @@
 #include "MitAna/DataTree/interface/ElectronCol.h"
 #include "MitAna/DataTree/interface/MuonCol.h"
 #include "MitAna/DataTree/interface/PFTauCol.h"
+#include "MitAna/DataTree/interface/PhotonCol.h"
 #include "MitAna/DataTree/interface/MetCol.h"
 #include "MitAna/DataTree/interface/PFMetCol.h"
 #include "MitAna/DataTree/interface/JetCol.h"
@@ -51,6 +52,8 @@ namespace mithep
       void SetElectronsFromBranch(bool b)     { fElectronsFromBranch = b;   }
       void SetTausName(const char *n)         { fTausName = n;              }
       void SetTausFromBranch(bool b)          { fTausFromBranch = b;        }      
+      void SetPhotonsName(const char *n)      { fPhotonsName = n;           }
+      void SetPhotonsFromBranch(bool b)       { fPhotonsFromBranch = b;     }      
       void SetPFCandidatesName(const char *n) { fPFCandidatesName = n;      }
       void SetPFCandidatesFromBranch(bool b)  { fPFCandidatesFromBranch = b;}
       void SetPVName(const char *n)           { fPVName = n;                }
@@ -73,6 +76,7 @@ namespace mithep
       TString fMuonsName;
       TString fElectronsName;
       TString fTausName;
+      TString fPhotonsName;
       TString fPFCandidatesName;
       TString fPVName;
       TString fPileUpDenName;
@@ -83,6 +87,7 @@ namespace mithep
       Bool_t  fMuonsFromBranch;
       Bool_t  fElectronsFromBranch;
       Bool_t  fTausFromBranch;
+      Bool_t  fPhotonsFromBranch;
       Bool_t  fPFCandidatesFromBranch;
       Bool_t  fPVFromBranch;
       Bool_t  fPublishOutput;
@@ -91,12 +96,13 @@ namespace mithep
       const MuonCol                *fMuons;
       const ElectronCol            *fElectrons;
       const PFTauCol               *fPFTaus;
+      const PhotonCol              *fPhotons;
       const PFCandidateCol         *fPFCandidates;
       const VertexCol              *fPV;
       const PileupEnergyDensityCol *fPileUpDen;
       const PFMetCol               *fRawMet;
       XlMetArr                     *fXlMet;      //array of XlMet
-      const XlEvtSelData                     *fEvtSelData;      //array of XlMet
+      const XlEvtSelData           *fEvtSelData; //array of XlMet
 
       MVAMet *fMVAMet;                           
       std::vector<std::string> fCorrectionFiles; // list of jet correction files

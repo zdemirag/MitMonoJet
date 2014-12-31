@@ -41,7 +41,7 @@ FastJetMod::~FastJetMod()
 {
   // Destructor  
   delete fOutputJets;
-  delete fAKJetDef;
+  delete fJetDef;
   
   delete fActiveArea;
   delete fAreaDefinition;  
@@ -90,7 +90,7 @@ void FastJetMod::Process()
   
   // Setup the clusters for fastjet
   fastjet::ClusterSequenceArea *fjClustering =
-    new fastjet::ClusterSequenceArea(fjParts,*fAKJetDef,*fAreaDefinition);
+    new fastjet::ClusterSequenceArea(fjParts,*fJetDef,*fAreaDefinition);
 
   // ---- Fastjet is ready ----
 
@@ -116,6 +116,9 @@ void FastJetMod::Process()
                               fjOutJets[j].pz(),
                               fjOutJets[j].e());
 
+    // Setup PFJet area
+    outJet->SetJetArea(fjOutJets[j].area());
+    
     // Setup PFJet particle flow related quantities
     FillPFJet(outJet, fjOutJets[j]);
                               
@@ -148,7 +151,7 @@ void FastJetMod::SlaveBegin()
   ReqEventObject(fPfCandidatesName,fPfCandidates,fPfCandidatesFromBranch);
     
   // AKT constructor
-  fAKJetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm, fJetConeSize);
+  fJetDef = new fastjet::JetDefinition(fastjet::cambridge_algorithm, fJetConeSize);
   
   // Initialize area caculation (done with ghost particles)
   int activeAreaRepeats = 1;

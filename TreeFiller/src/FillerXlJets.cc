@@ -2,15 +2,9 @@
 #include "MitMonoJet/TreeFiller/interface/FillerXlJets.h"
 #include "MitAna/DataTree/interface/PFJetCol.h"
 
-#include "MitMonoJet/DataTree/interface/XlSubJet.h"
-#include "MitMonoJet/DataTree/interface/XlFatJet.h"
-#include "MitCommon/DataFormats/interface/Vect4M.h"
-#include "MitCommon/DataFormats/interface/Vect3.h"
+#include "MitMonoJet/DataTree/interface/XlJet.h"
 #include "MitCommon/DataFormats/interface/Types.h"
 #include "MitCommon/MathTools/interface/MathUtils.h"
-
-#include "QjetsPlugin.h"
-#include "Qjets.h"
 
 using namespace mithep;
 
@@ -20,38 +14,19 @@ ClassImp(mithep::FillerXlJets)
 FillerXlJets::FillerXlJets(const char *name, const char *title) :
   BaseMod (name,title),
   fIsData (kTRUE),
-  fFillVSubJets (kTRUE),
-  fFillTopSubJets (kFALSE),
-  fNSubDeclustering (kFALSE),
-  fBTaggingActive (kFALSE),
   fQGTaggingActive (kTRUE),
   fQGTaggerCHS (kFALSE),
   fPublishOutput (kTRUE),
-  fProcessNJets (2),
   fJetsName (Names::gkPFJetBrn),
   fJetsFromBranch (kTRUE),
   fJets (0),
-  fPfCandidatesName (Names::gkPFCandidatesBrn),
-  fPfCandidatesFromBranch(kTRUE),
-  fPfCandidates (0),
   fPileUpDenName(Names::gkPileupEnergyDensityBrn),
   fPileUpDenFromBranch(kTRUE),
   fPileUpDen(0),
   fVertexesName (ModNames::gkGoodVertexesName),
   fVertexesFromBranch(kFALSE),
   fVertexes(0),
-  fXlFatJetsName ("XlFatJets"),
-  fXlSubJetsName ("XlSubJets"),
-  fSoftDropZCut (0.1),     
-  fSoftDropMuCut (1.),  
-  fPruneZCut (0.1),     
-  fPruneDistCut (0.5),  
-  fFilterN (3),      
-  fFilterRad (0.2),     
-  fTrimRad (0.1),       
-  fTrimPtFrac (0.03),    
-  fConeSize (0.6),
-  fCounter (0)
+  fXlJetsName ("XlJets")
 {
   // Constructor.
 }
@@ -59,19 +34,8 @@ FillerXlJets::FillerXlJets(const char *name, const char *title) :
 FillerXlJets::~FillerXlJets()
 {
   // Destructor
-  if (fXlSubJets)
-    delete fXlSubJets;
-  if (fXlFatJets)
-    delete fXlFatJets;
-
-  delete fPruner;
-  delete fFilterer;
-  delete fTrimmer ;
-    
-  delete fCAJetDef;
-  
-  delete fActiveArea;
-  delete fAreaDefinition;  
+  if (fXlJets)
+    delete fXlJets;
   
   delete fQGTagger;
 }
@@ -80,8 +44,7 @@ FillerXlJets::~FillerXlJets()
 void FillerXlJets::Process()
 {
   // make sure the out collections are empty before starting
-  fXlFatJets->Delete();  
-  fXlSubJets->Delete();  
+  fXlJets->Delete();  
   
   // Load the branches we want to work with
   LoadEventObject(fJetsName,fJets,fJetsFromBranch);
@@ -89,10 +52,6 @@ void FillerXlJets::Process()
     LoadEventObject(fPileUpDenName,fPileUpDen,fPileUpDenFromBranch);
     LoadEventObject(fVertexesName,fVertexes,fVertexesFromBranch);
   }
-
-  // Loop over PFCandidates and unmark them : necessary for skimming
-  for (UInt_t i=0; i<fPfCandidates->GetEntries(); ++i) 
-    fPfCandidates->At(i)->UnmarkMe();
  
   // Setup pileup density for QG computation
   if (fQGTaggingActive)
@@ -100,10 +59,6 @@ void FillerXlJets::Process()
   
   // Loop over jets
   for (UInt_t i=0; i<fJets->GetEntries(); ++i) {
-
-    // consider only the first fProcessNJets jets
-    if (i >= fProcessNJets)
-      break; 
       
     const PFJet *jet = dynamic_cast<const PFJet*>(fJets->At(i));
     if (! jet) {
@@ -114,11 +69,12 @@ void FillerXlJets::Process()
     // mark jet (and consequently its consituents) for further use in skim
     jet->Mark();       
     
-    // perform Nsubjettiness analysis and fill the extended XlFatJet object
-    // this method will also fill the SubJet collection       
-    FillXlFatJet(jet);      
+    // perform jet analysis and fill the extended XlJet object
+    FillXlJet(jet);      
     
   }    
+  // Trim the output collection
+  fXlJets->Trim();
   
   return;
 }
@@ -128,40 +84,16 @@ void FillerXlJets::SlaveBegin()
 {
   // Run startup code on the computer (slave) doing the actual analysis. 
   ReqEventObject(fJetsName,fJets,fJetsFromBranch);
-  ReqEventObject(fPfCandidatesName,fPfCandidates,fPfCandidatesFromBranch);
   ReqEventObject(fPileUpDenName,fPileUpDen,fPileUpDenFromBranch);
   ReqEventObject(fVertexesName,fVertexes,fVertexesFromBranch);
 
   // Initialize area caculation (done with ghost particles)
 
   // Create the new output collection
-  fXlFatJets = new XlFatJetArr(16,fXlFatJetsName);
-  fXlSubJets = new XlSubJetArr(16,fXlSubJetsName);
+  fXlJets = new XlJetArr(16,fXlJetsName);
   // Publish collection for further usage in the analysis
-  if (fPublishOutput) {
-    PublishObj(fXlFatJets);
-    PublishObj(fXlSubJets);
-  }
-
-  // Prepare pruner
-  fPruner = new fastjet::Pruner(fastjet::cambridge_algorithm,fPruneZCut,fPruneDistCut);
-  // Prepare filterer
-  fFilterer = new fastjet::Filter(fastjet::JetDefinition(fastjet::cambridge_algorithm,fFilterRad), 
-                                  fastjet::SelectorNHardest(fFilterN));
-  // Prepare trimmer
-  fTrimmer = new fastjet::Filter(fastjet::Filter(fastjet::JetDefinition(fastjet::kt_algorithm,fTrimRad),
-                                 fastjet::SelectorPtFractionMin(fTrimPtFrac)));
-    
-  // CA constructor (fConeSize = 0.6 for antiKt) - reproducing paper 1: http://arxiv.org/abs/1011.2268
-  if (fFillTopSubJets) fCAJetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm, fConeSize);
-  else fCAJetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm, fConeSize);
-  
-  // Initialize area caculation (done with ghost particles)
-  int activeAreaRepeats = 1;
-  double ghostArea = 0.01;
-  double ghostEtaMax = 7.0;
-  fActiveArea = new fastjet::GhostedAreaSpec(ghostEtaMax,activeAreaRepeats,ghostArea);
-  fAreaDefinition = new fastjet::AreaDefinition(fastjet::active_area_explicit_ghosts,*fActiveArea);  
+  if (fPublishOutput)
+    PublishObj(fXlJets);
   
   // Initialize QGTagger class
   fQGTagger = new QGTagger(fQGTaggerCHS);
@@ -175,14 +107,14 @@ void FillerXlJets::SlaveTerminate()
 }
 
 //--------------------------------------------------------------------------------------------------
-void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
+void FillerXlJets::FillXlJet(const PFJet *pPFJet)
 {
   // Prepare and store in an array a new FatJet 
-  XlFatJet *fatJet = fXlFatJets->Allocate();
-  new (fatJet) XlFatJet(*pPFJet);
+  XlJet *newXlJet = fXlJets->Allocate();
+  new (newXlJet) XlJet(*pPFJet);
 
   // Compute and store weighted charge
-  fatJet->SetCharge();
+  newXlJet->SetCharge();
   
   // Prepare and store QG tagging info
   float qgValue = -1.;
@@ -190,6 +122,7 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
     fQGTagger->CalculateVariables(pPFJet, fVertexes);
     qgValue = fQGTagger->QGValue();
   }
+<<<<<<< HEAD
   fatJet->SetQGTag(qgValue);
     
   std::vector<fastjet::PseudoJet> fjParts;
@@ -361,169 +294,39 @@ void FillerXlJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets,
     pFatJet->AddSubJet(subJet);                              
 
   }
+=======
+  newXlJet->SetQGTag(qgValue);
+>>>>>>> 36adccb0a04e529411a9763ba098d7bc8feffc3f
     
-  return;    
-}
-
-//--------------------------------------------------------------------------------------------------
-std::vector <fastjet::PseudoJet>   FillerXlJets::Sorted_by_pt_min_pt(std::vector <fastjet::PseudoJet> &jets,  
-                                                                     float jetPtMin)
-{
-  // First order collection by pt
-  std::vector<fastjet::PseudoJet> sortedJets = sorted_by_pt(jets);
-  
-  // Loop on the sorted collection and erase jets below jetPtMin
-  std::vector<fastjet::PseudoJet>::iterator it = sortedJets.begin();
-  for ( ;  it != sortedJets.end(); ) {
-    if (it->perp() < jetPtMin)
-      it = sortedJets.erase(it);
-    else
-      it++;
-  }  
-  
-  // Return the reduced and sorted jet collection
-  return sortedJets;
-}                                                                           
-
-//--------------------------------------------------------------------------------------------------
-void FillerXlJets::GetJetConstituents(fastjet::PseudoJet &jet, std::vector <fastjet::PseudoJet> &constits,  
-                                      float constitsPtMin)
-{
-  // Loop on input jet constituents vector and discard very soft particles (ghosts)
-  for (unsigned int iPart = 0; iPart < jet.constituents().size(); iPart++) {
-    if (jet.constituents()[iPart].perp() < constitsPtMin)
-      continue;
-    constits.push_back(jet.constituents()[iPart]);        
-  }
-  
+  // Prepare and store jet pull info
+  TVector2 newXlJetPull = GetPull(pPFJet);
+  newXlJet->SetPullY(newXlJetPull.X());
+  newXlJet->SetPullPhi(newXlJetPull.Y());
+      
   return;
 }
 
 //--------------------------------------------------------------------------------------------------
-double FillerXlJets::GetQjetVolatility(std::vector <fastjet::PseudoJet> &constits, int QJetsN, int seed)
-{  
-  std::vector<float> qjetmasses;
-  
-  double zcut(0.1), dcut_fctr(0.5), exp_min(0.), exp_max(0.), rigidity(0.1), truncationFactor(0.01);
-  
-  QjetsPlugin qjet_plugin(zcut, dcut_fctr, exp_min, exp_max, rigidity, truncationFactor);
-  fastjet::JetDefinition qjet_def(&qjet_plugin);
-  
-  for(unsigned int ii = 0 ; ii < (unsigned int) QJetsN ; ii++){    
-    qjet_plugin.SetRandSeed(seed+ii); // new feature in Qjets to set the random seed
-    fastjet::ClusterSequence *qjet_seq =
-      new fastjet::ClusterSequence(constits, qjet_def);
-    
-    vector<fastjet::PseudoJet> inclusive_jets2 = sorted_by_pt(qjet_seq->inclusive_jets(5.0));
-    // skip failed recombinations (with no output jets)
-    if (inclusive_jets2.size() < 1)
-      continue;
-    if (inclusive_jets2.size()>0) { qjetmasses.push_back( inclusive_jets2[0].m() ); }
-    // memory cleanup
-    qjet_seq->delete_self_when_unused(); 
-    delete qjet_seq;         
-  }
-
-  // find RMS of a vector
-  float qjetsRMS = FindRMS( qjetmasses );
-  // find mean of a vector
-  float qjetsMean = FindMean( qjetmasses );
-  float qjetsVolatility = qjetsRMS/qjetsMean;
-  return qjetsVolatility;
-}
-
-//--------------------------------------------------------------------------------------------------
-double FillerXlJets::FindRMS(std::vector<float> qjetmasses)
-{
-  float total = 0.;
-  float ctr = 0.;
-  for (unsigned int i = 0; i < qjetmasses.size(); i++){
-      total = total + qjetmasses[i];
-      ctr++;
-  }
-  float mean = total/ctr;
-  
-  float totalsquared = 0.;
-  for (unsigned int i = 0; i < qjetmasses.size(); i++){
-    totalsquared += (qjetmasses[i] - mean)*(qjetmasses[i] - mean) ;
-  }
-  float RMS = sqrt( totalsquared/ctr );
-  return RMS;
-}
-
-//--------------------------------------------------------------------------------------------------
-double FillerXlJets::FindMean(std::vector<float> qjetmasses)
-{
-  float total = 0.;
-  float ctr = 0.;
-  for (unsigned int i = 0; i < qjetmasses.size(); i++){
-      total = total + qjetmasses[i];
-      ctr++;
-  }
-  return total/ctr;
-}
-
-//--------------------------------------------------------------------------------------------------
-void FillerXlJets::FillSubjetQGTagging(fastjet::PseudoJet &jet, float constitsPtMin, 
-                                       XlSubJet *pSubJet, XlFatJet *pFatJet)
-{
-  // Prepare a PFJet to compute the QGTagging
-  PFJet pfJet(jet.px(),jet.py(),jet.pz(),jet.e());
-
-  // Loop on input jet constituents vector and discard very soft particles (ghosts)
-  for (unsigned int iPart = 0; iPart < jet.constituents().size(); iPart++) {
-    if (jet.constituents()[iPart].perp() < constitsPtMin)
-      continue;
-    int thisPFCandIndex = jet.constituents()[iPart].user_index();
-    // Add the constituent to the PF subjet
-    pfJet.AddPFCand(pFatJet->PFCand(thisPFCandIndex));      
-  }
-
-  // Compute the subjet QGTagging
-  if (fQGTaggingActive) {
-    fQGTagger->CalculateVariables(&pfJet, fVertexes);
-    pSubJet->SetQGTag(fQGTagger->QGValue());
-    pSubJet->SetQGPtD(fQGTagger->GetPtD());
-    pSubJet->SetQGAxis1(fQGTagger->GetAxis1());
-    pSubJet->SetQGAxis2(fQGTagger->GetAxis2());
-    pSubJet->SetQGMult(fQGTagger->GetMult());
-  }
-
-  return;
-}
-
-//--------------------------------------------------------------------------------------------------
-TVector2 FillerXlJets::GetPull(fastjet::PseudoJet &jet, float constitsPtMin)
+TVector2 FillerXlJets::GetPull(const PFJet *inPFJet)
 {
   double dYSum   = 0;
   double dPhiSum = 0;
-  // Loop on input jet constituents vector and discard very soft particles (ghosts)
-  for (unsigned int iPart = 0; iPart < jet.constituents().size(); iPart++) {
-    if (jet.constituents()[iPart].perp() < constitsPtMin)
-      continue;
-    double dY     = jet.constituents()[iPart].rapidity()-jet.rapidity();
-    double dPhi   = MathUtils::DeltaPhi(jet.constituents()[iPart].phi(),jet.phi());
-    double weight = jet.constituents()[iPart].pt()*sqrt(dY*dY + dPhi*dPhi);
-    dYSum   += weight*dY;
+  const unsigned int nPFCands = inPFJet->NPFCands();
+
+  // Loop on input jet constituents and get the color pull  
+  for(unsigned int ipf=0; ipf<nPFCands; ipf++) {    
+    const PFCandidate *pfCand = inPFJet->PFCand(ipf);
+    double pt_i=0, y_i=0, phi_i=0;
+    pt_i = pfCand->Pt();
+    y_i = pfCand->Rapidity();
+    phi_i = pfCand->Phi();
+
+    double dY   = y_i - inPFJet->Rapidity();
+    double dPhi = MathUtils::DeltaPhi(phi_i,inPFJet->Phi());
+    double weight = pt_i*sqrt(dY*dY + dPhi*dPhi);
+    dYSum += weight*dY;
     dPhiSum += weight*dPhi;
   }
-  return TVector2(dYSum/jet.pt(), dPhiSum/jet.pt());
-}
 
-//--------------------------------------------------------------------------------------------------
-double FillerXlJets::GetPullAngle(std::vector<fastjet::PseudoJet> &fjSubJets, float constitsPtMin)
-{
-  // Subject collection already sorted by pt
-  // Consider only the leading and the subleading for the pull angle computation
-  // work in dy-dphi space of leading subjet
-
-  // Exclude cases where there is no second subjet (input jet made by one particle)
-  if (fjSubJets.size() < 2)
-    return -20.;
-
-  TVector2 lPull = GetPull(fjSubJets[0],constitsPtMin);
-  TVector2 lJet(fjSubJets[1].rapidity()-fjSubJets[0].rapidity(), 
-                MathUtils::DeltaPhi(fjSubJets[1].phi(), fjSubJets[0].phi()));
-  double lThetaP = lPull.DeltaPhi(lJet);
-  return lThetaP;
+  return TVector2(dYSum/inPFJet->Pt(), dPhiSum/inPFJet->Pt());    
 }
