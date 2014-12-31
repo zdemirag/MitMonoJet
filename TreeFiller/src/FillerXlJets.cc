@@ -153,7 +153,8 @@ void FillerXlJets::SlaveBegin()
                                  fastjet::SelectorPtFractionMin(fTrimPtFrac)));
     
   // CA constructor (fConeSize = 0.6 for antiKt) - reproducing paper 1: http://arxiv.org/abs/1011.2268
-  fCAJetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm, fConeSize);
+  if (fFillTopSubJets) fCAJetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm, fConeSize);
+  else fCAJetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm, fConeSize);
   
   // Initialize area caculation (done with ghost particles)
   int activeAreaRepeats = 1;
@@ -207,7 +208,9 @@ void FillerXlJets::FillXlFatJet(const PFJet *pPFJet)
 
   // Produce a new set of jets based on the fastjet particle collection and the defined clustering
   // Cut off fat jets with pt < 10 GeV and consider only the hardest jet of the output collection
-  std::vector<fastjet::PseudoJet> fjOutJets = sorted_by_pt(fjClustering->inclusive_jets(10.)); 
+  std::vector<fastjet::PseudoJet> fjOutJets;
+  if (fFillTopSubJets) fjOutJets = sorted_by_pt(fjClustering->inclusive_jets(0.)); 
+  else fjOutJets = sorted_by_pt(fjClustering->inclusive_jets(10.)); 
 
   // Check that the output collection size is non-null, otherwise nothing to be done further
   if (fjOutJets.size() < 1) {
