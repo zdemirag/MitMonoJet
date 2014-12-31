@@ -79,17 +79,23 @@ class MitGPTree {
 
   LorentzVector  genZ_;
   LorentzVector  genH_;
+  int            genWDaughterId_;
+  LorentzVector  genTauFromW_;
   LorentzVector  genMuon1_;
   LorentzVector  genMuon2_;
 
   unsigned int   nlep_;
   LorentzVector  lep1_;
   int            lid1_;
+  int		 lep1IsGlobalOrTrackerMuon_;
   int		 lep1IsTightMuon_;
   int		 lep1IsIsolated_;
+  int		 tau1IsIsolated_;
+  float          tau1Isolation_;
   float          lep1PtErr_;
   LorentzVector  lep2_;
   int            lid2_;
+  int		 lep2IsGlobalOrTrackerMuon_;
   int		 lep2IsTightMuon_;
   int		 lep2IsIsolated_;
   float          lep2PtErr_;
@@ -167,6 +173,7 @@ class MitGPTree {
   MitGPTree():
     genZPtr_(&genZ_),
     genHPtr_(&genH_),
+    genTauFromWPtr_(&genTauFromW_),
     genMuon1Ptr_(&genMuon1_),genMuon2Ptr_(&genMuon2_),
     lepPtr1_(&lep1_),lepPtr2_(&lep2_),lepPtr3_(&lep3_),
     tauPtr1_(&tau1_),tauPtr2_(&tau2_),
@@ -253,17 +260,23 @@ class MitGPTree {
 
     tree_->Branch("genZ"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genZPtr_);
     tree_->Branch("genH"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genHPtr_);
+    tree_->Branch("genWDaughterId" , &genWDaughterId_ ,   "genWDaughterId/i");
+    tree_->Branch("genTauFromW"    , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genTauFromWPtr_);
     tree_->Branch("genMuon1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genMuon1Ptr_);
     tree_->Branch("genMuon2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &genMuon2Ptr_);
 
     tree_->Branch("nlep"         , &nlep_         ,   "nlep/i");
     tree_->Branch("lep1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &lepPtr1_);
     tree_->Branch("lid1"         , &lid1_         ,   "lid1/I");
+    tree_->Branch("lep1IsGlobalOrTrackerMuon"         , &lep1IsGlobalOrTrackerMuon_         ,   "lep1IsGlobalOrTrackerMuon/I");
     tree_->Branch("lep1IsTightMuon"         , &lep1IsTightMuon_         ,   "lep1IsTightMuon/I");
     tree_->Branch("lep1IsIsolated"         , &lep1IsIsolated_         ,   "lep1IsIsolated/I");
+    tree_->Branch("tau1IsIsolated"         , &tau1IsIsolated_         ,   "tau1IsIsolated/I");
+    tree_->Branch("tau1Isolation"         , &tau1Isolation_         ,   "tau1Isolation/F");
     tree_->Branch("lep1PtErr"         , &lep1PtErr_         ,   "lep1PtErr/F");
     tree_->Branch("lep2"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &lepPtr2_);
     tree_->Branch("lid2"         , &lid2_         ,   "lid2/I");
+    tree_->Branch("lep2IsGlobalOrTrackerMuon"         , &lep2IsGlobalOrTrackerMuon_         ,   "lep2IsGlobalOrTrackerMuon/I");
     tree_->Branch("lep2IsTightMuon"         , &lep2IsTightMuon_         ,   "lep2IsTightMuon/I");
     tree_->Branch("lep2IsIsolated"         , &lep2IsIsolated_         ,   "lep2IsIsolated/I");
     tree_->Branch("lep2PtErr"         , &lep2PtErr_         ,   "lep2PtErr/F");
@@ -381,17 +394,23 @@ class MitGPTree {
 
     tree_->SetBranchAddress("genZ",          &genZPtr_);
     tree_->SetBranchAddress("genH",          &genHPtr_);
+    tree_->SetBranchAddress("genWDaughterId",  &genWDaughterId_);
+    tree_->SetBranchAddress("genTauFromW",     &genTauFromWPtr_);
     tree_->SetBranchAddress("genMuon1",      &genMuon1Ptr_);
     tree_->SetBranchAddress("genMuon2",      &genMuon2Ptr_);
 
     tree_->SetBranchAddress("nlep",          &nlep_);
     tree_->SetBranchAddress("lep1",          &lepPtr1_);
     tree_->SetBranchAddress("lid1",          &lid1_);
+    tree_->SetBranchAddress("lep1IsGlobalOrTrackerMuon",&lep1IsGlobalOrTrackerMuon_);
     tree_->SetBranchAddress("lep1IsTightMuon",&lep1IsTightMuon_);
     tree_->SetBranchAddress("lep1IsIsolated",&lep1IsIsolated_);
+    tree_->SetBranchAddress("tau1IsIsolated",&tau1IsIsolated_);
+    tree_->SetBranchAddress("tau1Isolation",     &tau1Isolation_);
     tree_->SetBranchAddress("lep1PtErr",     &lep1PtErr_);
     tree_->SetBranchAddress("lep2",          &lepPtr2_);
     tree_->SetBranchAddress("lid2",          &lid2_);
+    tree_->SetBranchAddress("lep2IsGlobalOrTrackerMuon",&lep2IsGlobalOrTrackerMuon_);
     tree_->SetBranchAddress("lep2IsTightMuon",&lep2IsTightMuon_);
     tree_->SetBranchAddress("lep2IsIsolated",&lep2IsIsolated_);
     tree_->SetBranchAddress("lep2PtErr",     &lep2PtErr_);
@@ -465,6 +484,7 @@ class MitGPTree {
 
   LorentzVector* genZPtr_;
   LorentzVector* genHPtr_;
+  LorentzVector* genTauFromWPtr_;
   LorentzVector* genMuon1Ptr_;
   LorentzVector* genMuon2Ptr_;
   LorentzVector* lepPtr1_;
@@ -526,17 +546,23 @@ MitGPTree::InitVariables(){
 
   genZ_       	 = LorentzVector();
   genH_       	 = LorentzVector();
+  genWDaughterId_= 0;
+  genTauFromW_ 	 = LorentzVector();
   genMuon1_      = LorentzVector();
   genMuon2_      = LorentzVector();
 
   nlep_          = 0;
   lep1_       	 = LorentzVector();
   lid1_          = 0;
+  lep1IsGlobalOrTrackerMuon_ = 0;
   lep1IsTightMuon_ = 0;
   lep1IsIsolated_ = 0;
+  tau1IsIsolated_ = 0;
+  tau1Isolation_     = -999.;
   lep1PtErr_     = 999.;
   lep2_       	 = LorentzVector();
   lid2_          = 0;
+  lep2IsGlobalOrTrackerMuon_ = 0;
   lep2IsTightMuon_ = 0;
   lep2IsIsolated_ = 0;
   lep2PtErr_     = 999.;
