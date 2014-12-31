@@ -19,7 +19,8 @@ TString getCatalogDir(const char* dir);
 TString getJsonFile(const char* dir);
 
 //--------------------------------------------------------------------------------------------------
-void runFlatBoostedV(const char *fileset    = "0000",
+void runFlatBoostedV(const char *infilename = "",
+                     const char *fileset    = "0000",
                      const char *skim       = "noskim",
                      const char *dataset    = "s12-ttj-v1-v7a",     
                      const char *book       = "t2mit/filefi/032",
@@ -95,6 +96,8 @@ void runFlatBoostedV(const char *fileset    = "0000",
   TString inputFileList;
   inputFileList = "inputBavanti.txt";
   ana->AddFiles(inputFileList,-1);
+  inputFile+=infilename;
+  ana->AddFile(inputFile);
 
   TString inputPUFile = "/scratch4/dimatteo/cms/hist/" + TString(outputName) + "/merged/";
   inputPUFile += TString(outputName) + TString("_") +  TString(dataset);

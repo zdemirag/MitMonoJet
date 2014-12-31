@@ -42,7 +42,8 @@ TString getCatalogDir(const char* dir);
 TString getJsonFile(const char* dir);
 
 //--------------------------------------------------------------------------------------------------
-void runBavantiBoostedV(const char *fileset    = "0000",
+void runBavantiBoostedV(const char *infilename ="",
+                        const char *fileset    = "0000",
                         const char *skim       = "noskim",
                         const char *dataset    = "s12-pj1800-v7a",     
                         const char *book       = "t2mit/filefi/032",
@@ -119,7 +120,13 @@ void runBavantiBoostedV(const char *fileset    = "0000",
     d = c->FindDataset(bookstr,dataset,fileset,local);
   else 
     d = c->FindDataset(bookstr,skimdataset.Data(),fileset,local);
-  ana->AddDataset(d);
+//  ana->AddDataset(d);
+  if(!strcmp(infilename,"")) ana->AddFile("file:/scratch/snarayan/mc/softl_signal/2l_1/aod_1.root");
+  else {
+    TString filestr("file:");
+    filestr+=TString(infilename);
+    ana->AddFile(filestr.Data());
+  }
   
   //------------------------------------------------------------------------------------------------
   // organize output
