@@ -44,8 +44,6 @@
 #include "MitPhysics/Utils/interface/RhoUtilities.h"
 #include "MitPhysics/Utils/interface/VertexTools.h"
 #include "MitPhysics/Utils/interface/ElectronIDMVA.h"
-#include "MitPhysics/Utils/interface/MuonTools.h"
-#include "MitPhysics/Utils/interface/MuonIDMVA.h"
 
 #include "MitMonoJet/Core/MitGPTree.h"
 
@@ -106,11 +104,6 @@ namespace mithep
 
   private:
     bool                IsTightMuon(const Muon *muon);
-    bool                IsGlobalOrTrackerMuon(const Muon *muon);
-    bool                IsGlobalTrackerMuon(const Muon *muon);
-    bool                PassMuonIsoRingsV0_BDTG_Iso(const Muon *mu, const Vertex *vertex, 
-						    const PileupEnergyDensityCol *PileupEnergyDensity) const;
-
     void                CorrectMet(const float met, const float metPhi,
 				   const Particle *l1, const Particle *l2,
                                    float &newMet, float &newMetPhi);
@@ -157,8 +150,6 @@ namespace mithep
     std::vector<std::string>       fCorrectionFiles;   // list of jet correction files
     FactorizedJetCorrector        *fJetCorrector;
     JetCorrectionUncertainty      *fJetUncertainties;
-    MuonTools                     *fMuonTools;
-    MuonIDMVA                     *fMuonIDMVA; 
 
     const PFMetCol                *fRawMet;
     const MetCol                  *fMet;
@@ -181,7 +172,6 @@ namespace mithep
     const MCParticleCol           *fParticles;	        
     const EvtSelData              *fEvtSelData;
     const Vertex                  *fVertex;
-    const VertexCol               *fVertices; // the good vertices
 
     Int_t                          fDecay;
     Int_t                          fFillNtupleType;
