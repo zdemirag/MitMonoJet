@@ -32,13 +32,13 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
 {
   // Define tree name (depends on selection)
   TString outTreeNameExt;
-  if (selMode == 0 || selMode == 4) 
+  if (selMode == 0 || selMode == 4 || selMode == 8) 
     outTreeNameExt = "_signal";
-  else if (selMode == 1 || selMode == 5) 
+  else if (selMode == 1 || selMode == 5 || selMode == 9) 
     outTreeNameExt = "_di_muon_control";
-  else if (selMode == 2 || selMode == 6) 
+  else if (selMode == 2 || selMode == 6 || selMode == 10) 
     outTreeNameExt = "_single_muon_control";
-  else if (selMode == 3 || selMode == 7) 
+  else if (selMode == 3 || selMode == 7 || selMode == 11) 
     outTreeNameExt = "_photon_control";
   else 
     cout << "ERROR -- Incorrect selMode parameter, please review!" << endl;
@@ -50,12 +50,13 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
 
   // Read all environment variables
   TString anaDir = getEnv("MIT_MONOJET_DIR");
-  TString hstDir = getEnv("MIT_ANA_HIST");
+  //TString hstDir = getEnv("MIT_ANA_HIST");
+  TString hstDir = "/scratch4/dimatteo/cms/hist/boostedv-v10/merged-test/";  
   TString anaCfg = "boostedv-ana";
   TString prdCfg = getEnv("MIT_PROD_CFG");
   
   // Fix data list for photons
-  if (selMode == 3 || selMode == 7)
+  if (selMode == 3 || selMode == 7 || selMode == 11)
     anaCfg = "boostedv-ana-pj";
 
   if (testing)
@@ -73,7 +74,9 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
   TFile *fin;
   TFile *fout;
   TString outFileName = "boosted.root";
-  if (selMode >= 4)
+  if (selMode >= 4 && selMode < 8)
+    outFileName = "resolved.root";
+  if (selMode >= 8)
     outFileName = "inclusive.root";
   if (!exclusive)
     outFileName = "baseline.root";
@@ -170,7 +173,10 @@ void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight
     outtree.mvamet_ = intree.met_;
     outtree.jet1pt_ = intree.fjet1_.Pt();
     outtree.genjetpt_ = intree.fjet1_.Pt();
-    if (selMode >= 4)
+    if (selMode >= 4 && selMode < 8)
+      outtree.jet1pt_ = intree.rjet1_.Pt();
+      outtree.genjetpt_ = intree.rjet1_.Pt();
+    if (selMode >= 8)
       outtree.jet1pt_ = intree.jet1_.Pt();
       outtree.genjetpt_ = intree.jet1_.Pt();
     outtree.genVpt_ = intree.genV_.Pt();
@@ -199,7 +205,7 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
 {
   // Trigger
   bool triggerBit = ((intree.trigger_ & (1<<0)) || (intree.trigger_ & (1<<1)));
-  if (selMode == 3 || selMode == 7)
+  if (selMode == 3 || selMode == 7 || selMode == 11)
     triggerBit = (intree.trigger_ & (1<<3));
 
   // Met filters
@@ -207,11 +213,11 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
   
   // Preselection
   bool preselBit = (intree.preselWord_ & (1<<3)); //signal region preselection
-  if (selMode == 1 || selMode == 5)
+  if (selMode == 1 || selMode == 5 || selMode == 9)
     preselBit = (intree.preselWord_ & (1<<2)); //Z->ll control preselection
-  if (selMode == 2 || selMode == 6)
+  if (selMode == 2 || selMode == 6 || selMode == 10)
     preselBit = (intree.preselWord_ & (1<<1)); //W->lnu control preselection
-  if (selMode == 3 || selMode == 7)
+  if (selMode == 3 || selMode == 7 || selMode == 11)
     preselBit = (intree.preselWord_ & (1<<5)); //Photon+jets control preselection
 
   // Met
@@ -225,6 +231,9 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
   bool nJetBit = (intree.njets_ == 1 || (intree.njets_ == 2 && 
                   abs(MathUtils::DeltaPhi(intree.jet1_.phi(),intree.jet2_.phi())) < 2.0));
 
+  // Resolved category
+  bool resolvedBit = (intree.rmvaval_ > 0.6);
+
   // Inclusive category
   bool inclusiveBit = (intree.jet1_.Pt() > 150 && abs(intree.jet1_.Eta()) < 2.0);
 
@@ -236,45 +245,48 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
 
   // Vetoes
   bool vetoBit = (intree.ntaus_ == 0);
-  if (selMode == 0 || selMode == 4)
+  if (selMode == 0 || selMode == 4 || selMode == 8)
     vetoBit = vetoBit && (intree.nphotons_ == 0 && intree.nlep_ == 0);
-  if (selMode == 1 || selMode == 5)
+  if (selMode == 1 || selMode == 5 || selMode == 9)
     vetoBit = vetoBit && (intree.nphotons_ == 0);
-  if (selMode == 2 || selMode == 6)
+  if (selMode == 2 || selMode == 6 || selMode == 10)
     vetoBit = vetoBit && (intree.nphotons_ == 0);
-  if (selMode == 3 || selMode == 7)
+  if (selMode == 3 || selMode == 7 || selMode == 11)
     vetoBit = vetoBit && (intree.nlep_ == 0);
     
   // Extra
   bool extraBit = true;
-  if (selMode == 1 || selMode == 5) {
+  if (selMode == 1 || selMode == 5 || selMode == 9) {
     extraBit = extraBit && (intree.nlep_ == 2 && (abs(intree.lid1_)>=130 && abs(intree.lid2_)>=13)
                                               && (abs(intree.lep1_.Eta()) < 2.1 && abs(intree.lep2_.Eta()) < 2.1));
     extraBit = extraBit && (60 < intree.mll_ && intree.mll_ < 120);    
   } //Zll
-  if (selMode == 2 || selMode == 6) {
+  if (selMode == 2 || selMode == 6 || selMode == 10) {
     extraBit = extraBit && 
               (intree.nlep_ == 1 && abs(intree.lid1_) >= 1300 && intree.lep1_.Pt() > 20 && abs(intree.lep1_.Eta()) < 2.1);
     extraBit = extraBit && (intree.mt_ > 40. && intree.mt_ < 200.);
   } //Wlv
-  if (selMode == 3 || selMode == 7) {
+  if (selMode == 3 || selMode == 7 || selMode == 11) {
     extraBit = extraBit && 
               (intree.pho1_.Pt() > 160 && abs(intree.pho1_.Eta()) < 2.5);
   } //Pj
         
   //cout 
   //<< triggerBit << " " << metFiltersBit << " " << preselBit << " " << metBit << " " 
-  //<< jetBit << " " << inclusiveBit << " " <<  fatJetBit << " " << vetoBit << " " << extraBit 
+  //<< jetBit << " " << resolvedBit << " " << inclusiveBit << " " <<  fatJetBit << " " << vetoBit << " " << extraBit 
   //<< endl;
 
   bool theDecision;
   // Boosted selection
   if (selMode < 4) 
     theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && nJetBit && fatJetBit && vetoBit && extraBit;
-  // Inclusive selection and discard boosted events
-  else if (selMode >= 4 && exclusive)
-    theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && nJetBit && inclusiveBit && vetoBit && extraBit && !fatJetBit;
-  // Inclusive selection keep boosted events
+  // Resolved selection and discard boosted events
+  else if (selMode >= 4 && selMode < 8)
+    theDecision = triggerBit && metFiltersBit && preselBit && metBit && resolvedBit && vetoBit && extraBit && !fatJetBit;
+  // Inclusive selection and discard boosted/resolved events
+  else if (selMode >= 8 && exclusive)
+    theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && nJetBit && inclusiveBit && vetoBit && extraBit && !fatJetBit && !resolvedBit;
+  // Inclusive selection keep boosted/resolved events
   else if (selMode >= 4 && !exclusive)
     theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && nJetBit && inclusiveBit && vetoBit && extraBit;
   else 
