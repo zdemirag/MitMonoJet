@@ -80,7 +80,7 @@ makeTableRaw(input_tree,h_counts,cut_string,'HLT and rawPFMET > 150 and BAMBUpre
 
 # Jet pt cut
 cut_string = cut_string + '&&(jet1.Pt() > 150)'
-makeTableRaw(input_tree,h_counts,cut_string,'AK5 > 150')
+makeTableRaw(input_tree,h_counts,cut_string,'AK5 pt > 150')
 
 # Jet eta cut
 cut_string = cut_string + '&&(abs(jet1.eta()) < 2.5)'
