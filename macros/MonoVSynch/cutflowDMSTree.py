@@ -13,10 +13,10 @@ from optparse import OptionParser
 
 # Make table header
 def makeTableHeader(tot_entries):
-  print ' {0:>40s} & {1:>20s} \\\ \hline\hline'\
+  print ' {0:<40s} & {1:>20s} \\\ \hline\hline'\
   .format('cut description','selected events') 
 
-  print ' {0:>40s} & {1:20d} \\\ \hline'\
+  print ' {0:<40s} & {1:20d} \\\ \hline'\
   .format('all events',tot_entries) 
 
   return
@@ -25,7 +25,7 @@ def makeTableHeader(tot_entries):
 def makeTableRaw(tree,histo,cut_string,cut_name):
   tree.Draw('isData >> ' + histo.GetName(),cut_string,'goff')
   n_sel = int(histo.GetSumOfWeights())
-  print ' {0:>40s} & {1:20d} \\\ \hline'\
+  print ' {0:<40s} & {1:20d} \\\ \hline'\
   .format(cut_name,n_sel) 
 
 # - M A I N ----------------------------------------------------------------------------------------
