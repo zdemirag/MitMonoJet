@@ -40,7 +40,7 @@ t2mit/filefi/032 s12-diphoj-3-v7a                noskim         ~               
 ### Higgs ###
 t2mit/filefi/032 s12-h125inv-gf-v19              noskim         ggH                            19.27       1.0    -1.0    ~
 #
-t2mit/filefi/032 s12-h105invqq-zh-v19            noskim         VBFH                           0.4909      1.0    -1.0    ~
+t2mit/filefi/032 s12-h125inv-vbf-v7a             noskim         VBFH                           1.578       1.0    -1.0    ~
 #
 t2mit/filefi/032 s12-h125invqq-zh-v19            noskim         ZH                             0.2903      1.0    -1.0    ~
 #

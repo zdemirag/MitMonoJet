@@ -20,7 +20,8 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
   // here you can change the plot sources, i.e. the list of samples to be processed
   // and the location of the input flat trees
   gSystem->Setenv("MIT_ANA_CFG","boostedv-plots");
-  gSystem->Setenv("MIT_ANA_HIST","/mnt/hscratch/dimatteo/boostedv-v9/merged/");
+  //gSystem->Setenv("MIT_ANA_HIST","/mnt/hscratch/dimatteo/boostedv-v9/merged/");
+  gSystem->Setenv("MIT_ANA_HIST","/scratch4/dimatteo/cms/hist/boostedv-v10/merged-test/");
  
   // setup graphics stuff before starting
   MitStyle::Init();
