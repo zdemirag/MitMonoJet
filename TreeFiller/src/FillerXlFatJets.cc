@@ -8,7 +8,7 @@
 #include "MitCommon/DataFormats/interface/Vect3.h"
 #include "MitCommon/DataFormats/interface/Types.h"
 #include "MitCommon/MathTools/interface/MathUtils.h"
-
+#include "MitMonoJet/Utils/interface/CMSTopTagger.h"
 #include "QjetsPlugin.h"
 #include "Qjets.h"
 
@@ -25,6 +25,7 @@ FillerXlFatJets::FillerXlFatJets(const char *name, const char *title) :
   fNSubDeclustering (kFALSE),
   fBTaggingActive (kFALSE),
   fQGTaggingActive (kTRUE),
+  fTopTaggingActive (kFALSE),
   fQGTaggerCHS (kFALSE),
   fPublishOutput (kTRUE),
   fProcessNJets (2),
@@ -202,9 +203,9 @@ void FillerXlFatJets::FillXlFatJet(const PFJet *pPFJet)
   // Setup the cluster for fastjet
   fastjet::ClusterSequenceArea *fjClustering =
     new fastjet::ClusterSequenceArea(fjParts,*fCAJetDef,*fAreaDefinition);
-
   // ---- Fastjet is ready ----
 
+ 
   // Produce a new set of jets based on the fastjet particle collection and the defined clustering
   // Cut off fat jets with pt < 10 GeV and consider only the hardest jet of the output collection
   std::vector<fastjet::PseudoJet> fjOutJets = sorted_by_pt(fjClustering->inclusive_jets(10.)); 
@@ -267,8 +268,55 @@ void FillerXlFatJets::FillXlFatJet(const PFJet *pPFJet)
   double MassFiltered = ((*fFilterer)(fjJet)).m();
   double MassTrimmed = ((*fTrimmer)(fjJet)).m();
     
+  // do the cms top tagging
+  fastjet::PseudoJet iJet;
+  fastjet::PseudoJet cmsTopJet;
+  fastjet::CMSTopTagger* fCMSTopTagger = new fastjet::CMSTopTagger();
+  if (fTopTaggingActive) { 
+      std::vector<fastjet::PseudoJet> lOutJets = sorted_by_pt(fjClustering->inclusive_jets(0.0));
+      iJet = lOutJets[0];
+      cmsTopJet = fCMSTopTagger->result(iJet);
+  }
+
   // ---- Fastjet is done ----
-          
+  
+  // Store the CMS Top Tagger values
+  if (fTopTaggingActive) {
+    if (cmsTopJet.structure_non_const_ptr()) {
+      std::vector<fastjet::PseudoJet> lPieces =  cmsTopJet.pieces();
+      fastjet::PseudoJet pW1jet    = lPieces[0];//((fastjet::CMSTopTaggerStructure*) cmsTopJet.structure_non_const_ptr())->W1();
+      fastjet::PseudoJet pW2jet    = lPieces[1];//((fastjet::CMSTopTaggerStructure*) cmsTopJet.structure_non_const_ptr())->W2();
+      fastjet::PseudoJet pNWjet    = lPieces[2];//((fastjet::CMSTopTaggerStructure*) cmsTopJet.structure_non_const_ptr())->non_W();
+      if(cmsTopJet.pieces().size() > 3) std::cout << cmsTopJet.pt() << " ===> Missing Pt " << pW1jet.pt() << " - " << pW2jet.pt() << " - " << pNWjet.pt()  << " -- " << lPieces[3].pt() << std::endl;
+      double pCorr = 1.0;
+      fatJet->SetPtCMS(cmsTopJet.pt()*pCorr);
+      fatJet->SetPtRawCMS(cmsTopJet.pt());
+      fatJet->SetEtaCMS(cmsTopJet.eta());
+      fatJet->SetMassCMS(cmsTopJet.m()*pCorr);
+      fatJet->SetAreaCMS(cmsTopJet.area());
+
+      fatJet->SetPtCMS1(pW1jet.pt()*pCorr);
+      fatJet->SetPtRawCMS1(pW1jet.pt());
+      fatJet->SetEtaCMS1(pW1jet.eta());
+      fatJet->SetMassCMS1(pW1jet.m()*pCorr);
+      fatJet->SetAreaCMS1(pW1jet.area());
+     
+      fatJet->SetPtCMS2(pW2jet.pt()*pCorr);
+      fatJet->SetPtRawCMS2(pW2jet.pt());
+      fatJet->SetEtaCMS2(pW2jet.eta());
+      fatJet->SetMassCMS2(pW2jet.m()*pCorr);
+      fatJet->SetAreaCMS2(pW2jet.area());
+      
+      fatJet->SetPtCMS3(pNWjet.pt()*pCorr);
+      fatJet->SetPtRawCMS3(pNWjet.pt());
+      fatJet->SetEtaCMS3(pNWjet.eta());
+      fatJet->SetMassCMS3(pNWjet.m()*pCorr);
+      fatJet->SetAreaCMS3(pNWjet.area());
+       
+    }
+  }
+
+
   // Store the subjettiness values
   fatJet->SetTau1(tau1);
   fatJet->SetTau2(tau2);
@@ -301,9 +349,9 @@ void FillerXlFatJets::FillXlFatJet(const PFJet *pPFJet)
   if (fFillVSubJets) {
     std::vector<fastjet::PseudoJet> fjVSubJets;
     if (fNSubDeclustering)
-      fjVSubJets = nSub2.currentSubjets();
+      fjVSubJets = nSub3.currentSubjets();
     else {
-      int nSubJPruned = std::min<unsigned int>(fjJetPruned.constituents().size(),2);
+      int nSubJPruned = std::min<unsigned int>(fjJetPruned.constituents().size(),3);
       fjVSubJets = fjJetPruned.associated_cluster_sequence()->exclusive_subjets(fjJetPruned,nSubJPruned);
     }
     // Order the subjets according to their pt and discard zero pt subjets

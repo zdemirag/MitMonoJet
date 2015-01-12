@@ -55,6 +55,7 @@ namespace mithep
       void NSubDeclustering(Bool_t b)      { fNSubDeclustering = b; }
       void SetBtaggingOn(Bool_t b)         { fBTaggingActive = b;   }
       void SetfQGTaggingOn(Bool_t b)       { fQGTaggingActive = b;  }
+      void setTopTaggingOn(Bool_t b)       { fTopTaggingActive = b; }
       void SetQGTaggerCHS(bool b)          { fQGTaggerCHS = b;      }
       void PublishOutput(Bool_t b)         { fPublishOutput = b;    }
                                                                     
@@ -110,6 +111,7 @@ namespace mithep
                                            //=false if subjets declustering via pruned CA (CMS standard)
       Bool_t fBTaggingActive;              //=true if BTagging info is filled
       Bool_t fQGTaggingActive;             //=true if QGTagging info is filled
+      Bool_t fTopTaggingActive;            //=true if CMSTopTagger info is filled
       Bool_t fQGTaggerCHS;                 //=true if QGTagging weights are taken from CHS
       Bool_t fPublishOutput;               //=true if output collection are published
 
