@@ -171,6 +171,7 @@ void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight
     
     // Determine the outtree variables for this event
     outtree.mvamet_ = intree.met_;
+    outtree.mvametphi_ = intree.metPhi_;
     outtree.jet1pt_ = intree.fjet1_.Pt();
     outtree.genjetpt_ = intree.fjet1_.Pt();
     if (selMode >= 4 && selMode < 8)
