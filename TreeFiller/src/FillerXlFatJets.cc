@@ -281,7 +281,7 @@ void FillerXlFatJets::FillXlFatJet(const PFJet *pPFJet)
   // ---- Fastjet is done ----
   
   // Store the CMS Top Tagger values
-  if (fTopTaggingActive) {
+/*  if (fTopTaggingActive) {
     if (cmsTopJet.structure_non_const_ptr()) {
       std::vector<fastjet::PseudoJet> lPieces =  cmsTopJet.pieces();
       fastjet::PseudoJet pW1jet    = lPieces[0];//((fastjet::CMSTopTaggerStructure*) cmsTopJet.structure_non_const_ptr())->W1();
@@ -314,7 +314,7 @@ void FillerXlFatJets::FillXlFatJet(const PFJet *pPFJet)
       fatJet->SetAreaCMS3(pNWjet.area());
        
     }
-  }
+  } */
 
 
   // Store the subjettiness values
@@ -362,7 +362,9 @@ void FillerXlFatJets::FillXlFatJet(const PFJet *pPFJet)
   } 
   if (fFillTopSubJets) {
     std::vector<fastjet::PseudoJet> fjTopSubJets;
-    if (fNSubDeclustering) 
+    if (fTopTaggingActive) {
+      fjTopSubJets = cmsTopJet.pieces();
+    } else if (fNSubDeclustering) 
       fjTopSubJets = nSub3.currentSubjets();
     else {
       int nSubJPruned = std::min<unsigned int>(fjJetPruned.constituents().size(),3);
@@ -411,6 +413,7 @@ void FillerXlFatJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets,
     
   return;    
 }
+
 
 //--------------------------------------------------------------------------------------------------
 std::vector <fastjet::PseudoJet>   FillerXlFatJets::Sorted_by_pt_min_pt(std::vector <fastjet::PseudoJet> &jets,  

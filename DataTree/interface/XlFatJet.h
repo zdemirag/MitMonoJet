@@ -30,15 +30,7 @@ namespace mithep
                 fQJetVol(0), 
                 fMassSDb0(0), fMassSDb1(0), fMassSDb2(0), fMassSDbm1(0),
                 fMassPruned(0), fMassFiltered(0), fMassTrimmed(0),                 
-                fPull(0), fPullAngle(0),
-                fPtCMS(0),  fPtRawCMS(0), fEtaCMS(0),
-                fPhiCMS(0), fMassCMS(0), fAreaCMS(0),
-                fPtCMS1(0),  fPtRawCMS1(0), fEtaCMS1(0),
-                fPhiCMS1(0), fMassCMS1(0), fAreaCMS1(0),
-                fPtCMS2(0),  fPtRawCMS2(0), fEtaCMS2(0),
-                fPhiCMS2(0), fMassCMS2(0), fAreaCMS2(0),
-                fPtCMS3(0),  fPtRawCMS3(0), fEtaCMS3(0),
-                fPhiCMS3(0), fMassCMS3(0), fAreaCMS3(0) {}                 
+                fPull(0), fPullAngle(0) {}                 
       XlFatJet(Double_t px, Double_t py, Double_t pz, Double_t e) : 
                 PFJet(px,py,pz,e),
                 fCharge (0),
@@ -48,15 +40,7 @@ namespace mithep
                 fQJetVol(0), 
                 fMassSDb0(0), fMassSDb1(0), fMassSDb2(0), fMassSDbm1(0),
                 fMassPruned(0), fMassFiltered(0), fMassTrimmed(0),                 
-                fPull(0), fPullAngle(0),
-                fPtCMS(0),  fPtRawCMS(0), fEtaCMS(0),
-                fPhiCMS(0), fMassCMS(0), fAreaCMS(0),
-                fPtCMS1(0),  fPtRawCMS1(0), fEtaCMS1(0),
-                fPhiCMS1(0), fMassCMS1(0), fAreaCMS1(0),
-                fPtCMS2(0),  fPtRawCMS2(0), fEtaCMS2(0),
-                fPhiCMS2(0), fMassCMS2(0), fAreaCMS2(0),
-                fPtCMS3(0),  fPtRawCMS3(0), fEtaCMS3(0),
-                fPhiCMS3(0), fMassCMS3(0), fAreaCMS3(0) {}                     
+                fPull(0), fPullAngle(0) {}                     
       XlFatJet(const PFJet & p) : 
                 PFJet(p),
                 fCharge (0),
@@ -66,20 +50,16 @@ namespace mithep
                 fQJetVol(0), 
                 fMassSDb0(0), fMassSDb1(0), fMassSDb2(0), fMassSDbm1(0),
                 fMassPruned(0), fMassFiltered(0), fMassTrimmed(0),                 
-                fPull(0), fPullAngle(0),
-                fPtCMS(0),  fPtRawCMS(0), fEtaCMS(0),
-                fPhiCMS(0), fMassCMS(0), fAreaCMS(0),
-                fPtCMS1(0),  fPtRawCMS1(0), fEtaCMS1(0),
-                fPhiCMS1(0), fMassCMS1(0), fAreaCMS1(0),
-                fPtCMS2(0),  fPtRawCMS2(0), fEtaCMS2(0),
-                fPhiCMS2(0), fMassCMS2(0), fAreaCMS2(0),
-                fPtCMS3(0),  fPtRawCMS3(0), fEtaCMS3(0),
-                fPhiCMS3(0), fMassCMS3(0), fAreaCMS3(0) {}                 
+                fPull(0), fPullAngle(0) {}                 
 
-      const XlSubJet       *SubJet(UInt_t i)                const { return fSubJets.At(i);         }
+      // const XlSubJet       *SubJet(UInt_t i)                const { return fSubJets.At(i);         }
+      const XlSubJet       *SubJet(UInt_t i, XlSubJet::ESubJetType t) const;
       Bool_t                HasSubJet(const XlSubJet *p)    const { return fSubJets.HasObject(p);  }
       Jet                  *MakeCopy()                      const { return new XlFatJet(*this);    }
-      UInt_t                NSubJets()                      const { return fSubJets.Entries();     }
+      // UInt_t                NSubJets()                      const { return fSubJets.Entries();     }
+      UInt_t                NSubJets(XlSubJet::ESubJetType t) const;
+      UInt_t                NTopSubJets() const;
+      UInt_t                NVSubJets() const;
       Double_t              Charge()                        const { return fCharge;                } 
       Double_t              QGTag()                         const { return fQGTag;                 } 
       Double_t              Tau1()                          const { return fTau1;                  }
@@ -100,30 +80,7 @@ namespace mithep
       Double_t              MassTrimmed()                   const { return fMassTrimmed;           }
       Double_t              Pull()                          const { return fPull;                  }
       Double_t              PullAngle()                     const { return fPullAngle;             }
-      Double_t              PtCMS()                         const { return fPtCMS;                 }
-      Double_t              PtRawCMS()                      const { return fPtRawCMS;              }
-      Double_t              EtaCMS()                        const { return fEtaCMS;                }
-      Double_t              PhiCMS()                        const { return fPhiCMS;                }
-      Double_t              MassCMS()                       const { return fMassCMS;               }
-      Double_t              AreaCMS()                       const { return fAreaCMS;               }
-      Double_t              PtCMS1()                        const { return fPtCMS1;                }
-      Double_t              PtRawCMS1()                     const { return fPtRawCMS1;             }
-      Double_t              EtaCMS1()                       const { return fEtaCMS1;               }
-      Double_t              PhiCMS1()                       const { return fPhiCMS1;               }
-      Double_t              MassCMS1()                      const { return fMassCMS1;              }
-      Double_t              AreaCMS1()                      const { return fAreaCMS1;              }
-      Double_t              PtCMS2()                        const { return fPtCMS2;                }
-      Double_t              PtRawCMS2()                     const { return fPtRawCMS2;             }
-      Double_t              EtaCMS2()                       const { return fEtaCMS2;               }
-      Double_t              PhiCMS2()                       const { return fPhiCMS2;               }
-      Double_t              MassCMS2()                      const { return fMassCMS2;              }
-      Double_t              AreaCMS2()                      const { return fAreaCMS2;              }
-      Double_t              PtCMS3()                        const { return fPtCMS3;                }
-      Double_t              PtRawCMS3()                     const { return fPtRawCMS3;             }
-      Double_t              EtaCMS3()                       const { return fEtaCMS3;               }
-      Double_t              PhiCMS3()                       const { return fPhiCMS3;               }
-      Double_t              MassCMS3()                      const { return fMassCMS3;              }
-      Double_t              AreaCMS3()                      const { return fAreaCMS3;              }
+      
 
       void                  AddSubJet(const XlSubJet *p)          { fSubJets.Add(p);               }
       void                  SetCharge()                           { fCharge  = this->GetCharge();  } 
@@ -146,30 +103,7 @@ namespace mithep
       void                  SetMassTrimmed(Double_t t)            { fMassTrimmed = t;              }
       void                  SetPull(Double_t t)                   { fPull = t;                     }
       void                  SetPullAngle(Double_t t)              { fPullAngle = t;                }
-      void              SetPtCMS(Double_t t)                         { fPtCMS = t;                 } 
-      void              SetPtRawCMS(Double_t t)                      { fPtRawCMS = t;              } 
-      void              SetEtaCMS(Double_t t)                        { fEtaCMS = t;                } 
-      void              SetPhiCMS(Double_t t)                        { fPhiCMS = t;                } 
-      void              SetMassCMS(Double_t t)                       { fMassCMS = t;               } 
-      void              SetAreaCMS(Double_t t)                       { fAreaCMS = t;               } 
-      void              SetPtCMS1(Double_t t)                        { fPtCMS1 = t;                } 
-      void              SetPtRawCMS1(Double_t t)                     { fPtRawCMS1 = t;             } 
-      void              SetEtaCMS1(Double_t t)                       { fEtaCMS1 = t;               } 
-      void              SetPhiCMS1(Double_t t)                       { fPhiCMS1 = t;               } 
-      void              SetMassCMS1(Double_t t)                      { fMassCMS1 = t;              } 
-      void              SetAreaCMS1(Double_t t)                      { fAreaCMS1 = t;              } 
-      void              SetPtCMS2(Double_t t)                        { fPtCMS2 = t;                } 
-      void              SetPtRawCMS2(Double_t t)                     { fPtRawCMS2 = t;             } 
-      void              SetEtaCMS2(Double_t t)                       { fEtaCMS2 = t;               } 
-      void              SetPhiCMS2(Double_t t)                       { fPhiCMS2 = t;               } 
-      void              SetMassCMS2(Double_t t)                      { fMassCMS2 = t;              } 
-      void              SetAreaCMS2(Double_t t)                      { fAreaCMS2 = t;              } 
-      void              SetPtCMS3(Double_t t)                        { fPtCMS3 = t;                } 
-      void              SetPtRawCMS3(Double_t t)                     { fPtRawCMS3 = t;             } 
-      void              SetEtaCMS3(Double_t t)                       { fEtaCMS3 = t;               } 
-      void              SetPhiCMS3(Double_t t)                       { fPhiCMS3 = t;               } 
-      void              SetMassCMS3(Double_t t)                      { fMassCMS3 = t;              } 
-      void              SetAreaCMS3(Double_t t)                      { fAreaCMS3 = t;              } 
+      
 
       // Some structural tools
       void                  Mark(UInt_t i=1)                const;
@@ -199,32 +133,7 @@ namespace mithep
       Double32_t            fPullAngle;    //Angle between pulls of lead/subleading subjets: 
                                            //either choose 2-prong or 3-prong subclustering!
       RefArray<XlSubJet>    fSubJets;      //sub jets in the jet
-      // CMS Top Tagger variables:
-      Double32_t            fPtCMS;
-      Double32_t            fPtRawCMS;
-      Double32_t            fEtaCMS;
-      Double32_t            fPhiCMS;
-      Double32_t            fMassCMS;
-      Double32_t            fAreaCMS;
-      Double32_t            fPtCMS1;  //subjet 1
-      Double32_t            fPtRawCMS1;
-      Double32_t            fEtaCMS1;
-      Double32_t            fPhiCMS1;
-      Double32_t            fMassCMS1;
-      Double32_t            fAreaCMS1;
-      Double32_t            fPtCMS2;  //subjet 2
-      Double32_t            fPtRawCMS2;
-      Double32_t            fEtaCMS2;
-      Double32_t            fPhiCMS2;
-      Double32_t            fMassCMS2;
-      Double32_t            fAreaCMS2;
-      Double32_t            fPtCMS3;  //subjet 3
-      Double32_t            fPtRawCMS3;
-      Double32_t            fEtaCMS3;
-      Double32_t            fPhiCMS3;
-      Double32_t            fMassCMS3;
-      Double32_t            fAreaCMS3;
-
+      
     ClassDef(XlFatJet, 3) // XlFatJet class
   };
 }
