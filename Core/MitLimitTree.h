@@ -51,12 +51,12 @@ class MitLimitTree {
     InitVariables();
     
     //book the branches    
-    tree_->Branch("mvamet_"         , &mvamet_          ,   "mvamet_/F");
-    tree_->Branch("mvametphi_"      , &mvametphi_       ,   "mvametphi_/F");
-    tree_->Branch("jet1pt_"         , &jet1pt_          ,   "jet1pt_/F");
-    tree_->Branch("genjetpt_"       , &genjetpt_        ,   "genjetpt_/F");
-    tree_->Branch("genVpt_"         , &genVpt_          ,   "genVpt_/F");
-    tree_->Branch("weight_"         , &weight_          ,   "weight_/F");
+    tree_->Branch("mvamet"         , &mvamet_          ,   "mvamet/F");
+    tree_->Branch("mvametphi"      , &mvametphi_       ,   "mvametphi/F");
+    tree_->Branch("jet1pt"         , &jet1pt_          ,   "jet1pt/F");
+    tree_->Branch("genjetpt"       , &genjetpt_        ,   "genjetpt/F");
+    tree_->Branch("genVpt"         , &genVpt_          ,   "genVpt/F");
+    tree_->Branch("weight"         , &weight_          ,   "weight/F");
   }
 
   /// create a MitLimitTree
@@ -74,12 +74,12 @@ class MitLimitTree {
     Int_t currentState = gErrorIgnoreLevel;
     // gErrorIgnoreLevel = kError;
     gErrorIgnoreLevel = kBreak;
-    tree_->SetBranchAddress("mvamet_"         , &mvamet_);
-    tree_->SetBranchAddress("mvametphi_"      , &mvametphi_);
-    tree_->SetBranchAddress("jet1pt_"         , &jet1pt_);
-    tree_->SetBranchAddress("genjetpt_"       , &genjetpt_);
-    tree_->SetBranchAddress("genVpt_"         , &genVpt_);
-    tree_->SetBranchAddress("weight_"         , &weight_);
+    tree_->SetBranchAddress("mvamet"         , &mvamet_);
+    tree_->SetBranchAddress("mvametphi"      , &mvametphi_);
+    tree_->SetBranchAddress("jet1pt"         , &jet1pt_);
+    tree_->SetBranchAddress("genjetpt"       , &genjetpt_);
+    tree_->SetBranchAddress("genVpt"         , &genVpt_);
+    tree_->SetBranchAddress("weight"         , &weight_);
 
     gErrorIgnoreLevel = currentState;
   }
