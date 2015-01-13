@@ -80,9 +80,9 @@ cut_string = ''
 # Prepare counter
 counter = n_tot_entries
 
-# Preselection cut (BAMBU only!)
-cut_string = cut_string + '((preselWord & (1<<3)) > 0)'
-counter = makeTableRaw(input_tree,h_counts,cut_string,'HLT and rawPFMET > 150 and BAMBUpresel',n_tot_entries,counter)
+# HLT cut (BAMBU only!)
+cut_string = cut_string + '((trigger & (1<<0)) > 0 || (trigger & (1<<1)) > 0)'
+counter = makeTableRaw(input_tree,h_counts,cut_string,'monojet HLT',n_tot_entries,counter)
 
 # Jet pt cut @ preselection
 cut_string = cut_string + '&&(jet1.Pt() > 110)'
