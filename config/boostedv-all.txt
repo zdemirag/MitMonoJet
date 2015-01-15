@@ -54,6 +54,8 @@ t2mit/filefi/032 s12-zgptg130-v7c                noskim         Z#gamma->#nu#nu#
 t2mit/filefi/032 s12-wgptg130-v7a                noskim         W#gamma->l#nu#gamma             0.2571      1.0    -1.0    ~
 ### higgs ###
 t2mit/filefi/032 s12-h125inv-gf-v19              noskim         ggHinv                          19.27       1.0    -1.0    ~
+t2mit/filefi/032 s12-h125inv-gf-v7c              noskim         ggHinv                          19.27       1.0    -1.0    ~
+t2mit/filefi/032 s12-h125inv-gf-v7a              noskim         ggHinv                          19.27       1.0    -1.0    ~
 t2mit/filefi/032 w13-h125dm-aa-v1                noskim         WHinv                           0.7670      1.0    -1.0    ~
 t2mit/filefi/032 s12-h125invqq-zh-v19            noskim         ZH->qq~inv                      0.2907      1.0    -1.0    ~
 t2mit/filefi/032 s12-h125invbb-zh-v7c            noskim         ZH->bb~inv                      0.0628      1.0    -1.0    ~
