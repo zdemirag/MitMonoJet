@@ -53,7 +53,8 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
   //TString hstDir = getEnv("MIT_ANA_HIST");
   TString hstDir = "/scratch4/dimatteo/cms/hist/boostedv-v10/merged-test/";  
   TString anaCfg = "boostedv-ana";
-  TString prdCfg = getEnv("MIT_PROD_CFG");
+  //TString prdCfg = getEnv("MIT_PROD_CFG");
+  TString prdCfg = "boostedv-v10";
   
   // Fix data list for photons
   if (selMode == 3 || selMode == 7 || selMode == 11)
@@ -222,9 +223,9 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
     preselBit = (intree.preselWord_ & (1<<5)); //Photon+jets control preselection
 
   // Met
-  bool metBit = (intree.met_ > 200. && intree.met_ < 1000.);
+  bool metBit = (intree.met_ > 180. && intree.met_ < 1000.);
   if (selMode < 4)
-    metBit = (intree.met_ > 250.);
+    metBit = (intree.met_ > 200.);
                       
   // Narrow jets
   bool jetBit = ((intree.jet1_.Pt() > 110 && abs(intree.jet1_.eta()) < 2.5)
@@ -239,10 +240,10 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
   bool inclusiveBit = (intree.jet1_.Pt() > 150 && abs(intree.jet1_.Eta()) < 2.0);
 
   // Fat jet category::cut-based
-  bool fatJetBit = (intree.fjet1_.Pt() > 250 && abs(intree.fjet1_.Eta()) < 2.5);
+  bool fatJetBit = (intree.fjet1_.Pt() > 200 && abs(intree.fjet1_.Eta()) < 2.5);
   fatJetBit = fatJetBit && (intree.fjet1Tau2_/intree.fjet1Tau1_  < 0.5 
                             && 60 < intree.fjet1MassPruned_ && intree.fjet1MassPruned_ < 110
-                            && intree.met_ > 250.);
+                            && intree.met_ > 200.);
 
   // Vetoes
   bool vetoBit = (intree.ntaus_ == 0);
