@@ -164,7 +164,7 @@ void DMSTreeWriter::Process()
       const TriggerObject *to = fTrigObj->At(i);
       //to->Print(); 
       if (to->TriggerType() == TriggerObject::TriggerJet 
-       && to->Pt() > 80 && fabs(to->Eta()) < 2.4)
+       && to->Pt() >= 80 && fabs(to->Eta()) <= 2.4)
         nGoodCntJets++;
       if (to->TriggerType() == TriggerObject::TriggerMHT)
         hasGoodMHT = true;

@@ -169,7 +169,7 @@ void BoostedVAnalysisMod::Process()
   fAll++;
   
   // Discard events with no jets
-  if (fJets->GetEntries() < 1) {
+  if (fJets->GetEntries() < 1 && fSkipEvents) {
     this->SkipEvent(); 
     return;
   }

@@ -99,12 +99,12 @@ void FastJetMod::Process()
   std::vector<fastjet::PseudoJet> fjOutJets = sorted_by_pt(fjClustering->inclusive_jets(fJetMinPt)); 
   // Check that the output collection size is non-null, otherwise nothing to be done further
   if (fjOutJets.size() < 1) {
-    printf(" FastJetMod - WARNING - input PFCands produces null reclustering output. skipping event!");
+    printf(" FastJetMod - WARNING - input PFCands produces null reclustering output!\n");
 
-    fjClustering->delete_self_when_unused();
+    if ((fjClustering->inclusive_jets()).size() > 0) 
+      fjClustering->delete_self_when_unused();
     delete fjClustering;
 
-    this->SkipEvent(); 
     return;
   }
 
