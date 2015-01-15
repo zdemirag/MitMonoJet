@@ -534,6 +534,7 @@ void runBavantiBoostedV_CHS
   outMod->SetUseBrDep(kFALSE);
   outMod->SetKeepTamBr(kFALSE);
   outMod->SetFileName(ntupleFile);
+  outMod->SetMaxFileSize(4096);
   outMod->Drop("*");
   outMod->Keep(Names::gkMCEvtInfoBrn);
   outMod->Keep(Names::gkMCPartBrn);
