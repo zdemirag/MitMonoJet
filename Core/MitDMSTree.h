@@ -84,6 +84,9 @@ class MitDMSTree {
   // substructure jets are only saved for the hardest fat jet
   int            nfjets_;
   LorentzVector  fjet1_;
+  float          fjet1CHF_;  
+  float          fjet1NHF_;  
+  float          fjet1NEMF_; 
   float          fjet1Btag_;
   float          fjet1Charge_;
   float          fjet1QGtag_;
@@ -264,6 +267,9 @@ class MitDMSTree {
 
     tree_->Branch("nfjets", &nfjets_, "nfjets/i");
     tree_->Branch("fjet1", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &fjet1Ptr_);
+    tree_->Branch("fjet1CHF"         , &fjet1CHF_         , "fjet1CHF/F");  
+    tree_->Branch("fjet1NHF"         , &fjet1NHF_         , "fjet1NHF/F");  
+    tree_->Branch("fjet1NEMF"        , &fjet1NEMF_        , "fjet1NEMF/F"); 
     tree_->Branch("fjet1Btag"        , &fjet1Btag_        , "fjet1Btag/F");
     tree_->Branch("fjet1Charge"      , &fjet1Charge_      , "fjet1Charge/F");
     tree_->Branch("fjet1QGtag"       , &fjet1QGtag_       , "fjet1QGtag/F");
@@ -396,6 +402,9 @@ class MitDMSTree {
 
     tree_->SetBranchAddress("nfjets"           , &nfjets_           );
     tree_->SetBranchAddress("fjet1"            , &fjet1Ptr_         );
+    tree_->SetBranchAddress("fjet1CHF"         , &fjet1CHF_          );  
+    tree_->SetBranchAddress("fjet1NHF"         , &fjet1NHF_          );  
+    tree_->SetBranchAddress("fjet1NEMF"        , &fjet1NEMF_         ); 
     tree_->SetBranchAddress("fjet1Btag"        , &fjet1Btag_        );
     tree_->SetBranchAddress("fjet1Charge"      , &fjet1Charge_      );
     tree_->SetBranchAddress("fjet1QGtag"       , &fjet1QGtag_       );
@@ -549,6 +558,9 @@ MitDMSTree::InitVariables(){
 
   nfjets_         = 0;
   fjet1_          = LorentzVector();
+  fjet1CHF_       = -999.;
+  fjet1NHF_       = -999.;
+  fjet1NEMF_      = -999.;
   fjet1Btag_      = -999.;
   fjet1Charge_    = -999.;
   fjet1QGtag_     = -999.;

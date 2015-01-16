@@ -285,6 +285,9 @@ void DMSTreeWriter::Process()
     if (i == 0) {
       const XlFatJet *fjet = fFatJets->At(i);    
       fMitDMSTree.fjet1_       = fjet->Mom();
+      fMitDMSTree.fjet1CHF_     = fjet->ChargedHadronEnergy()/fjet->RawMom().E();
+      fMitDMSTree.fjet1NHF_     = fjet->NeutralHadronEnergy()/fjet->RawMom().E();
+      fMitDMSTree.fjet1NEMF_    = fjet->NeutralEmEnergy()/fjet->RawMom().E();
       fMitDMSTree.fjet1Btag_    = GetFatJetBtag(fMitDMSTree.fjet1_, 0.5);
       fMitDMSTree.fjet1Charge_  = fjet->Charge();
       fMitDMSTree.fjet1QGtag_   = fjet->QGTag();

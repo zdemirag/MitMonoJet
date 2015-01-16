@@ -51,7 +51,7 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
   // Read all environment variables
   TString anaDir = getEnv("MIT_MONOJET_DIR");
   //TString hstDir = getEnv("MIT_ANA_HIST");
-  TString hstDir = "/scratch4/dimatteo/cms/hist/boostedv-v10/merged-test/";  
+  TString hstDir = "/scratch4/dimatteo/cms/hist/boostedv-v10/merged-dev/";  
   TString anaCfg = "boostedv-ana";
   //TString prdCfg = getEnv("MIT_PROD_CFG");
   TString prdCfg = "boostedv-v10";
@@ -230,17 +230,21 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
   // Narrow jets
   bool jetBit = ((intree.jet1_.Pt() > 110 && abs(intree.jet1_.eta()) < 2.5)
                && intree.jet1CHF_ > 0.2 && intree.jet1NHF_ < 0.7 && intree.jet1NEMF_ < 0.7);
-  bool nJetBit = (intree.njets_ == 1 || (intree.njets_ == 2 && 
-                  abs(MathUtils::DeltaPhi(intree.jet1_.phi(),intree.jet2_.phi())) < 2.0));
+  bool nJetBit = (intree.njets_ < 3);
 
   // Resolved category
   bool resolvedBit = (intree.rmvaval_ > 0.6);
 
   // Inclusive category
   bool inclusiveBit = (intree.jet1_.Pt() > 150 && abs(intree.jet1_.Eta()) < 2.0);
+  inclusiveBit = inclusiveBit && (abs(intree.jet1metDphi_) > 2.0);
+  inclusiveBit = inclusiveBit && (intree.jet1jet2Dphi_ < -100. || abs(intree.jet1jet2Dphi_) < 2.0);
 
   // Fat jet category::cut-based
-  bool fatJetBit = (intree.fjet1_.Pt() > 200 && abs(intree.fjet1_.Eta()) < 2.5);
+  bool fatJetBit = ((intree.fjet1_.Pt() > 200 && abs(intree.fjet1_.Eta()) < 2.5)
+                  && intree.fjet1CHF_ > 0.2 && intree.fjet1NHF_ < 0.7 && intree.jet1NEMF_ < 0.7);
+  fatJetBit = fatJetBit && (abs(intree.fjet1metDphi_) > 2.0);
+  fatJetBit = fatJetBit && (intree.fjet1jet2Dphi_ < -100. || abs(intree.fjet1jet2Dphi_) < 2.0);
   fatJetBit = fatJetBit && (intree.fjet1Tau2_/intree.fjet1Tau1_  < 0.5 
                             && 60 < intree.fjet1MassPruned_ && intree.fjet1MassPruned_ < 110
                             && intree.met_ > 200.);
@@ -258,20 +262,23 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
     
   // Extra
   bool extraBit = true;
+  //Zll: tight,loose selection
   if (selMode == 1 || selMode == 5 || selMode == 9) {
-    extraBit = extraBit && (intree.nlep_ == 2 && (abs(intree.lid1_)>=130 && abs(intree.lid2_)>=13)
+    extraBit = extraBit && (intree.nlep_ == 2 && ((intree.lid1_*intree.lid2_) <= (130*13))
                                               && (abs(intree.lep1_.Eta()) < 2.1 && abs(intree.lep2_.Eta()) < 2.1));
     extraBit = extraBit && (60 < intree.mll_ && intree.mll_ < 120);    
-  } //Zll
+  } 
+  //Wlv
   if (selMode == 2 || selMode == 6 || selMode == 10) {
     extraBit = extraBit && 
               (intree.nlep_ == 1 && abs(intree.lid1_) >= 1300 && intree.lep1_.Pt() > 20 && abs(intree.lep1_.Eta()) < 2.1);
     extraBit = extraBit && (intree.mt_ > 40. && intree.mt_ < 200.);
-  } //Wlv
+  } 
+  //Pj
   if (selMode == 3 || selMode == 7 || selMode == 11) {
     extraBit = extraBit && 
               (intree.pho1_.Pt() > 160 && abs(intree.pho1_.Eta()) < 2.5);
-  } //Pj
+  } 
         
   //cout 
   //<< triggerBit << " " << metFiltersBit << " " << preselBit << " " << metBit << " " 
