@@ -58,10 +58,15 @@ class MitDMSTree {
   float          metRawPhi_;
   float          met_;
   float          metPhi_;
-  float          mvamet_;
-  float          mvametPhi_;
+  float          genmet_;
+  float          genmetPhi_;
   float          mt_;
   float          mll_;
+
+  float          fjet1metDphi_;
+  float          fjet1jet2Dphi_;
+  float          jet1metDphi_;
+  float          jet1jet2Dphi_;
  
   unsigned int   nlep_;
   LorentzVector  lep1_;
@@ -111,46 +116,10 @@ class MitDMSTree {
   float          fjet1QGAxis2Sub2_;
   float          fjet1QGMultSub2_;
   unsigned int   fjet1PartonId_;
-  LorentzVector  fjet2_;
-  float          fjet2Btag_;
-  float          fjet2Charge_;
-  float          fjet2QGtag_;
-  float          fjet2Tau1_;
-  float          fjet2Tau2_;
-  float          fjet2Tau3_;
-  float          fjet2C2b0_;
-  float          fjet2C2b0p2_;      
-  float          fjet2C2b0p5_;      
-  float          fjet2C2b1_;        
-  float          fjet2C2b2_;        
-  float          fjet2QJetVol_;     
-  float          fjet2MassSDbm1_;   
-  float          fjet2MassSDb0_;    
-  float          fjet2MassSDb1_;    
-  float          fjet2MassSDb2_;    
-  float          fjet2MassPruned_;  
-  float          fjet2MassFiltered_;
-  float          fjet2MassTrimmed_; 
-  float          fjet2Pull_;
-  float          fjet2PullAngle_;   
-  float          fjet2QGtagSub1_;
-  float          fjet2QGPtDSub1_;
-  float          fjet2QGAxis1Sub1_;
-  float          fjet2QGAxis2Sub1_;
-  float          fjet2QGMultSub1_;
-  float          fjet2QGtagSub2_;
-  float          fjet2QGPtDSub2_;
-  float          fjet2QGAxis1Sub2_;
-  float          fjet2QGAxis2Sub2_;
-  float          fjet2QGMultSub2_;
-  unsigned int   fjet2PartonId_;
  
   unsigned int   fjet1nsj_;
   LorentzVector  fjet1sj1_;
   LorentzVector  fjet1sj2_;
-  unsigned int   fjet2nsj_;
-  LorentzVector  fjet2sj1_;
-  LorentzVector  fjet2sj2_;
 
   unsigned int   njets_;
   LorentzVector  jet1_;
@@ -213,9 +182,8 @@ class MitDMSTree {
   MitDMSTree():
     lepPtr1_(&lep1_),lepPtr2_(&lep2_),
     tauPtr1_(&tau1_),phoPtr1_(&pho1_),
-    fjet1Ptr_(&fjet1_),fjet2Ptr_(&fjet2_),
+    fjet1Ptr_(&fjet1_),
     fjet1sjPtr1_(&fjet1sj1_),fjet1sjPtr2_(&fjet1sj2_),
-    fjet2sjPtr1_(&fjet2sj1_),fjet2sjPtr2_(&fjet2sj2_),
     jetPtr1_(&jet1_),jetPtr2_(&jet2_),jetPtr3_(&jet3_),jetPtr4_(&jet4_),jetPtr5_(&jet5_),
     bjetPtr1_(&bjet1_),bjetPtr2_(&bjet2_),
     rjetPtr1_(&rjet1_),rjetPtr2_(&rjet2_),
@@ -272,10 +240,15 @@ class MitDMSTree {
     tree_->Branch("metRawPhi"       , &metRawPhi_       ,   "metRawPhi/F");
     tree_->Branch("met"             , &met_             ,   "met/F");
     tree_->Branch("metPhi"          , &metPhi_          ,   "metPhi/F");
-    tree_->Branch("mvamet"          , &mvamet_          ,   "mvamet/F");
-    tree_->Branch("mvametPhi"       , &mvametPhi_       ,   "mvametPhi/F");
+    tree_->Branch("genmet"          , &genmet_          ,   "genmet/F");
+    tree_->Branch("genmetPhi"       , &genmetPhi_       ,   "genmetPhi/F");
     tree_->Branch("mt"              , &mt_              ,   "mt/F");
     tree_->Branch("mll"             , &mll_             ,   "mll/F");
+
+    tree_->Branch("fjet1metDphi"    , &fjet1metDphi_    ,   "fjet1metDphi/F");
+    tree_->Branch("fjet1jet2Dphi"   , &fjet1jet2Dphi_   ,   "fjet1jet2Dphi/F");
+    tree_->Branch("jet1metDphi"     , &jet1metDphi_     ,   "jet1metDphi/F");
+    tree_->Branch("jet1jet2Dphi"    , &jet1jet2Dphi_    ,   "jet1jet2Dphi/F");
 
     tree_->Branch("nlep"         , &nlep_         ,   "nlep/i");
     tree_->Branch("lep1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &lepPtr1_);
@@ -323,45 +296,10 @@ class MitDMSTree {
     tree_->Branch("fjet1QGAxis2Sub2" , &fjet1QGAxis2Sub2_ , "fjet1QGAxis2Sub2/F");
     tree_->Branch("fjet1QGMultSub2"  , &fjet1QGMultSub2_  , "fjet1QGMultSub2/F");
     tree_->Branch("fjet1PartonId"    , &fjet1PartonId_    , "fjet1PartonId/i");
-    tree_->Branch("fjet2", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &fjet2Ptr_);
-    tree_->Branch("fjet2Btag"        , &fjet2Btag_        , "fjet2Btag/F");
-    tree_->Branch("fjet2Charge"      , &fjet2Charge_      , "fjet2Charge/F");
-    tree_->Branch("fjet2QGtag"       , &fjet2QGtag_       , "fjet2QGtag/F");
-    tree_->Branch("fjet2Tau1"        , &fjet2Tau1_        , "fjet2Tau1/F");
-    tree_->Branch("fjet2Tau2"        , &fjet2Tau2_        , "fjet2Tau2/F");
-    tree_->Branch("fjet2Tau3"        , &fjet2Tau3_        , "fjet2Tau3/F");
-    tree_->Branch("fjet2C2b0"        , &fjet2C2b0_        , "fjet2C2b0/F");
-    tree_->Branch("fjet2C2b0p2"      , &fjet2C2b0p2_      , "fjet2C2b0p2/F");     
-    tree_->Branch("fjet2C2b0p5"      , &fjet2C2b0p5_      , "fjet2C2b0p5/F");     
-    tree_->Branch("fjet2C2b1"        , &fjet2C2b1_        , "fjet2C2b1/F");       
-    tree_->Branch("fjet2C2b2"        , &fjet2C2b2_        , "fjet2C2b2/F");       
-    tree_->Branch("fjet2QJetVol"     , &fjet2QJetVol_     , "fjet2QJetVol/F");    
-    tree_->Branch("fjet2MassSDbm1"   , &fjet2MassSDbm1_   , "fjet2MassSDbm1/F");  
-    tree_->Branch("fjet2MassSDb0"    , &fjet2MassSDb0_    , "fjet2MassSDb0/F");   
-    tree_->Branch("fjet2MassSDb1"    , &fjet2MassSDb1_    , "fjet2MassSDb1/F");   
-    tree_->Branch("fjet2MassSDb2"    , &fjet2MassSDb2_    , "fjet2MassSDb2/F");   
-    tree_->Branch("fjet2MassPruned"  , &fjet2MassPruned_  , "fjet2MassPruned/F"); 
-    tree_->Branch("fjet2MassFiltered", &fjet2MassFiltered_, "fjet2MassFiltered/F");
-    tree_->Branch("fjet2MassTrimmed" , &fjet2MassTrimmed_ , "fjet2MassTrimmed/F");
-    tree_->Branch("fjet2Pull"        , &fjet2Pull_        , "fjet2Pull/F");  
-    tree_->Branch("fjet2PullAngle"   , &fjet2PullAngle_   , "fjet2PullAngle/F"); 
-    tree_->Branch("fjet2QGtagSub1"   , &fjet2QGtagSub1_   , "fjet2QGtagSub1/F");
-    tree_->Branch("fjet2QGPtDSub1"   , &fjet2QGPtDSub1_   , "fjet2QGPtDSub1/F");
-    tree_->Branch("fjet2QGAxis1Sub1" , &fjet2QGAxis1Sub1_ , "fjet2QGAxis1Sub1/F");
-    tree_->Branch("fjet2QGAxis2Sub1" , &fjet2QGAxis2Sub1_ , "fjet2QGAxis2Sub1/F");
-    tree_->Branch("fjet2QGMultSub1"  , &fjet2QGMultSub1_  , "fjet2QGMultSub1/F");
-    tree_->Branch("fjet2QGtagSub2"   , &fjet2QGtagSub2_   , "fjet2QGtagSub2/F");
-    tree_->Branch("fjet2QGPtDSub2"   , &fjet2QGPtDSub2_   , "fjet2QGPtDSub2/F");
-    tree_->Branch("fjet2QGAxis1Sub2" , &fjet2QGAxis1Sub2_ , "fjet2QGAxis1Sub2/F");
-    tree_->Branch("fjet2QGAxis2Sub2" , &fjet2QGAxis2Sub2_ , "fjet2QGAxis2Sub2/F");
-    tree_->Branch("fjet2QGMultSub2"  , &fjet2QGMultSub2_  , "fjet2QGMultSub2/F");
-    tree_->Branch("fjet2PartonId"    , &fjet2PartonId_    , "fjet2PartonId/i");
+
     tree_->Branch("fjet1nsj", &fjet1nsj_, "fjet1nsj/i");
     tree_->Branch("fjet1sj1", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &fjet1sjPtr1_);
     tree_->Branch("fjet1sj2", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &fjet1sjPtr2_);
-    tree_->Branch("fjet2nsj", &fjet2nsj_, "fjet2nsj/i");
-    tree_->Branch("fjet2sj1", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &fjet2sjPtr1_);
-    tree_->Branch("fjet2sj2", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &fjet2sjPtr2_);
 
     tree_->Branch("njets", &njets_, "njets/i");
     tree_->Branch("jet1", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr1_);
@@ -434,10 +372,15 @@ class MitDMSTree {
     tree_->SetBranchAddress("metRawPhi",     &metRawPhi_);
     tree_->SetBranchAddress("met",           &met_);
     tree_->SetBranchAddress("metPhi",        &metPhi_);
-    tree_->SetBranchAddress("mvamet",        &mvamet_);
-    tree_->SetBranchAddress("mvametPhi",     &mvametPhi_);
+    tree_->SetBranchAddress("genmet",        &genmet_);
+    tree_->SetBranchAddress("genmetPhi",     &genmetPhi_);
     tree_->SetBranchAddress("mt",            &mt_);
     tree_->SetBranchAddress("mll",           &mll_);
+
+    tree_->SetBranchAddress("fjet1metDphi" , &fjet1metDphi_);
+    tree_->SetBranchAddress("fjet1jet2Dphi", &fjet1jet2Dphi_);
+    tree_->SetBranchAddress("jet1metDphi"  , &jet1metDphi_);
+    tree_->SetBranchAddress("jet1jet2Dphi" , &jet1jet2Dphi_);
 
     tree_->SetBranchAddress("nlep",          &nlep_);
     tree_->SetBranchAddress("lep1",          &lepPtr1_);
@@ -485,46 +428,10 @@ class MitDMSTree {
     tree_->SetBranchAddress("fjet1QGAxis2Sub2" , &fjet1QGAxis2Sub2_ );
     tree_->SetBranchAddress("fjet1QGMultSub2"  , &fjet1QGMultSub2_  );
     tree_->SetBranchAddress("fjet1PartonId"    , &fjet1PartonId_    );
-    tree_->SetBranchAddress("fjet2"            , &fjet2Ptr_         );
-    tree_->SetBranchAddress("fjet2Btag"        , &fjet2Btag_        );
-    tree_->SetBranchAddress("fjet2Charge"      , &fjet2Charge_      );
-    tree_->SetBranchAddress("fjet2QGtag"       , &fjet2QGtag_       );
-    tree_->SetBranchAddress("fjet2Tau1"        , &fjet2Tau1_        );
-    tree_->SetBranchAddress("fjet2Tau2"        , &fjet2Tau2_        );
-    tree_->SetBranchAddress("fjet2Tau3"        , &fjet2Tau3_        );
-    tree_->SetBranchAddress("fjet2C2b0"        , &fjet2C2b0_        );
-    tree_->SetBranchAddress("fjet2C2b0p2"      , &fjet2C2b0p2_      );     
-    tree_->SetBranchAddress("fjet2C2b0p5"      , &fjet2C2b0p5_      );     
-    tree_->SetBranchAddress("fjet2C2b1"        , &fjet2C2b1_        );       
-    tree_->SetBranchAddress("fjet2C2b2"        , &fjet2C2b2_        );       
-    tree_->SetBranchAddress("fjet2QJetVol"     , &fjet2QJetVol_     );    
-    tree_->SetBranchAddress("fjet2MassSDbm1"   , &fjet2MassSDbm1_   );  
-    tree_->SetBranchAddress("fjet2MassSDb0"    , &fjet2MassSDb0_    );   
-    tree_->SetBranchAddress("fjet2MassSDb1"    , &fjet2MassSDb1_    );   
-    tree_->SetBranchAddress("fjet2MassSDb2"    , &fjet2MassSDb2_    );   
-    tree_->SetBranchAddress("fjet2MassPruned"  , &fjet2MassPruned_  ); 
-    tree_->SetBranchAddress("fjet2MassFiltered", &fjet2MassFiltered_);
-    tree_->SetBranchAddress("fjet2MassTrimmed" , &fjet2MassTrimmed_ );
-    tree_->SetBranchAddress("fjet2Pull"        , &fjet2Pull_        );  
-    tree_->SetBranchAddress("fjet2PullAngle"   , &fjet2PullAngle_   ); 
-    tree_->SetBranchAddress("fjet2QGtagSub1"   , &fjet2QGtagSub1_   );
-    tree_->SetBranchAddress("fjet2QGPtDSub1"   , &fjet2QGPtDSub1_   );
-    tree_->SetBranchAddress("fjet2QGAxis1Sub1" , &fjet2QGAxis1Sub1_ );
-    tree_->SetBranchAddress("fjet2QGAxis2Sub1" , &fjet2QGAxis2Sub1_ );
-    tree_->SetBranchAddress("fjet2QGMultSub1"  , &fjet2QGMultSub1_  );
-    tree_->SetBranchAddress("fjet2QGtagSub2"   , &fjet2QGtagSub2_   );
-    tree_->SetBranchAddress("fjet2QGPtDSub2"   , &fjet2QGPtDSub2_   );
-    tree_->SetBranchAddress("fjet2QGAxis1Sub2" , &fjet2QGAxis1Sub2_ );
-    tree_->SetBranchAddress("fjet2QGAxis2Sub2" , &fjet2QGAxis2Sub2_ );
-    tree_->SetBranchAddress("fjet2QGMultSub2"  , &fjet2QGMultSub2_  );
-    tree_->SetBranchAddress("fjet2PartonId"    , &fjet2PartonId_    );
 
     tree_->SetBranchAddress("fjet1nsj"         , &fjet1nsj_         );
     tree_->SetBranchAddress("fjet1sj1"         , &fjet1sjPtr1_      );
     tree_->SetBranchAddress("fjet1sj2"         , &fjet1sjPtr2_      );
-    tree_->SetBranchAddress("fjet2nsj"         , &fjet2nsj_         );
-    tree_->SetBranchAddress("fjet2sj1"         , &fjet2sjPtr1_      );
-    tree_->SetBranchAddress("fjet2sj2"         , &fjet2sjPtr2_      );
 
     tree_->SetBranchAddress("njets"            , &njets_            );
     tree_->SetBranchAddress("jet1"             , &jetPtr1_          );
@@ -586,14 +493,8 @@ class MitDMSTree {
   LorentzVector* phoPtr1_;
 
   LorentzVector* fjet1Ptr_;
-  LorentzVector* fjet2Ptr_;
-  LorentzVector* sjetPtr1_;
-  LorentzVector* sjetPtr2_;
-
   LorentzVector* fjet1sjPtr1_;
   LorentzVector* fjet1sjPtr2_;
-  LorentzVector* fjet2sjPtr1_;
-  LorentzVector* fjet2sjPtr2_;
 
   LorentzVector* jetPtr1_;
   LorentzVector* jetPtr2_;
@@ -624,10 +525,15 @@ MitDMSTree::InitVariables(){
   metRawPhi_     = -999.;
   met_           = -999.;
   metPhi_        = -999.;
-  mvamet_        = -999.;
-  mvametPhi_     = -999.;
+  genmet_        = -999.;
+  genmetPhi_     = -999.;
   mt_            = -999.;
   mll_           = -999.;
+
+  fjet1metDphi_  = -999.;
+  fjet1jet2Dphi_ = -999.;
+  jet1metDphi_   = -999.;
+  jet1jet2Dphi_  = -999.;
 
   nlep_          = 0;
   lep1_       	 = LorentzVector();
@@ -675,46 +581,10 @@ MitDMSTree::InitVariables(){
   fjet1QGAxis2Sub2_ = -999.;
   fjet1QGMultSub2_  = -999.;
   fjet1PartonId_  = 0;
-  fjet2_          = LorentzVector();
-  fjet2Btag_      = -999.;
-  fjet2Charge_    = -999.;
-  fjet2QGtag_     = -999.;
-  fjet2Tau1_      = -999.;
-  fjet2Tau2_      = -999.;
-  fjet2Tau3_      = -999.;
-  fjet2C2b0_      = -999.;
-  fjet2C2b0p2_      = -999.;
-  fjet2C2b0p5_      = -999.;
-  fjet2C2b1_        = -999.;
-  fjet2C2b2_        = -999.;
-  fjet2QJetVol_     = -999.;
-  fjet2MassSDbm1_   = -999.;
-  fjet2MassSDb0_    = -999.;
-  fjet2MassSDb1_    = -999.;
-  fjet2MassSDb2_    = -999.;
-  fjet2MassPruned_  = -999.;
-  fjet2MassFiltered_= -999.;
-  fjet2MassTrimmed_ = -999.;
-  fjet2Pull_        = -999.;
-  fjet2PullAngle_   = -999.;
-  fjet2QGtagSub1_   = -999.;
-  fjet2QGPtDSub1_   = -999.;
-  fjet2QGAxis1Sub1_ = -999.;
-  fjet2QGAxis2Sub1_ = -999.;
-  fjet2QGMultSub1_  = -999.;
-  fjet2QGtagSub2_   = -999.;
-  fjet2QGPtDSub2_   = -999.;
-  fjet2QGAxis1Sub2_ = -999.;
-  fjet2QGAxis2Sub2_ = -999.;
-  fjet2QGMultSub2_  = -999.;
-  fjet2PartonId_  = 0;
 
   fjet1nsj_      = 0;
   fjet1sj1_      = LorentzVector();
   fjet1sj2_      = LorentzVector();
-  fjet2nsj_      = 0;
-  fjet2sj1_      = LorentzVector();
-  fjet2sj2_      = LorentzVector();
   
   njets_         = 0;
   jet1_          = LorentzVector();

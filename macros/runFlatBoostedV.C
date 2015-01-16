@@ -114,7 +114,6 @@ void runFlatBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   DMSTreeWriter *treeWriter = new DMSTreeWriter();
   treeWriter->SetIsData(isData);
-  treeWriter->SetMetMVAName("PFMetMVA");
   treeWriter->SetPhotonsName("XsPhotons");
   treeWriter->SetElectronsName("XsElectrons");
   treeWriter->SetMuonsName("XsMuons");

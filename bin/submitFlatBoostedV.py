@@ -72,7 +72,7 @@ inputConfigName = os.environ['MIT_USER_DIR'] + '/config/' + os.environ['MIT_PROD
 print " INFO - preparing flat ntuple submission with configuration file: " + inputConfigName
 
 # => prepare the submit working area
-workingDir = os.environ['MIT_PROD_HIST'] + '/' + os.environ['MIT_PROD_CFG'] + '/merged-test'
+workingDir = os.environ['MIT_PROD_HIST'] + '/' + os.environ['MIT_PROD_CFG'] + '/merged-dev'
 if os.path.isdir(workingDir):
   # cleanup all sub and run files in the working area
   os.system('rm ' + workingDir + '/*.sub')

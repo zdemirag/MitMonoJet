@@ -27,7 +27,6 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   BaseMod                 (name,title),
   fEvtSelDataName         ("XlEvtSelData"),
   fRawMetName             ("PFMet"),
-  fMetMVAName             ("PFMetMVA"),
   fPhotonsName            ("XsPhotons"),
   fElectronsName          ("XsElectrons"),
   fMuonsName              ("XsMuons"),
@@ -42,7 +41,6 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   fMCParticlesName        (Names::gkMCPartBrn),
   fTriggerObjectsName     ("MyHltPhotObjs"),
   fIsData                 (kFALSE),
-  fMetMVAFromBranch       (kTRUE),
   fPhotonsFromBranch      (kTRUE),
   fElectronsFromBranch    (kTRUE),
   fMuonsFromBranch        (kTRUE),
@@ -53,7 +51,6 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   fPVFromBranch           (kTRUE),
   // -------------------------
   fRawMet                 (0),
-  fMetMVA                 (0),
   fPhotons                (0),
   fElectrons              (0),
   fMuons                  (0),
@@ -108,7 +105,6 @@ void DMSTreeWriter::Process()
   LoadEventObject(fTriggerObjectsName,fTrigObj,       true);
 
   LoadEventObject(fRawMetName,        fRawMet,        true);
-  LoadEventObject(fMetMVAName,        fMetMVA,        fMetMVAFromBranch);
   LoadEventObject(fPhotonsName,       fPhotons,       fPhotonsFromBranch);
   LoadEventObject(fElectronsName,     fElectrons,     fElectronsFromBranch);
   LoadEventObject(fMuonsName,         fMuons,         fMuonsFromBranch);
@@ -196,8 +192,6 @@ void DMSTreeWriter::Process()
   fMitDMSTree.metRawPhi_     = fRawMet->At(0)->Phi();
   fMitDMSTree.met_           = fMitDMSTree.metRaw_;
   fMitDMSTree.metPhi_        = fMitDMSTree.metRawPhi_;
-  fMitDMSTree.mvamet_        = fMetMVA->At(0)->Pt();
-  fMitDMSTree.mvametPhi_     = fMetMVA->At(0)->Phi();
 
   // LEPTONS (MU+ELE), save tight id for further studies
   // Also perform met/mt/mll computation according to the relevant case (muons only)
@@ -291,10 +285,6 @@ void DMSTreeWriter::Process()
     if (i == 0) {
       const XlFatJet *fjet = fFatJets->At(i);    
       fMitDMSTree.fjet1_       = fjet->Mom();
-      // Further cleaning for larger cones
-      if (!fjetIsCleaned(fMitDMSTree.fjet1_,0.5))
-        continue;
-
       fMitDMSTree.fjet1Btag_    = GetFatJetBtag(fMitDMSTree.fjet1_, 0.5);
       fMitDMSTree.fjet1Charge_  = fjet->Charge();
       fMitDMSTree.fjet1QGtag_   = fjet->QGTag();
@@ -319,6 +309,7 @@ void DMSTreeWriter::Process()
       if (!fIsData)  
         fMitDMSTree.fjet1PartonId_  = JetPartonMatch(fMitDMSTree.fjet1_, 0.7);  
     
+      // Subjets info
       fMitDMSTree.fjet1nsj_ = fjet->NSubJets();
       if (fMitDMSTree.fjet1nsj_ > 0) {
         fMitDMSTree.fjet1sj1_         = fjet->SubJet(0)->Mom();
@@ -335,61 +326,13 @@ void DMSTreeWriter::Process()
         fMitDMSTree.fjet1QGAxis1Sub2_ = fjet->SubJet(1)->QGAxis1();
         fMitDMSTree.fjet1QGAxis2Sub2_ = fjet->SubJet(1)->QGAxis2();
         fMitDMSTree.fjet1QGMultSub2_  = fjet->SubJet(1)->QGMult();
-      }
+      }      
+
+      // Angular info
+      fMitDMSTree.fjet1metDphi_ = MathUtils::DeltaPhi(fjet->Phi(),(double)fMitDMSTree.metPhi_);
+      fMitDMSTree.fjet1jet2Dphi_ = GetJetJetsDphi(fMitDMSTree.fjet1_);
 
     }// end filling of first fat jet
-
-    if (i == 1) {
-      const XlFatJet *fjet = fFatJets->At(i);    
-      fMitDMSTree.fjet2_       = fjet->Mom();
-      // Further cleaning for larger cones
-      if (!fjetIsCleaned(fMitDMSTree.fjet2_,0.5))
-        continue;
-
-      fMitDMSTree.fjet2Btag_    = GetFatJetBtag(fMitDMSTree.fjet2_, 0.5);
-      fMitDMSTree.fjet2Charge_  = fjet->Charge();
-      fMitDMSTree.fjet2QGtag_   = fjet->QGTag();
-      fMitDMSTree.fjet2Tau1_    = fjet->Tau1();
-      fMitDMSTree.fjet2Tau2_    = fjet->Tau2();
-      fMitDMSTree.fjet2Tau3_    = fjet->Tau3();
-      fMitDMSTree.fjet2C2b0_    = fjet->C2b0();
-      fMitDMSTree.fjet2C2b0p2_      = fjet->C2b0p2();      
-      fMitDMSTree.fjet2C2b0p5_      = fjet->C2b0p5();      
-      fMitDMSTree.fjet2C2b1_        = fjet->C2b1();        
-      fMitDMSTree.fjet2C2b2_        = fjet->C2b2();        
-      fMitDMSTree.fjet2QJetVol_     = fjet->QJetVol();     
-      fMitDMSTree.fjet2MassSDbm1_   = fjet->MassSDbm1();   
-      fMitDMSTree.fjet2MassSDb0_    = fjet->MassSDb0();    
-      fMitDMSTree.fjet2MassSDb1_    = fjet->MassSDb1();    
-      fMitDMSTree.fjet2MassSDb2_    = fjet->MassSDb2();    
-      fMitDMSTree.fjet2MassPruned_  = fjet->MassPruned();  
-      fMitDMSTree.fjet2MassFiltered_= fjet->MassFiltered();
-      fMitDMSTree.fjet2MassTrimmed_ = fjet->MassTrimmed();
-      fMitDMSTree.fjet2Pull_        = fjet->Pull();
-      fMitDMSTree.fjet2PullAngle_   = fjet->PullAngle();
-      if (!fIsData)  
-        fMitDMSTree.fjet2PartonId_  = JetPartonMatch(fMitDMSTree.fjet2_, 0.7);
-                
-      fMitDMSTree.fjet2nsj_ = fjet->NSubJets();
-      
-      if (fMitDMSTree.fjet2nsj_ > 0) {
-        fMitDMSTree.fjet2sj1_         = fjet->SubJet(0)->Mom();
-        fMitDMSTree.fjet2QGtagSub1_   = fjet->SubJet(0)->QGTag();
-        fMitDMSTree.fjet2QGPtDSub1_   = fjet->SubJet(0)->QGPtD();
-        fMitDMSTree.fjet2QGAxis1Sub1_ = fjet->SubJet(0)->QGAxis1();
-        fMitDMSTree.fjet2QGAxis2Sub1_ = fjet->SubJet(0)->QGAxis2();
-        fMitDMSTree.fjet2QGMultSub1_  = fjet->SubJet(0)->QGMult();
-      }
-      if (fMitDMSTree.fjet2nsj_ > 1) {
-        fMitDMSTree.fjet2sj2_         = fjet->SubJet(1)->Mom();
-        fMitDMSTree.fjet2QGtagSub2_   = fjet->SubJet(1)->QGTag();
-        fMitDMSTree.fjet2QGPtDSub2_   = fjet->SubJet(1)->QGPtD();
-        fMitDMSTree.fjet2QGAxis1Sub2_ = fjet->SubJet(1)->QGAxis1();
-        fMitDMSTree.fjet2QGAxis2Sub2_ = fjet->SubJet(1)->QGAxis2();
-        fMitDMSTree.fjet2QGMultSub2_  = fjet->SubJet(1)->QGMult();
-      }
-        
-    }// end filling of second fat jet
 
   }
   
@@ -413,6 +356,10 @@ void DMSTreeWriter::Process()
                        0.5, 
                        80., 2.4))
         fMitDMSTree.HLTmatch_ |= MitDMSTree::JetMatch;         
+
+      // Angular info
+      fMitDMSTree.jet1metDphi_ = MathUtils::DeltaPhi(jet->Phi(),(double)fMitDMSTree.metPhi_);
+      fMitDMSTree.jet1jet2Dphi_ = GetJetJetsDphi(fMitDMSTree.jet1_);
     }
     if (i == 1)
       fMitDMSTree.jet2_        = jet->Mom();
@@ -564,7 +511,6 @@ void DMSTreeWriter::SlaveBegin()
   ReqEventObject(fFatJetsName,       fFatJets,       fFatJetsFromBranch);
   ReqEventObject(fSubJetsName,       fSubJets,       fSubJetsFromBranch);
   ReqEventObject(fRawMetName,        fRawMet,        true);
-  ReqEventObject(fMetMVAName,        fMetMVA,        fMetMVAFromBranch);
 
   // Initialize the PU histrograms and weights
   // some useful definitions
@@ -627,11 +573,18 @@ Float_t DMSTreeWriter::PUWeight(Float_t npu)
 //--------------------------------------------------------------------------------------------------
 void DMSTreeWriter::getGenLevelInfo(MitDMSTree& tree)
 {
+  // Prepare 4-vector for invisible objects
+  FourVector momInv;
+  
   // Loop on all stable MC particles
   for (UInt_t i=0; i<fMCParticles->GetEntries(); ++i) {
     const MCParticle *p = fMCParticles->At(i);
     if (p->Status()!=3)
       continue;
+
+    // Check for Higgs(25),DM(100022),nuTau'(18) 
+    if (p->AbsPdgId() == 25 || p->AbsPdgId() == 100022 || p->AbsPdgId() == 18)
+      momInv += p->Mom();
     
     // Check if the particle is a Boson
     if (p->Is(MCParticle::kZ) || p->Is(MCParticle::kW)) {
@@ -660,6 +613,9 @@ void DMSTreeWriter::getGenLevelInfo(MitDMSTree& tree)
       continue;
     
   } // end loop on MC Particles
+
+  tree.genmet_ = momInv.Pt();
+  tree.genmetPhi_ = momInv.Phi();
 
   return;
 }
@@ -757,6 +713,28 @@ Int_t DMSTreeWriter::JetPartonMatch(LorentzVector& v,
     return pId;
   else 
     return 0;  
+}
+
+//--------------------------------------------------------------------------------------------------
+Float_t DMSTreeWriter::GetJetJetsDphi(LorentzVector& v)
+{
+  // Loop on first two jets and consider the farthest one in phi  
+  // which is not overlapping with the input jet (DR = 0.5)  
+  UInt_t nMaxJets = 2;
+  float maxDphi = -999.;
+  for (UInt_t i=0; i<fJets->GetEntries(); ++i) {
+    if (i >= nMaxJets) 
+      continue;
+    const XlJet *jet = fJets->At(i);
+    // Discard ovelapping jets
+    if (MathUtils::DeltaR(v, jet->Mom()) < 0.5)
+      continue;
+    float thisDphi = MathUtils::DeltaPhi(v.Phi(),jet->Phi());
+    if (thisDphi > maxDphi)
+      maxDphi = thisDphi;
+  }
+ 
+  return maxDphi;      
 }
 
 //--------------------------------------------------------------------------------------------------

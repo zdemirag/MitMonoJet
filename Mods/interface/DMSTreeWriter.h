@@ -23,7 +23,6 @@
 #include "MitAna/DataTree/interface/JetCol.h"
 #include "MitAna/DataTree/interface/TriggerObjectCol.h"
 #include "MitPhysics/Utils/interface/VertexTools.h"
-#include "MitMonoJet/DataTree/interface/XlMetCol.h"
 #include "MitMonoJet/DataTree/interface/XlJetCol.h"
 #include "MitMonoJet/DataTree/interface/XlFatJetCol.h"
 #include "MitMonoJet/DataTree/interface/XlSubJetCol.h"
@@ -49,8 +48,6 @@ namespace mithep
 
     // setting all the input Names
     void    SetRawMetName(const char *n)            { fRawMetName= n;              }
-    void    SetMetMVAName(const char *n)            { fMetMVAName= n;              }
-    void    SetMetMVAFromBranch(bool b)             { fMetMVAFromBranch = b;       }
     void    SetPhotonsName(const char *n)           { fPhotonsName= n;             }
     void    SetPhotonsFromBranch(bool b)            { fPhotonsFromBranch = b;      }
     void    SetElectronsName(const char *n)         { fElectronsName = n;          }
@@ -86,7 +83,6 @@ namespace mithep
 
     TString                        fEvtSelDataName;
     TString                        fRawMetName;
-    TString                        fMetMVAName;
     TString                        fPhotonsName;
     TString                        fElectronsName;
     TString                        fMuonsName;
@@ -113,7 +109,6 @@ namespace mithep
     Bool_t                         fPVFromBranch;
 			         
     const PFMetCol                *fRawMet;
-    const XlMetCol                *fMetMVA;
     const XsIsoParticleCol        *fPhotons;
     const XsIsoParticleCol        *fElectrons;
     const XsIsoParticleCol        *fMuons;
@@ -158,6 +153,8 @@ namespace mithep
     // Jet-Parton Id Matcher   
     Int_t                          JetPartonMatch(LorentzVector& v,
                                                   Float_t deltaR = 0.5);
+    // Jet-Jets delta phi calculation   
+    Float_t                        GetJetJetsDphi(LorentzVector& v);
 
     // Get B-tag via FatJet-Standard Jet matching   
     Float_t                        GetFatJetBtag(LorentzVector& v,
