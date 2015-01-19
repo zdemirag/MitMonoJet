@@ -436,6 +436,11 @@ void BoostedVAnalysisMod::Process()
 
   // Store the preselection word in the extended event selection object
   if (fFillAndPublishPresel) {
+    int HLTWord          = GetHLTWord (
+                           passSingleMuHLT, 
+                           passMonoJetHLT,
+                           passVbfHLT,
+                           passGjetHLT); 
     int preselectionWord = GetPreselWord (
                            passTopPresel, 
                            passWlepPresel,
@@ -445,6 +450,7 @@ void BoostedVAnalysisMod::Process()
                            passGjetPresel,
                            passResolvedPresel); 
     fXlEvtSelData->SetFiltersWord(fEvtSelData->metFiltersWord());
+    fXlEvtSelData->SetHLTWord(HLTWord);
     fXlEvtSelData->SetPreselWord(preselectionWord);
   }
    
@@ -491,6 +497,32 @@ void BoostedVAnalysisMod::CorrectMet(const float met, const float metPhi,
   
   newMet = TMath::Sqrt(TMath::Power(newMetX,2) + TMath::Power(newMetY,2));
   newMetPhi = TMath::ATan2(newMetY,newMetX);
+}
+
+//--------------------------------------------------------------------------------------------------
+int  BoostedVAnalysisMod::GetHLTWord( 
+                          bool passSingleMuHLT,
+                          bool passMonoJetHLT,
+                          bool passVbfHLT,
+                          bool passGjetHLT)
+{  
+  // This function creates the word containing the HLT bit decisions.
+  // The bit ordering follows the order of the parameters passed
+  // to this function. 
+  
+  //Initialize the word
+  int theWord = 0;
+  //Initialize the vector of bits
+  std::vector<int> theBits;
+  theBits.push_back((int) passSingleMuHLT);
+  theBits.push_back((int) passMonoJetHLT);
+  theBits.push_back((int) passVbfHLT);
+  theBits.push_back((int) passGjetHLT);
+  //Create the word
+  for (unsigned int iBit = 0; iBit < theBits.size(); iBit++)
+    theWord |= theBits[iBit] << iBit;
+  
+  return theWord;
 }
 
 //--------------------------------------------------------------------------------------------------

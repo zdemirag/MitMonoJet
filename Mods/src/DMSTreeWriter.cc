@@ -119,6 +119,7 @@ void DMSTreeWriter::Process()
   
   // EVTSELDATA  
   fMitDMSTree.metFiltersWord_ = fEvtSelData->metFiltersWord();
+  fMitDMSTree.trigger_        = fEvtSelData->HLTWord();
   fMitDMSTree.preselWord_     = fEvtSelData->preselWord();
 
   // PILEUP RELATED
@@ -143,48 +144,9 @@ void DMSTreeWriter::Process()
   fMitDMSTree.event_ = GetEventHeader()->EvtNum();
   fMitDMSTree.nvtx_  = fPV->GetEntries();
 
-  // HLT
-  fMitDMSTree.trigger_ = 0;
-  
+  // HLT  
   if (! fTrigObj)
     printf("MonoJetTreeWriter::TriggerObjectCol not found\n");
-
-  else {
-    // loop through the stored trigger objects and find corresponding trigger name
-    int nGoodCntJets = 0;
-    bool hasGoodMET = 0;
-    bool hasGoodMHT = 0;
-    bool hasGoodMuons = 0;
-    bool hasGoodPhotons = 0;
-    for (UInt_t i=0;i<fTrigObj->GetEntries();++i) {
-      const TriggerObject *to = fTrigObj->At(i);
-      //to->Print(); 
-      if (to->TriggerType() == TriggerObject::TriggerJet 
-       && to->Pt() >= 80 && fabs(to->Eta()) <= 2.4)
-        nGoodCntJets++;
-      if (to->TriggerType() == TriggerObject::TriggerMHT)
-        hasGoodMHT = true;
-      if (to->TriggerType() == TriggerObject::TriggerMET)
-        hasGoodMET = true;
-      if (to->TriggerType() == TriggerObject::TriggerMuon 
-       && to->Pt() > 24 && fabs(to->Eta()) < 2.1)
-        hasGoodMuons = true;
-      if (to->TriggerType() == TriggerObject::TriggerPhoton
-       && to->Pt() > 130)
-        hasGoodPhotons = true;
-    }
-    // default MonoJet
-    if (nGoodCntJets > 0 && hasGoodMHT)
-      fMitDMSTree.trigger_ |= MitDMSTree::HLTJetMet;
-    if (hasGoodMET)
-      fMitDMSTree.trigger_ |= MitDMSTree::HLTMet;
-    // default single muon
-    if (hasGoodMuons)
-      fMitDMSTree.trigger_ |= MitDMSTree::HLTMuon;
-    // default single photon
-    if (hasGoodPhotons)
-      fMitDMSTree.trigger_ |= MitDMSTree::HLTPhoton;
-  }
 
   // MET BASICS
 

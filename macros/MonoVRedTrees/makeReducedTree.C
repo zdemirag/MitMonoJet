@@ -182,10 +182,12 @@ void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight
       outtree.jet1pt_ = intree.jet1_.Pt();
       outtree.genjetpt_ = intree.jet1_.Pt();
     outtree.genVpt_ = intree.genV_.Pt();
+    outtree.dmpt_ = intree.genmet_;
     outtree.weight_ = weight;
     if (isData) {
       outtree.genjetpt_ = -1.;
       outtree.genVpt_ = -1.;
+      outtree.dmpt_ = -1.;
       outtree.weight_ = -1.;
     }
 

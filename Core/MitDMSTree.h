@@ -20,9 +20,9 @@ class MitDMSTree {
   /// bit map
   /// DON'T CHANGE ORDER
   enum Trigger {
-    HLTJetMet   = 1UL<<0,    // event passes jet+met trigger
-    HLTMet      = 1UL<<1,    // event passes met trigger
-    HLTMuon     = 1UL<<2,    // event passes single muon trigger
+    HLTMuon     = 1UL<<0,    // event passes single muon trigger
+    HLTJetMet   = 1UL<<1,    // event passes jet+met trigger
+    HLTVBF      = 1UL<<2,    // event passes VBF trigger
     HLTPhoton   = 1UL<<3     // event passes single photon trigger
   };
 
@@ -31,7 +31,7 @@ class MitDMSTree {
   enum HLTMatch {
     JetMatch    = 1UL<<0,    // hardest jet is matched to HLT jet
     MuonMatch   = 1UL<<1,    // hardest lepton is matched to HLT muon
-    PhotonMatch = 1UL<<2      // hardest photon is matched to HLT photon
+    PhotonMatch = 1UL<<2     // hardest photon is matched to HLT photon
   };
 
   /// bit map
