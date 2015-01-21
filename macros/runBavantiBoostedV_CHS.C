@@ -52,7 +52,7 @@ void runBavantiBoostedV_CHS
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 100)
+                        int         nEvents    = 10)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment

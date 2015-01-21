@@ -9,41 +9,34 @@ t2mit/filefi/032 s12-qcdht250-500-v7a            noskim         ~               
 t2mit/filefi/032 s12-qcdht500-1000-v7a           noskim         ~                               8426.0      1.0    -1.0    ~
 t2mit/filefi/032 s12-qcdht1000-v7a               noskim         ~                               204.0       1.0    -1.0    ~
 ### boson+jets ###
-t2mit/filefi/032 s12-pj50_80-v7a                 noskim         #gamma+jets                     3322.309    1.0    -1.0    ~
-t2mit/filefi/032 s12-pj80_120-v7a                noskim         ~                               558.2865    1.0    -1.0    ~
-t2mit/filefi/032 s12-pj120_170-v7a               noskim         ~                               108.0068    1.0    -1.0    ~
-t2mit/filefi/032 s12-pj170_300-v7a               noskim         ~                               30.12207    1.0    -1.0    ~
-t2mit/filefi/032 s12-pj300_470-v7a               noskim         ~                               2.138632    1.0    -1.0    ~
-t2mit/filefi/032 s12-pj470_800-v7a               noskim         ~                               0.2119244   1.0    -1.0    ~
-t2mit/filefi/032 s12-pj800_1400-v7a              noskim         ~                               0.007077847 1.0    -1.0    ~
-t2mit/filefi/032 s12-pj1400_1800-v7a             noskim         ~                               0.000045103 1.0    -1.0    ~
-t2mit/filefi/032 s12-pj1800-v7a                  noskim         ~                               0.000001867 1.0    -1.0    ~
+t2mit/filefi/032 GJets_HT-40To100_8TeV-madgraph+Summer12_DR53X-PU_S10_START53_V19-v1+AODSIM  noskim #gamma+jets 29030.0 1.0    -1.0    ~
+t2mit/filefi/032 GJets_HT-100To200_8TeV-madgraph+Summer12_DR53X-PU_S10_START53_V19-v1+AODSIM noskim ~           5212.0  1.0    -1.0    ~
+t2mit/filefi/032 GJets_HT-200To400_8TeV-madgraph+Summer12_DR53X-PU_S10_START53_V7A-v1+AODSIM noskim ~           960.5   1.0    -1.0    ~
+t2mit/filefi/032 GJets_HT-400ToInf_8TeV-madgraph+Summer12_DR53X-PU_S10_START53_V7A-v1+AODSIM noskim ~           107.5   1.0    -1.0    ~
 #
-t2mit/filefi/032 s12-wjets-1-v7a                 noskim         ~                               6601.5      1.0    -1.0    ~
-t2mit/filefi/032 s12-wjets-2-v7a                 noskim         ~                               2110.3      1.0    -1.0    ~
-t2mit/filefi/032 s12-wjets-3-v7a                 noskim         ~                               633.6       1.0    -1.0    ~
-t2mit/filefi/032 s12-wjets-4-v7a                 noskim         ~                               214.6       1.0    -1.0    ~
+t2mit/filefi/032 s12-wjets-1-v7a                 noskim         ~                               6662.78     1.0    -1.0    ~
+t2mit/filefi/032 s12-wjets-2-v7a                 noskim         ~                               2159.24     1.0    -1.0    ~
+t2mit/filefi/032 s12-wjets-3-v7a                 noskim         ~                               640.37      1.0    -1.0    ~
+t2mit/filefi/032 s12-wjets-4-v7a                 noskim         ~                               264.04      1.0    -1.0    ~
 t2mit/filefi/032 s12-zjets-ptz70-100-v7c         noskim         Z+Jets                          98.70       1.0    -1.0    ~
 t2mit/filefi/032 s12-zjets-ptz100-v7a            noskim         ~                               64.32       1.0    -1.0    ~
 t2mit/filefi/032 s12-zll-ptz70-100-v7c           noskim         Z->ll                           53.9        1.0    -1.0    ~
 t2mit/filefi/032 s12-zll-ptz100-v7c              noskim         ~                               32.9        1.0    -1.0    ~
 ### top ###
-t2mit/filefi/032 s12-ttj-v1-v7a                  noskim         top                             136.3       1.0    -1.0    ~
-t2mit/filefi/032 s12-ttj-v2-v7a                  noskim         ~                               136.3       1.0    -1.0    ~
-t2mit/filefi/032 s12-ttj-sl-v1-v7c               noskim         ~                               107.66      1.0    -1.0    ~
+t2mit/filefi/032 s12-ttj-sl-v1-v7c               noskim         top                             107.66      1.0    -1.0    ~
 t2mit/filefi/032 s12-ttj-fl-v2-v7c               noskim         ~                               25.81       1.0    -1.0    ~
 t2mit/filefi/032 TTJets_HadronicMGDecays_8TeV-madgraph+Summer12_DR53X-PU_S10_START53_V7A-v1+AODSIM noskim ~ 56.2 1.0 -1.0 ~
 t2mit/filefi/032 TTJets_HadronicMGDecays_8TeV-madgraph+Summer12_DR53X-PU_S10_START53_V7A_ext-v1+AODSIM noskim ~ 56.2 1.0 -1.0 ~
-t2mit/filefi/032 s12-wtop-dr-v7a                 noskim         T~                              10.7        1.0    -1.0    ~
-t2mit/filefi/032 s12-wtopb-dr-v7a                noskim         ~                               10.7        1.0    -1.0    ~
-t2mit/filefi/032 s12-sch-v7a                     noskim         ~                               2.82        1.0    -1.0    ~
-t2mit/filefi/032 s12-schb-v7a                    noskim         ~                               1.57        1.0    -1.0    ~
-t2mit/filefi/032 s12-tch-v7a                     noskim         ~                               47.0        1.0    -1.0    ~
-t2mit/filefi/032 s12-tchb-v7a                    noskim         ~                               25.0        1.0    -1.0    ~
+t2mit/filefi/032 s12-wtop-dr-v7a                 noskim         T~                              11.1        1.0    -1.0    ~
+t2mit/filefi/032 s12-wtopb-dr-v7a                noskim         ~                               11.1        1.0    -1.0    ~
+t2mit/filefi/032 s12-sch-v7a                     noskim         ~                               3.79        1.0    -1.0    ~
+t2mit/filefi/032 s12-schb-v7a                    noskim         ~                               1.76        1.0    -1.0    ~
+t2mit/filefi/032 s12-tch-v7a                     noskim         ~                               56.04       1.0    -1.0    ~
+t2mit/filefi/032 s12-tchb-v7a                    noskim         ~                               30.7        1.0    -1.0    ~
 ### diboson ###
 t2mit/filefi/032 s12-diphoj-3-v7a                noskim         #gamma#gamma+jets               93.15       1.0    -1.0    ~
 #
-t2mit/filefi/032 s12-ww-v7a                      noskim         WW                              57.11       1.0    -1.0    ~
+t2mit/filefi/032 s12-ww-v7a                      noskim         WW                              57.25       1.0    -1.0    ~
 t2mit/filefi/032 s12-wz-v7a                      noskim         WZ                              22.45       1.0    -1.0    ~
 t2mit/filefi/032 s12-zz-v7a                      noskim         ZZ                              9.03        1.0    -1.0    ~
 #
@@ -55,12 +48,12 @@ t2mit/filefi/032 s12-wgptg130-v7a                noskim         W#gamma->l#nu#ga
 t2mit/filefi/032 s12-h125inv-gf-v7c              noskim         ggHinv                          19.27       1.0    -1.0    ~
 t2mit/filefi/032 s12-h125inv-gf-v7a              noskim         ggHinv                          19.27       1.0    -1.0    ~
 t2mit/filefi/032 s12-h125inv-gf-v19              noskim         ggHinv                          19.27       1.0    -1.0    ~
-t2mit/filefi/032 s12-h115inv-gf-v19              noskim         ~                               0.cccc      1.0    -1.0    ~
-t2mit/filefi/032 s12-h135inv-gf-v19              noskim         ~                               0.cccc      1.0    -1.0    ~
-t2mit/filefi/032 s12-h145inv-gf-v19              noskim         ~                               0.cccc      1.0    -1.0    ~
-t2mit/filefi/032 s12-h175inv-gf-v19              noskim         ~                               0.cccc      1.0    -1.0    ~
-t2mit/filefi/032 s12-h200inv-gf-v19              noskim         ~                               0.cccc      1.0    -1.0    ~
-t2mit/filefi/032 s12-h300inv-gf-v19              noskim         ~                               0.cccc      1.0    -1.0    ~
+t2mit/filefi/032 s12-h115inv-gf-v19              noskim         ~                               22.66       1.0    -1.0    ~
+t2mit/filefi/032 s12-h135inv-gf-v19              noskim         ~                               16.57       1.0    -1.0    ~
+t2mit/filefi/032 s12-h145inv-gf-v19              noskim         ~                               14.46       1.0    -1.0    ~
+t2mit/filefi/032 s12-h175inv-gf-v19              noskim         ~                               9.526       1.0    -1.0    ~
+t2mit/filefi/032 s12-h200inv-gf-v19              noskim         ~                               7.081       1.0    -1.0    ~
+t2mit/filefi/032 s12-h300inv-gf-v19              noskim         ~                               3.594       1.0    -1.0    ~
 #
 t2mit/filefi/032 s12-h125inv-vbf-v7a             noskim         qqHinv                          1.578       1.0    -1.0    ~
 #
@@ -78,9 +71,9 @@ t2mit/filefi/032 s12-h400invqq-zh-v19            noskim         ~               
 #
 t2mit/filefi/032 WH_WToQQ_HToInv_M-115_8TeV_pythia6+Summer12_DR53X-PU_S10_START53_V19-v1+AODSIM noskim WH->qq~inv 0.6264 1.0 -1.0 ~
 t2mit/filefi/032 WH_WToQQ_HToInv_M-125_8TeV_pythia6+Summer12_DR53X-PU_S10_START53_V19-v1+AODSIM noskim ~          0.4763 1.0 -1.0 ~
-t2mit/filefi/032 WH_WToQQ_HToInv_M-135_8TeV_pythia6+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM  noskim ~          0.cccc 1.0 -1.0 ~
+t2mit/filefi/032 WH_WToQQ_HToInv_M-135_8TeV_pythia6+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM  noskim ~          0.3661 1.0 -1.0 ~
 t2mit/filefi/032 WH_WToQQ_HToInv_M-145_8TeV_pythia6+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM  noskim ~          0.2815 1.0 -1.0 ~
-t2mit/filefi/032 WH_WToQQ_HToInv_M-150_8TeV_pythia6+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM  noskim ~          0.cccc 1.0 -1.0 ~
+t2mit/filefi/032 WH_WToQQ_HToInv_M-150_8TeV_pythia6+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM  noskim ~          0.2520 1.0 -1.0 ~
 t2mit/filefi/032 WH_WToQQ_HToInv_M-200_8TeV_pythia6+Summer12_DR53X-PU_S10_START53_V19-v1+AODSIM noskim ~          0.0882 1.0 -1.0 ~
 t2mit/filefi/032 WH_WToQQ_HToInv_M-300_8TeV_pythia6+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM  noskim ~          0.0179 1.0 -1.0 ~                 
 t2mit/filefi/032 WH_WToQQ_HToInv_M-400_8TeV_pythia6+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM  noskim ~          0.0052 1.0 -1.0 ~
