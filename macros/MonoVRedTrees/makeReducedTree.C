@@ -237,10 +237,13 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
 
   // Met, use footprint correction for gjets
   float thisMet = intree.met_;
-  if (selMode == 3 || selMode == 7 || selMode == 11)
+  float thisMetPhi = intree.metPhi_;
+  if (selMode == 3 || selMode == 7 || selMode == 11) {
     thisMet = intree.metFprint_;
+    thisMetPhi = intree.metFprintPhi_;
+  }
   
-  bool metBit = (thisMet > 200.);
+  bool metBit = (thisMet > 180.);
   if (selMode < 8)
     metBit = (thisMet > 200.);
                       
@@ -254,13 +257,13 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
 
   // Inclusive category
   bool inclusiveBit = (intree.jet1_.Pt() > 150 && abs(intree.jet1_.Eta()) < 2.0);
-  inclusiveBit = inclusiveBit && (abs(intree.jet1metDphi_) > 2.0);
+  inclusiveBit = inclusiveBit && (abs(MathUtils::DeltaPhi((double)thisMetPhi,intree.jet1_.Phi())) > 2.0);
   inclusiveBit = inclusiveBit && (intree.jet1jet2Dphi_ < -5. || abs(intree.jet1jet2Dphi_) < 2.0);
 
   // Fat jet category::cut-based
   bool fatJetBit = ((intree.fjet1_.Pt() > 200 && abs(intree.fjet1_.Eta()) < 2.5)
                   && intree.fjet1CHF_ > 0.2 && intree.fjet1NHF_ < 0.7 && intree.jet1NEMF_ < 0.7);
-  fatJetBit = fatJetBit && (abs(intree.fjet1metDphi_) > 2.0);
+  fatJetBit = fatJetBit && (abs(MathUtils::DeltaPhi((double)thisMetPhi,intree.fjet1_.Phi())) > 2.0);
   fatJetBit = fatJetBit && (intree.fjet1jet2Dphi_ < -5. || abs(intree.fjet1jet2Dphi_) < 2.0);
   fatJetBit = fatJetBit && (intree.fjet1Tau2_/intree.fjet1Tau1_  < 0.5 
                             && 60 < intree.fjet1MassPruned_ && intree.fjet1MassPruned_ < 110
