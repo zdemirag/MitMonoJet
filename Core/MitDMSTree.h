@@ -58,6 +58,8 @@ class MitDMSTree {
   float          metRawPhi_;
   float          met_;
   float          metPhi_;
+  float          metFprint_;
+  float          metFprintPhi_;
   float          genmet_;
   float          genmetPhi_;
   float          mt_;
@@ -156,6 +158,7 @@ class MitDMSTree {
   float          topPt_;
   float          topBarPt_;
  
+  float          genweight_;
   float          Q_;
   float          id1_;
   float          x1_;
@@ -243,6 +246,8 @@ class MitDMSTree {
     tree_->Branch("metRawPhi"       , &metRawPhi_       ,   "metRawPhi/F");
     tree_->Branch("met"             , &met_             ,   "met/F");
     tree_->Branch("metPhi"          , &metPhi_          ,   "metPhi/F");
+    tree_->Branch("metFprint"       , &metFprint_       ,   "metFprint/F");
+    tree_->Branch("metFprintPhi"    , &metFprintPhi_    ,   "metFprintPhi/F");
     tree_->Branch("genmet"          , &genmet_          ,   "genmet/F");
     tree_->Branch("genmetPhi"       , &genmetPhi_       ,   "genmetPhi/F");
     tree_->Branch("mt"              , &mt_              ,   "mt/F");
@@ -339,20 +344,21 @@ class MitDMSTree {
     tree_->Branch("topPt",             &topPt_    ,          "topPt/F");
     tree_->Branch("topBarPt",          &topBarPt_ ,          "topBarPt/F");
 
-    tree_->Branch("Q",              &Q_	  ,     "Q/F");
-    tree_->Branch("id1",            &id1_  ,     "id1/F");
-    tree_->Branch("x1",             &x1_	  ,     "x1/F");
-    tree_->Branch("pdf1",           &pdf1_ ,     "pdf1/F");
-    tree_->Branch("id2",            &id2_  ,     "id2/F");
-    tree_->Branch("x2",             &x2_	  ,     "x2/F");
-    tree_->Branch("pdf2",           &pdf2_ ,     "pdf2/F");
-    tree_->Branch("processId",      &processId_  , "processId/I");
-    tree_->Branch("puweight",       &puweight_   , "puweight/F");
-    tree_->Branch("npu",            &npu_        , "npu/F");
-    tree_->Branch("npuPlusOne",     &npuPlusOne_ , "npuPlusOne/F");
-    tree_->Branch("npuMinusOne",    &npuMinusOne_, "npuMinusOne/F");
+    tree_->Branch("genweight",      &genweight_   ,   "genweight/F");
+    tree_->Branch("Q",              &Q_,              "Q/F");
+    tree_->Branch("id1",            &id1_,            "id1/F");
+    tree_->Branch("x1",             &x1_,             "x1/F");
+    tree_->Branch("pdf1",           &pdf1_,           "pdf1/F");
+    tree_->Branch("id2",            &id2_,            "id2/F");
+    tree_->Branch("x2",             &x2_,             "x2/F");
+    tree_->Branch("pdf2",           &pdf2_,           "pdf2/F");
+    tree_->Branch("processId",      &processId_ ,     "processId/I");
+    tree_->Branch("puweight",       &puweight_,       "puweight/F");
+    tree_->Branch("npu",            &npu_,            "npu/F");
+    tree_->Branch("npuPlusOne",     &npuPlusOne_,     "npuPlusOne/F");
+    tree_->Branch("npuMinusOne",    &npuMinusOne_,    "npuMinusOne/F");
     tree_->Branch("metFiltersWord", &metFiltersWord_, "metFiltersWord/I");
-    tree_->Branch("preselWord",     &preselWord_, "preselWord/I");
+    tree_->Branch("preselWord",     &preselWord_,     "preselWord/I");
 
   }
 
@@ -378,6 +384,8 @@ class MitDMSTree {
     tree_->SetBranchAddress("metRawPhi",     &metRawPhi_);
     tree_->SetBranchAddress("met",           &met_);
     tree_->SetBranchAddress("metPhi",        &metPhi_);
+    tree_->SetBranchAddress("metFprint",     &metFprint_);
+    tree_->SetBranchAddress("metFprintPhi",  &metFprintPhi_);
     tree_->SetBranchAddress("genmet",        &genmet_);
     tree_->SetBranchAddress("genmetPhi",     &genmetPhi_);
     tree_->SetBranchAddress("mt",            &mt_);
@@ -486,8 +494,24 @@ class MitDMSTree {
     tree_->SetBranchAddress("npu"           ,	&npu_           );
     tree_->SetBranchAddress("npuPlusOne"    , &npuPlusOne_    );
     tree_->SetBranchAddress("npuMinusOne"   , &npuMinusOne_   );
-    tree_->SetBranchAddress("metFiltersWord", &metFiltersWord_ );
-    tree_->SetBranchAddress("preselWord"    , &preselWord_);
+    tree_->SetBranchAddress("metFiltersWord", &metFiltersWord_);
+    tree_->SetBranchAddress("preselWord"    , &preselWord_    );
+
+    tree_->SetBranchAddress("genweight",      &genweight_     );
+    tree_->SetBranchAddress("Q",              &Q_             );
+    tree_->SetBranchAddress("id1",            &id1_           );
+    tree_->SetBranchAddress("x1",             &x1_            );
+    tree_->SetBranchAddress("pdf1",           &pdf1_          );
+    tree_->SetBranchAddress("id2",            &id2_           );
+    tree_->SetBranchAddress("x2",             &x2_            );
+    tree_->SetBranchAddress("pdf2",           &pdf2_          );
+    tree_->SetBranchAddress("processId",      &processId_     );
+    tree_->SetBranchAddress("puweight",       &puweight_      );
+    tree_->SetBranchAddress("npu",            &npu_           );
+    tree_->SetBranchAddress("npuPlusOne",     &npuPlusOne_    );
+    tree_->SetBranchAddress("npuMinusOne",    &npuMinusOne_   );
+    tree_->SetBranchAddress("metFiltersWord", &metFiltersWord_);
+    tree_->SetBranchAddress("preselWord",     &preselWord_    );
 
     if (type == 1) tree_->SetBranchAddress("bdt_all"    , &bdt_all_);
 
@@ -530,19 +554,21 @@ MitDMSTree::InitVariables(){
   trigger_       = 0;
   HLTmatch_      = 0;
   nvtx_          = 0;
-  metRaw_        = -999.;
-  metRawPhi_     = -999.;
-  met_           = -999.;
-  metPhi_        = -999.;
-  genmet_        = -999.;
-  genmetPhi_     = -999.;
-  mt_            = -999.;
-  mll_           = -999.;
+  metRaw_        = -1.;
+  metRawPhi_     = -10.;
+  met_           = -1.;
+  metPhi_        = -10.;
+  metFprint_     = -1.;
+  metFprintPhi_  = -10.;
+  genmet_        = -1.;
+  genmetPhi_     = -10.;
+  mt_            = -1.;
+  mll_           = -1.;
 
-  fjet1metDphi_  = -999.;
-  fjet1jet2Dphi_ = -999.;
-  jet1metDphi_   = -999.;
-  jet1jet2Dphi_  = -999.;
+  fjet1metDphi_  = -10.;
+  fjet1jet2Dphi_ = -10.;
+  jet1metDphi_   = -10.;
+  jet1jet2Dphi_  = -10.;
 
   nlep_          = 0;
   lep1_       	 = LorentzVector();
@@ -558,40 +584,40 @@ MitDMSTree::InitVariables(){
 
   nfjets_         = 0;
   fjet1_          = LorentzVector();
-  fjet1CHF_       = -999.;
-  fjet1NHF_       = -999.;
-  fjet1NEMF_      = -999.;
-  fjet1Btag_      = -999.;
-  fjet1Charge_    = -999.;
-  fjet1QGtag_     = -999.;
-  fjet1Tau1_      = -999.;
-  fjet1Tau2_      = -999.;
-  fjet1Tau3_      = -999.;
-  fjet1C2b0_      = -999.;
-  fjet1C2b0p2_      = -999.;
-  fjet1C2b0p5_      = -999.;
-  fjet1C2b1_        = -999.;
-  fjet1C2b2_        = -999.;
-  fjet1QJetVol_     = -999.;
-  fjet1MassSDbm1_   = -999.;
-  fjet1MassSDb0_    = -999.;
-  fjet1MassSDb1_    = -999.;
-  fjet1MassSDb2_    = -999.;
-  fjet1MassPruned_  = -999.;
-  fjet1MassFiltered_= -999.;
-  fjet1MassTrimmed_ = -999.;
-  fjet1Pull_        = -999.;
-  fjet1PullAngle_   = -999.;
-  fjet1QGtagSub1_   = -999.;
-  fjet1QGPtDSub1_   = -999.;
-  fjet1QGAxis1Sub1_ = -999.;
-  fjet1QGAxis2Sub1_ = -999.;
-  fjet1QGMultSub1_  = -999.;
-  fjet1QGtagSub2_   = -999.;
-  fjet1QGPtDSub2_   = -999.;
-  fjet1QGAxis1Sub2_ = -999.;
-  fjet1QGAxis2Sub2_ = -999.;
-  fjet1QGMultSub2_  = -999.;
+  fjet1CHF_       = -1.;
+  fjet1NHF_       = -1.;
+  fjet1NEMF_      = -1.;
+  fjet1Btag_      = -1.;
+  fjet1Charge_    = -10.;
+  fjet1QGtag_     = -1.;
+  fjet1Tau1_      = -1.;
+  fjet1Tau2_      = -1.;
+  fjet1Tau3_      = -1.;
+  fjet1C2b0_      = -1.;
+  fjet1C2b0p2_      = -1.;
+  fjet1C2b0p5_      = -1.;
+  fjet1C2b1_        = -1.;
+  fjet1C2b2_        = -1.;
+  fjet1QJetVol_     = -1.;
+  fjet1MassSDbm1_   = -1.;
+  fjet1MassSDb0_    = -1.;
+  fjet1MassSDb1_    = -1.;
+  fjet1MassSDb2_    = -1.;
+  fjet1MassPruned_  = -1.;
+  fjet1MassFiltered_= -1.;
+  fjet1MassTrimmed_ = -1.;
+  fjet1Pull_        = -1.;
+  fjet1PullAngle_   = -10.;
+  fjet1QGtagSub1_   = -1.;
+  fjet1QGPtDSub1_   = -1.;
+  fjet1QGAxis1Sub1_ = -1.;
+  fjet1QGAxis2Sub1_ = -1.;
+  fjet1QGMultSub1_  = -1.;
+  fjet1QGtagSub2_   = -1.;
+  fjet1QGPtDSub2_   = -1.;
+  fjet1QGAxis1Sub2_ = -1.;
+  fjet1QGAxis2Sub2_ = -1.;
+  fjet1QGMultSub2_  = -1.;
   fjet1PartonId_  = 0;
 
   fjet1nsj_      = 0;
@@ -600,9 +626,9 @@ MitDMSTree::InitVariables(){
   
   njets_         = 0;
   jet1_          = LorentzVector();
-  jet1CHF_       = -999.;
-  jet1NHF_       = -999.;
-  jet1NEMF_      = -999.;
+  jet1CHF_       = -1.;
+  jet1NHF_       = -1.;
+  jet1NEMF_      = -1.;
   jet2_          = LorentzVector();
   jet3_          = LorentzVector();
   jet4_          = LorentzVector();
@@ -614,15 +640,15 @@ MitDMSTree::InitVariables(){
   bjet2_         = LorentzVector();
   bjet2Btag_     = 0;
   
-  rmvaval_      = -999.; 
+  rmvaval_      = -10.; 
   rjet1_        = LorentzVector();
-  rjet1_pullang_= -999.;
-  rjet1_qgl_    = -999.;
+  rjet1_pullang_= -10.;
+  rjet1_qgl_    = -1.;
   rjet2_        = LorentzVector();
-  rjet2_pullang_= -999.;
-  rjet2_qgl_    = -999.;
-  rmdrop_       = -999.;
-  rptOverM_     = -999.;
+  rjet2_pullang_= -10.;
+  rjet2_qgl_    = -1.;
+  rmdrop_       = -1.;
+  rptOverM_     = -1.;
 
   genV_          = LorentzVector();
   genVid_        = 0;
@@ -630,22 +656,23 @@ MitDMSTree::InitVariables(){
   topPt_         = 0;
   topBarPt_      = 0;
   
-  Q_		         = -999.;
-  id1_  	       = -999.;
-  x1_		         = -999.;
-  pdf1_ 	       = -999.;  
-  id2_  	       = -999.;  
-  x2_		         = -999.;
-  pdf2_ 	       = -999.;  
+  genweight_     = 1.;
+  Q_		         = -1.;
+  id1_  	       = -1.;
+  x1_		         = -1.;
+  pdf1_ 	       = -1.;  
+  id2_  	       = -1.;  
+  x2_		         = -1.;
+  pdf2_ 	       = -1.;  
   processId_	   = 0;
   puweight_      = 1.;
-  npu_           = -999.;
-  npuPlusOne_    = -999.;
-  npuMinusOne_   = -999.;
+  npu_           = -1.;
+  npuPlusOne_    = -1.;
+  npuMinusOne_   = -1.;
   metFiltersWord_= 0;  
   preselWord_    = 0;  
   
-  bdt_all_ = -999.;
+  bdt_all_ = -10.;
 }
 
 #endif

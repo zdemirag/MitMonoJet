@@ -14,6 +14,9 @@ class MitLimitTree {
  public:
 
   /// variables
+  unsigned int     event_;
+  unsigned int     run_;
+  unsigned int     lumi_;
   Float_t          mvamet_;
   Float_t          mvametphi_;
   Float_t          jet1pt_;
@@ -52,6 +55,9 @@ class MitLimitTree {
     InitVariables();
     
     //book the branches    
+    tree_->Branch("event"          , &event_           ,   "event/i");
+    tree_->Branch("run"            , &run_             ,   "run/i");
+    tree_->Branch("lumi"           , &lumi_            ,   "lumi/i");
     tree_->Branch("mvamet"         , &mvamet_          ,   "mvamet/F");
     tree_->Branch("mvametphi"      , &mvametphi_       ,   "mvametphi/F");
     tree_->Branch("jet1pt"         , &jet1pt_          ,   "jet1pt/F");
@@ -76,6 +82,9 @@ class MitLimitTree {
     Int_t currentState = gErrorIgnoreLevel;
     // gErrorIgnoreLevel = kError;
     gErrorIgnoreLevel = kBreak;
+    tree_->SetBranchAddress("event"          , &event_);
+    tree_->SetBranchAddress("run"            , &run_);
+    tree_->SetBranchAddress("lumi"           , &lumi_);
     tree_->SetBranchAddress("mvamet"         , &mvamet_);
     tree_->SetBranchAddress("mvametphi"      , &mvametphi_);
     tree_->SetBranchAddress("jet1pt"         , &jet1pt_);
@@ -92,6 +101,9 @@ class MitLimitTree {
 inline void 
 MitLimitTree::InitVariables(){
   // inizialize variables
+  event_     = 0;
+  run_       = 0;
+  lumi_      = 0;
   mvamet_    = -.1;
   mvametphi_ = -.1;
   jet1pt_    = -.1;

@@ -144,7 +144,7 @@ void DMSTreeWriter::Process()
   fMitDMSTree.event_ = GetEventHeader()->EvtNum();
   fMitDMSTree.nvtx_  = fPV->GetEntries();
 
-  // HLT  
+  // HLT CHECK
   if (! fTrigObj)
     printf("MonoJetTreeWriter::TriggerObjectCol not found\n");
 
@@ -234,10 +234,13 @@ void DMSTreeWriter::Process()
                      0.3, 
                      130.))
       fMitDMSTree.HLTmatch_ |= MitDMSTree::PhotonMatch;         
-    // Correct MET (only if no leptons and high pt photon!)
-    if (fMitDMSTree.nlep_ == 0 && photon->Pt() > 150.) 
+    // Correct MET (only if no leptons and high pt photon!) and correct for Fprint
+    if (fMitDMSTree.nlep_ == 0 && photon->Pt() > 150.) {
       CorrectMet(fMitDMSTree.metRaw_,fMitDMSTree.metRawPhi_,fMitDMSTree.pho1_,
                  fMitDMSTree.met_,fMitDMSTree.metPhi_);    
+      CorrectMet(fMitDMSTree.metRaw_,fMitDMSTree.metRawPhi_,fMitDMSTree.pho1_,
+                 fMitDMSTree.metFprint_,fMitDMSTree.metFprintPhi_,true);
+    }    
   }
 
   // FAT JETS  
@@ -302,7 +305,7 @@ void DMSTreeWriter::Process()
   }
   
   // JETS : careful since the hardest could overlap with the fat jets
-  fMitDMSTree.rmvaval_ = -999.;
+  fMitDMSTree.rmvaval_ = -10.;
   float resolvedVars[7];
   UInt_t resolvedIndexOne = 0;
   UInt_t resolvedIndexTwo = 0;
@@ -579,6 +582,17 @@ void DMSTreeWriter::getGenLevelInfo(MitDMSTree& tree)
     
   } // end loop on MC Particles
 
+  // Apply ttbar correction
+  // reference is https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting#MC_SFs_Reweighting
+  if (tree.topPt_ > 0 && tree.topBarPt_ > 0) {
+    float pt1 = TMath::Min((float)400., tree.topPt_);
+    float pt2 = TMath::Min((float)400., tree.topBarPt_);
+    float w1 = exp(0.156 - 0.00137*pt1);
+    float w2 = exp(0.156 - 0.00137*pt2);
+    tree.genweight_ = 1.001*sqrt(w1*w2); 
+  }
+
+  // Finish invisible object pt computation
   tree.genmet_ = momInv.Pt();
   tree.genmetPhi_ = momInv.Phi();
 
@@ -686,7 +700,7 @@ Float_t DMSTreeWriter::GetJetJetsDphi(LorentzVector& v)
   // Loop on first two jets and consider the farthest one in phi  
   // which is not overlapping with the input jet (DR = 0.5)  
   UInt_t nMaxJets = 2;
-  float maxDphi = -999.;
+  float maxDphi = -10.;
   for (UInt_t i=0; i<fJets->GetEntries(); ++i) {
     if (i >= nMaxJets) 
       continue;
@@ -744,15 +758,19 @@ void DMSTreeWriter::CorrectMet(const float met, const float metPhi, const Lorent
 
 //--------------------------------------------------------------------------------------------------
 void DMSTreeWriter::CorrectMet(const float met, const float metPhi, const LorentzVector& l1,
-                               float& newMet, float& newMetPhi)
+                               float& newMet, float& newMetPhi, Bool_t applyFprintCorrection)
 {
   // inputs:  met, metPhi, l1
   // outputs: newMet, newMetPhi
   float newMetX;
   float newMetY;
-  newMetX = met*TMath::Cos(metPhi) + l1.Px();
-  newMetY = met*TMath::Sin(metPhi) + l1.Py();
+  float fPrintCorr = 0.;
+  if (applyFprintCorrection)
+    fPrintCorr = GetFootprint(l1.Pt(),l1.Eta());  
   
+  newMetX = met*TMath::Cos(metPhi) + (l1.Pt()+fPrintCorr)*TMath::Cos(l1.Phi());
+  newMetY = met*TMath::Sin(metPhi) + (l1.Pt()+fPrintCorr)*TMath::Sin(l1.Phi());
+    
   newMet    = TMath::Sqrt(TMath::Power(newMetX,2) + TMath::Power(newMetY,2));
   newMetPhi = TMath::ATan2(newMetY,newMetX);
 
@@ -766,4 +784,24 @@ float DMSTreeWriter::GetMt(const LorentzVector& l1, const float met, const float
   // outputs: transverse mass
   double lepPhi = l1.Phi();
   return TMath::Sqrt(2*met*l1.Pt()*(1-TMath::Cos(MathUtils::DeltaPhi(lepPhi,(double)metPhi))));
+}
+
+//--------------------------------------------------------------------------------------------------
+float DMSTreeWriter::GetFootprint(const float pt, const float eta)
+{
+  // inputs:  pt, eta
+  // outputs: footprint pt value
+  if (fIsData) {
+    if (fabs(eta) < 1.5) 
+      return (0.4633) + TMath::Min(pt,(float)130.)*0.0055;
+    else
+      return (0.3951) + TMath::Min(pt,(float)140.)*0.0125; //140 is NOT a typo!
+  }
+  else {
+    if (fabs(eta) < 1.5) 
+      return (0.5090) + TMath::Min(pt,(float)130.)*0.0075;
+    else
+      return (0.2969) + TMath::Min(pt,(float)130.)*0.0135;
+  }
+    
 }

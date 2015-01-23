@@ -28,10 +28,10 @@ if [ $1 = "inclusive" ] || [ $1 = "all" ];
   root -b -q ../rootlogon_monojet.C makeReducedTree.C+'(10,19700,true)'
   root -b -q ../rootlogon_monojet.C makeReducedTree.C+'(11,19700,true)'
 fi
-# Baseline selection (for synch), i.e. no exclusivity in the selection
-#root -b -q ../rootlogon_monojet.C makeReducedTree.C+'(8,19700,false,false)'
-#root -b -q ../rootlogon_monojet.C makeReducedTree.C+'(9,19700,true,false)'
-#root -b -q ../rootlogon_monojet.C makeReducedTree.C+'(10,19700,true,false)'
-#root -b -q ../rootlogon_monojet.C makeReducedTree.C+'(11,19700,true,false)'
+# Only for testing
+if [ $1 = "test" ];
+  then
+  root -b -q ../rootlogon_monojet.C makeReducedTree.C+'(10,19700,true,true,true)'
+fi
 
 exit 0

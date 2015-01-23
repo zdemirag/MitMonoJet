@@ -47,7 +47,7 @@ void runFlatBoostedV(const char *fileset    = "0000",
 
 
   // Caching and how
-  Int_t local = 1, cacher = 0;
+  Int_t cacher = 0;
 
   // local =   0 - as is,
   //           1 - /mt/hadoop  (MIT:SmartCache - preload one-by-one)
@@ -88,15 +88,13 @@ void runFlatBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   // organize input
   //------------------------------------------------------------------------------------------------
-  Catalog *c = new Catalog(cataDir.Data());
   TString skimdataset = TString(dataset)+TString("/") +TString(skim);
-  Dataset *d = NULL;
   TString bookstr = book;
   TString inputFileList;
   inputFileList = "inputBavanti.txt";
   ana->AddFiles(inputFileList,-1);
 
-  TString inputPUFile = "/scratch4/dimatteo/cms/hist/" + TString(outputName) + "/merged/";
+  TString inputPUFile = Utils::GetEnv("MIT_PROD_HIST") + "/" + TString(outputName) + "/merged/";
   inputPUFile += TString(outputName) + TString("_") +  TString(dataset);
   inputPUFile += "_noskim.root";  
 

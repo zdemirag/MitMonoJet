@@ -137,8 +137,10 @@ namespace mithep
                                               float& newMet, float& newMetPhi);
     void                           CorrectMet(const float met, const float metPhi, 
                                               const LorentzVector& l1,
-                                              float& newMet, float& newMetPhi);
+                                              float& newMet, float& newMetPhi,
+                                              Bool_t applyFprintCorrection = kFALSE);
     float                          GetMt(const LorentzVector& l1, const float met, const float metPhi);
+    float                          GetFootprint(const float pt, const float eta);
     // Gen Level Info Analysis   
     void                           getGenLevelInfo(MitDMSTree& tree);
     // Hlt Objects Matcher   
