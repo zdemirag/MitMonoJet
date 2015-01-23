@@ -793,15 +793,15 @@ float DMSTreeWriter::GetFootprint(const float pt, const float eta)
   // outputs: footprint pt value
   if (fIsData) {
     if (fabs(eta) < 1.5) 
-      return (0.4633) + TMath::Min(pt,(float)130.)*0.0055;
+      return (0.4633 + TMath::Min(pt,(float)130.)*0.0055);
     else
-      return (0.3951) + TMath::Min(pt,(float)140.)*0.0125; //140 is NOT a typo!
+      return (0.3951 + TMath::Min(pt,(float)140.)*0.0125); //140 is NOT a typo!
   }
   else {
     if (fabs(eta) < 1.5) 
-      return (0.5090) + TMath::Min(pt,(float)130.)*0.0075;
+      return (0.5090 + TMath::Min(pt,(float)130.)*0.0075);
     else
-      return (0.2969) + TMath::Min(pt,(float)130.)*0.0135;
+      return (0.2969 + TMath::Min(pt,(float)130.)*0.0135);
   }
     
 }

@@ -82,7 +82,9 @@ else:
 print " INFO - working directory is located under: " + workingDir
 
 # => spell out the output area
-outputDir = '/mnt/hscratch/' + os.environ['USER'] + '/' + os.environ['MIT_PROD_CFG'] + '/merged'
+outputDir = os.environ['MIT_PROD_HIST'] + '/' + os.environ['MIT_PROD_CFG'] + '/merged-pro'
+if not os.path.isdir(outputDir):
+  os.makedirs(outputDir)
 print " INFO - output target is: " + outputDir
 
 # => prepare the condor log area
