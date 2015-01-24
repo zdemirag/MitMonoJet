@@ -213,7 +213,7 @@ void FillerXlFatJets::FillXlFatJet(const PFJet *pPFJet)
   if (fjOutJets.size() < 1) {
     printf(" FillerXlFatJets::FillXlFatJet() - WARNING - input PFJet produces null reclustering output!\n");
 
-    if ((fjClustering->inclusive_jets()).size() > 0) 
+    if (fjOutJets.size() > 0) 
       fjClustering->delete_self_when_unused();
     delete fjClustering;
 
@@ -331,7 +331,8 @@ void FillerXlFatJets::FillXlFatJet(const PFJet *pPFJet)
   fXlFatJets->Trim();
    
   // Memory cleanup
-  fjClustering->delete_self_when_unused();
+  if (fjOutJets.size() > 0) 
+    fjClustering->delete_self_when_unused();
   delete fjClustering;
    
   return;

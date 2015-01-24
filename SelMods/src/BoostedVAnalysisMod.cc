@@ -155,7 +155,7 @@ void BoostedVAnalysisMod::Process()
         passGjetHLT = kTRUE;
     }
   }
- 
+   
   // Initialize selection flags
   Bool_t passResolvedPresel = kFALSE;
   Bool_t passTopPresel = kFALSE;
