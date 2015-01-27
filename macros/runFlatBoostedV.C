@@ -60,19 +60,7 @@ void runFlatBoostedV(const char *fileset    = "0000",
   // set up information for master module
   //------------------------------------------------------------------------------------------------
   RunLumiSelectionMod *runLumiSel = new RunLumiSelectionMod;
-  runLumiSel->SetAcceptMC(kTRUE);                          // Monte Carlo events are always accepted
-  
-  // only select on run- and lumisection numbers when valid json file present
-  if (json.CompareTo("~") != 0 && json.CompareTo("-") != 0) {
-    printf(" runBoostedV() - adding jsonFile: %s\n",jsonFile.Data());
-    runLumiSel->AddJSONFile(jsonFile.Data());
-  }
-  if (json.CompareTo("-") == 0) {
-    printf("\n WARNING -- Looking at data without JSON file: always accept.\n\n");
-    runLumiSel->SetAbortIfNotAccepted(kFALSE);   // accept all events if there is no valid JSON file
-  }
-  printf("\n Run lumi worked. \n\n");
-
+  runLumiSel->SetAcceptAll(kTRUE);                          // Events are always accepted  
   //------------------------------------------------------------------------------------------------
   // setup analysis
   //------------------------------------------------------------------------------------------------

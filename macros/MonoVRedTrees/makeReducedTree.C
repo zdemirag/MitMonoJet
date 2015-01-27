@@ -21,6 +21,46 @@
 using namespace std;
 using namespace mithep;
 
+//---Cuts Block---//
+const double MET_CUT = 180.;
+const double MET_CUT_MONOV = 200.;
+//-
+const double JET_PT_CUT  = 110.;
+const double JET_ETA_CUT = 2.5;
+const double JET_CHF_CUT = 0.2;  
+const double JET_NHF_CUT = 0.7;  
+const double JET_NEMF_CUT = 0.7;  
+const double JET_NMAX_CUT = 2;
+//-
+const double BJET_NMAX_CUT = 0;
+const double RES_MVA_CUT = 0.6;
+//-
+const double JET_PT_CUT_INCL = 150.;
+const double JET_ETA_CUT_INCL = 2.0;
+//-
+const double FJET_PT_CUT = 200.;
+const double FJET_ETA_CUT = 2.5;
+const double T2T1_CUT = 0.5;
+const double FJET_MASS_MIN_CUT = 60.;
+const double FJET_MASS_MAX_CUT = 110.;
+//-
+const double JETMET_DPHI_CUT = 2.0;
+const double JETJET_DPHI_CUT = 2.0;
+//-
+const double MU_PT_CUT = 20.;
+const double MU_ETA_CUT = 2.1;
+const double MU_ID_CUT = 13;
+const double MU_TIGHT_CUT = 130;
+const double MU_ISO_CUT = 1300;
+//-
+const double MT_MIN_CUT = 50.;
+const double MT_MAX_CUT = 200.;
+const double MLL_MIN_CUT = 60.;
+const double MLL_MAX_CUT = 120.;
+//-
+const double PHO_PT_CUT  = 160.;
+const double PHO_ETA_CUT = 2.5;
+
 //---
 TString getEnv(const char* name);
 //---
@@ -50,11 +90,9 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
 
   // Read all environment variables
   TString anaDir = getEnv("MIT_MONOJET_DIR");
-  //TString hstDir = getEnv("MIT_ANA_HIST");
-  TString hstDir = "/scratch5/dimatteo/cms/hist/boostedv-v11/merged-dev/";  
+  TString hstDir = getEnv("MIT_ANA_HIST");
   TString anaCfg = "boostedv-ana";
-  //TString prdCfg = getEnv("MIT_PROD_CFG");
-  TString prdCfg = "boostedv-v11";
+  TString prdCfg = getEnv("MIT_PROD_CFG");
   
   // Fix data list for photons
   if (selMode == 3 || selMode == 7 || selMode == 11)
@@ -242,35 +280,34 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
     thisMet = intree.metFprint_;
     thisMetPhi = intree.metFprintPhi_;
   }
-  
-  bool metBit = (thisMet > 180.);
+  bool metBit = (thisMet > MET_CUT);
   if (selMode < 8)
-    metBit = (thisMet > 200.);
+    metBit = (thisMet > MET_CUT_MONOV);
                       
   // Narrow jets
-  bool jetBit = ((intree.jet1_.Pt() > 110 && abs(intree.jet1_.eta()) < 2.5)
-               && intree.jet1CHF_ > 0.2 && intree.jet1NHF_ < 0.7 && intree.jet1NEMF_ < 0.7);
-  bool nJetBit = (intree.njets_ < 3);
+  bool jetBit = ((intree.jet1_.Pt() > JET_PT_CUT && abs(intree.jet1_.eta()) < JET_ETA_CUT)
+               && intree.jet1CHF_ > JET_CHF_CUT && intree.jet1NHF_ < JET_NHF_CUT && intree.jet1NEMF_ < JET_NEMF_CUT);
+  bool nJetBit = (intree.njets_ < JET_NMAX_CUT+0.5);
 
   // Resolved category
-  bool resolvedBit = (intree.nbjets_ < 1 && intree.rmvaval_ > 0.6);
+  bool resolvedBit = (intree.nbjets_ < BJET_NMAX_CUT+0.5 && intree.rmvaval_ > RES_MVA_CUT);
 
   // Inclusive category
-  bool inclusiveBit = (intree.jet1_.Pt() > 150 && abs(intree.jet1_.Eta()) < 2.0);
-  inclusiveBit = inclusiveBit && (abs(MathUtils::DeltaPhi((double)thisMetPhi,intree.jet1_.Phi())) > 2.0);
-  inclusiveBit = inclusiveBit && (intree.jet1jet2Dphi_ < -5. || abs(intree.jet1jet2Dphi_) < 2.0);
+  bool inclusiveBit = (intree.jet1_.Pt() > JET_PT_CUT_INCL && abs(intree.jet1_.Eta()) < JET_ETA_CUT_INCL);
+  inclusiveBit = inclusiveBit && (abs(MathUtils::DeltaPhi((double)thisMetPhi,intree.jet1_.Phi())) > JETMET_DPHI_CUT);
+  inclusiveBit = inclusiveBit && (intree.jet1jet2Dphi_ < -5. || abs(intree.jet1jet2Dphi_) < JETJET_DPHI_CUT);
 
   // Fat jet category::cut-based
-  bool fatJetBit = ((intree.fjet1_.Pt() > 200 && abs(intree.fjet1_.Eta()) < 2.5)
-                  && intree.fjet1CHF_ > 0.2 && intree.fjet1NHF_ < 0.7 && intree.jet1NEMF_ < 0.7);
-  fatJetBit = fatJetBit && (abs(MathUtils::DeltaPhi((double)thisMetPhi,intree.fjet1_.Phi())) > 2.0);
-  fatJetBit = fatJetBit && (intree.fjet1jet2Dphi_ < -5. || abs(intree.fjet1jet2Dphi_) < 2.0);
-  fatJetBit = fatJetBit && (intree.fjet1Tau2_/intree.fjet1Tau1_  < 0.5 
-                            && 60 < intree.fjet1MassPruned_ && intree.fjet1MassPruned_ < 110
-                            && thisMet > 200.);
+  bool fatJetBit = ((intree.fjet1_.Pt() > FJET_PT_CUT && abs(intree.fjet1_.Eta()) < FJET_ETA_CUT)
+                  && intree.fjet1CHF_ > JET_CHF_CUT && intree.fjet1NHF_ < JET_NHF_CUT && intree.fjet1NEMF_ < JET_NEMF_CUT);
+  fatJetBit = fatJetBit && (abs(MathUtils::DeltaPhi((double)thisMetPhi,intree.fjet1_.Phi())) > JETMET_DPHI_CUT);
+  fatJetBit = fatJetBit && (intree.fjet1jet2Dphi_ < -5. || abs(intree.fjet1jet2Dphi_) < JETJET_DPHI_CUT);
+  fatJetBit = fatJetBit && (intree.fjet1Tau2_/intree.fjet1Tau1_  < T2T1_CUT 
+                            && FJET_MASS_MIN_CUT < intree.fjet1MassPruned_ && intree.fjet1MassPruned_ < FJET_MASS_MAX_CUT
+                            && thisMet > MET_CUT_MONOV);
 
   // Vetoes
-  bool vetoBit = (intree.ntaus_ == 0);
+  bool vetoBit = (intree.ntaus_ == 0 && intree.nele_ == 0);
   if (selMode == 0 || selMode == 4 || selMode == 8)
     vetoBit = vetoBit && (intree.nphotons_ == 0 && intree.nlep_ == 0);
   if (selMode == 1 || selMode == 5 || selMode == 9)
@@ -279,25 +316,25 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
     vetoBit = vetoBit && (intree.nphotons_ == 0);
   if (selMode == 3 || selMode == 7 || selMode == 11)
     vetoBit = vetoBit && (intree.nlep_ == 0);
-    
+        
   // Extra
   bool extraBit = true;
   //Zll: tight,loose selection
   if (selMode == 1 || selMode == 5 || selMode == 9) {
-    extraBit = extraBit && (intree.nlep_ == 2 && ((intree.lid1_*intree.lid2_) <= (130*13))
-                                              && (abs(intree.lep1_.Eta()) < 2.1 && abs(intree.lep2_.Eta()) < 2.1));
-    extraBit = extraBit && (60 < intree.mll_ && intree.mll_ < 120);    
+    extraBit = extraBit && (intree.nlep_ == 2 && ((intree.lid1_*intree.lid2_) <= (MU_ID_CUT*MU_TIGHT_CUT))
+                                              && (abs(intree.lep1_.Eta()) < MU_ETA_CUT && abs(intree.lep2_.Eta()) < MU_ETA_CUT));
+    extraBit = extraBit && (MLL_MIN_CUT < intree.mll_ && intree.mll_ < MLL_MAX_CUT);    
   } 
   //Wlv
   if (selMode == 2 || selMode == 6 || selMode == 10) {
     extraBit = extraBit && 
-              (intree.nlep_ == 1 && abs(intree.lid1_) >= 130 && intree.lep1_.Pt() > 20 && abs(intree.lep1_.Eta()) < 2.1);
-    extraBit = extraBit && (intree.mt_ > 50. && intree.mt_ < 200.);
+              (intree.nlep_ == 1 && abs(intree.lid1_) >= MU_TIGHT_CUT && intree.lep1_.Pt() > MU_PT_CUT && abs(intree.lep1_.Eta()) < MU_ETA_CUT);
+    extraBit = extraBit && (intree.mt_ > MT_MIN_CUT && intree.mt_ < MT_MAX_CUT);
   } 
   //Pj
   if (selMode == 3 || selMode == 7 || selMode == 11) {
     extraBit = extraBit && 
-              (intree.pho1_.Pt() > 160 && abs(intree.pho1_.Eta()) < 2.5);
+              (intree.pho1_.Pt() > PHO_PT_CUT && abs(intree.pho1_.Eta()) < PHO_ETA_CUT);
   } 
         
   //cout 
@@ -311,7 +348,7 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
     theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && nJetBit && fatJetBit && vetoBit && extraBit;
   // Resolved selection and discard boosted events
   else if (selMode >= 4 && selMode < 8)
-    theDecision = triggerBit && metFiltersBit && preselBit && metBit && resolvedBit && vetoBit && extraBit && !fatJetBit;
+    theDecision = triggerBit && metFiltersBit && preselBit && metBit && resolvedBit && vetoBit && extraBit && !(fatJetBit&&jetBit&&nJetBit);
   // Inclusive selection and discard boosted/resolved events
   else if (selMode >= 8 && exclusive)
     theDecision = triggerBit && metFiltersBit && preselBit && metBit && jetBit && nJetBit && inclusiveBit && vetoBit && extraBit && !fatJetBit && !resolvedBit;

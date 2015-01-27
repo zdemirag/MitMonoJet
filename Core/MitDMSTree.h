@@ -70,6 +70,7 @@ class MitDMSTree {
   float          jet1metDphi_;
   float          jet1jet2Dphi_;
  
+  unsigned int   nele_;
   unsigned int   nlep_;
   LorentzVector  lep1_;
   int            lid1_;
@@ -258,6 +259,7 @@ class MitDMSTree {
     tree_->Branch("jet1metDphi"     , &jet1metDphi_     ,   "jet1metDphi/F");
     tree_->Branch("jet1jet2Dphi"    , &jet1jet2Dphi_    ,   "jet1jet2Dphi/F");
 
+    tree_->Branch("nele"         , &nele_         ,   "nele/i");
     tree_->Branch("nlep"         , &nlep_         ,   "nlep/i");
     tree_->Branch("lep1"         , "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &lepPtr1_);
     tree_->Branch("lid1"         , &lid1_         ,   "lid1/I");
@@ -396,6 +398,7 @@ class MitDMSTree {
     tree_->SetBranchAddress("jet1metDphi"  , &jet1metDphi_);
     tree_->SetBranchAddress("jet1jet2Dphi" , &jet1jet2Dphi_);
 
+    tree_->SetBranchAddress("nele",          &nele_);
     tree_->SetBranchAddress("nlep",          &nlep_);
     tree_->SetBranchAddress("lep1",          &lepPtr1_);
     tree_->SetBranchAddress("lid1",          &lid1_);
@@ -570,6 +573,7 @@ MitDMSTree::InitVariables(){
   jet1metDphi_   = -10.;
   jet1jet2Dphi_  = -10.;
 
+  nele_          = 0;
   nlep_          = 0;
   lep1_       	 = LorentzVector();
   lid1_          = 0;

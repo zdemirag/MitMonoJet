@@ -154,10 +154,11 @@ void DMSTreeWriter::Process()
   fMitDMSTree.metRawPhi_     = fRawMet->At(0)->Phi();
   fMitDMSTree.met_           = fMitDMSTree.metRaw_;
   fMitDMSTree.metPhi_        = fMitDMSTree.metRawPhi_;
-
-  // LEPTONS (MU+ELE), save tight id for further studies
+      
+  // LEPTONS (MU and ELE), save tight id for further studies
   // Also perform met/mt/mll computation according to the relevant case (muons only)
-  fMitDMSTree.nlep_ = fMuons->GetEntries() + fElectrons->GetEntries();
+  fMitDMSTree.nele_ = fElectrons->GetEntries();
+  fMitDMSTree.nlep_ = fMuons->GetEntries();
   if (fMuons->GetEntries() > 1) {
     //mu mu
     fMitDMSTree.lep1_ = fMuons->At(0)->Mom();
@@ -189,26 +190,9 @@ void DMSTreeWriter::Process()
     CorrectMet(fMitDMSTree.metRaw_,fMitDMSTree.metRawPhi_,fMitDMSTree.lep1_,
                fMitDMSTree.met_,fMitDMSTree.metPhi_);    
     fMitDMSTree.mt_ = GetMt(fMitDMSTree.lep1_,fMitDMSTree.metRaw_,fMitDMSTree.metRawPhi_);
-    //mu e
-    if (fElectrons->GetEntries() > 0) {
-      fMitDMSTree.lep2_ = fElectrons->At(0)->Mom();
-      fMitDMSTree.lid2_ = fElectrons->At(0)->Charge()*11;
-    }             
   }
-  //e e
-  else if (fMuons->GetEntries() == 0 && fElectrons->GetEntries() > 1) {
-    fMitDMSTree.lep1_ = fElectrons->At(0)->Mom();
-    fMitDMSTree.lid1_ = fElectrons->At(0)->Charge()*11;
-    fMitDMSTree.lep2_ = fElectrons->At(1)->Mom();
-    fMitDMSTree.lid2_ = fElectrons->At(1)->Charge()*11;
-  }
-  else if (fMuons->GetEntries() == 0 && fElectrons->GetEntries() > 0) {
-    //e
-    fMitDMSTree.lep1_ = fElectrons->At(0)->Mom();
-    fMitDMSTree.lid1_ = fElectrons->At(0)->Charge()*11;
-  }    
   // Make Muon-HLT matching 
-  if (fMitDMSTree.nlep_ && fMitDMSTree.lid1_ == 13
+  if (fMitDMSTree.nlep_ > 0 && fMitDMSTree.lid1_ >= 13
    && IsHLTMatched(fMitDMSTree.lep1_, 
                    TriggerObject::TriggerMuon,
                    0.3, 
@@ -235,7 +219,7 @@ void DMSTreeWriter::Process()
                      130.))
       fMitDMSTree.HLTmatch_ |= MitDMSTree::PhotonMatch;         
     // Correct MET (only if no leptons and high pt photon!) and correct for Fprint
-    if (fMitDMSTree.nlep_ == 0 && photon->Pt() > 150.) {
+    if (fMitDMSTree.nele_ == 0 && fMitDMSTree.nlep_ == 0 && photon->Pt() > 150.) {
       CorrectMet(fMitDMSTree.metRaw_,fMitDMSTree.metRawPhi_,fMitDMSTree.pho1_,
                  fMitDMSTree.met_,fMitDMSTree.metPhi_);    
       CorrectMet(fMitDMSTree.metRaw_,fMitDMSTree.metRawPhi_,fMitDMSTree.pho1_,
