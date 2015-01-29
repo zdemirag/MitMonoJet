@@ -19,6 +19,11 @@ class MitLimitTree {
   unsigned int     lumi_;
   Float_t          mvamet_;
   Float_t          mvametphi_;
+  Float_t          mt_;
+  Float_t          mll_;
+  Float_t          ptll_;
+  Float_t          ptpho_;
+  Int_t            njets_;
   Float_t          jet1pt_;
   Float_t          genjetpt_;
   Float_t          genVpt_;
@@ -60,6 +65,11 @@ class MitLimitTree {
     tree_->Branch("lumi"           , &lumi_            ,   "lumi/i");
     tree_->Branch("mvamet"         , &mvamet_          ,   "mvamet/F");
     tree_->Branch("mvametphi"      , &mvametphi_       ,   "mvametphi/F");
+    tree_->Branch("mt"             , &mt_              ,   "mt/F");
+    tree_->Branch("mll"            , &mll_             ,   "mll/F");
+    tree_->Branch("ptll"           , &ptll_            ,   "ptll/F");
+    tree_->Branch("ptpho"          , &ptpho_           ,   "ptpho/F");
+    tree_->Branch("njets"          , &njets_           ,   "njets/i");
     tree_->Branch("jet1pt"         , &jet1pt_          ,   "jet1pt/F");
     tree_->Branch("genjetpt"       , &genjetpt_        ,   "genjetpt/F");
     tree_->Branch("genVpt"         , &genVpt_          ,   "genVpt/F");
@@ -87,6 +97,11 @@ class MitLimitTree {
     tree_->SetBranchAddress("lumi"           , &lumi_);
     tree_->SetBranchAddress("mvamet"         , &mvamet_);
     tree_->SetBranchAddress("mvametphi"      , &mvametphi_);
+    tree_->SetBranchAddress("mt"             , &mt_);
+    tree_->SetBranchAddress("mll"            , &mll_);
+    tree_->SetBranchAddress("ptll"           , &ptll_);
+    tree_->SetBranchAddress("ptpho"          , &ptpho_);
+    tree_->SetBranchAddress("njets"          , &njets_);
     tree_->SetBranchAddress("jet1pt"         , &jet1pt_);
     tree_->SetBranchAddress("genjetpt"       , &genjetpt_);
     tree_->SetBranchAddress("genVpt"         , &genVpt_);
@@ -104,13 +119,18 @@ MitLimitTree::InitVariables(){
   event_     = 0;
   run_       = 0;
   lumi_      = 0;
-  mvamet_    = -.1;
-  mvametphi_ = -.1;
-  jet1pt_    = -.1;
-  genjetpt_  = -.1;
-  genVpt_    = -.1;
-  dmpt_      = -.1;
-  weight_    = -.1;
+  mvamet_    = -1.;
+  mvametphi_ = -1.;
+  mt_        = -1;
+  mll_       = -1;
+  ptll_      = -1;
+  ptpho_     = -1;
+  njets_     = -1;
+  jet1pt_    = -1.;
+  genjetpt_  = -1.;
+  genVpt_    = -1.;
+  dmpt_      = -1.;
+  weight_    = -1.;
 
 }
 

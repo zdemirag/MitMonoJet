@@ -31,7 +31,7 @@ fi
 # Only for testing
 if [ $1 = "test" ];
   then
-  root -b -q ../rootlogon_monojet.C makeReducedTree.C+'(10,19700,true,true,true)'
+  root -b -q ../rootlogon_monojet.C makeReducedTree.C+'(10,19700,false,true,true)'
 fi
 
 exit 0

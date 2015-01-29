@@ -214,9 +214,18 @@ void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight
     outtree.lumi_ = intree.lumi_;
 
     outtree.mvamet_ = intree.met_;
-    if (selMode == 3 || selMode == 7 || selMode == 11)
+    if (selMode == 1 || selMode == 5 || selMode == 9) {
+      outtree.mll_ = intree.mll_;
+      outtree.ptll_ = (intree.lep1_ + intree.lep2_).Pt();
+    }
+    if (selMode == 2 || selMode == 6 || selMode == 10)
+      outtree.mt_ = intree.mt_;
+    if (selMode == 3 || selMode == 7 || selMode == 11) {
       outtree.mvamet_ = intree.metFprint_;
+      outtree.ptpho_ = intree.pho1_.Pt();
+    }
     outtree.mvametphi_ = intree.metPhi_;
+    outtree.njets_ = intree.njets_;
     outtree.jet1pt_ = intree.fjet1_.Pt();
     outtree.genjetpt_ = intree.fjet1_.Pt();
     
