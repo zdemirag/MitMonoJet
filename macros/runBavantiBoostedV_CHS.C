@@ -382,11 +382,12 @@ void runBavantiBoostedV_CHS
 
   JetCleaningMod *jetCleaning = new JetCleaningMod;
   jetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());
-  jetCleaning->SetCleanMuonsName(muonIdIsoMod->GetOutputName());
+  jetCleaning->SetCleanMuonsName(muonIdLooseMod->GetOutputName());
   jetCleaning->SetCleanPhotonsName(photonIdMod->GetOutputName());
   jetCleaning->SetMinDeltaRToElectron(0.5);
   jetCleaning->SetMinDeltaRToMuon(0.5);
   jetCleaning->SetMinDeltaRToPhoton(0.5);
+  jetCleaning->SetApplyMuonRemoval(kFALSE);
   jetCleaning->SetApplyPhotonRemoval(kTRUE);
   jetCleaning->SetApplyTauRemoval(kFALSE);
   jetCleaning->SetGoodJetsName(jetId->GetOutputName());
@@ -394,11 +395,12 @@ void runBavantiBoostedV_CHS
 
   JetCleaningMod *fatJetCleaning = new JetCleaningMod;
   fatJetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());
-  fatJetCleaning->SetCleanMuonsName(muonIdIsoMod->GetOutputName());
+  fatJetCleaning->SetCleanMuonsName(muonIdLooseMod->GetOutputName());
   fatJetCleaning->SetCleanPhotonsName(photonIdMod->GetOutputName());
   fatJetCleaning->SetMinDeltaRToElectron(0.5);
   fatJetCleaning->SetMinDeltaRToMuon(0.5);
   fatJetCleaning->SetMinDeltaRToPhoton(0.5);
+  fatJetCleaning->SetApplyMuonRemoval(kFALSE);
   fatJetCleaning->SetApplyPhotonRemoval(kTRUE);
   fatJetCleaning->SetApplyTauRemoval(kFALSE);  
   fatJetCleaning->SetGoodJetsName(fatJetId->GetOutputName());
