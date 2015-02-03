@@ -174,7 +174,7 @@ void BoostedVAnalysisMod::Process()
     return;
   }
 
-  // Determine if event passes resolved preselection (di-jet, di-jet mass, b-veto)
+  // Determine if event passes resolved preselection (di-jet, di-jet mass)
   if (fApplyResolvedPresel && fJets->GetEntries() > 1) {
     int nGoodJetPairs = 0;
     int nGoodBJets = 0;
@@ -211,7 +211,7 @@ void BoostedVAnalysisMod::Process()
     }
     
     // Decision    
-    if (nGoodJetPairs > 0 && nGoodBJets == 0)
+    if (nGoodJetPairs > 0)
       passResolvedPresel = kTRUE;
   }
 
@@ -337,7 +337,7 @@ void BoostedVAnalysisMod::Process()
   }
 
   if (fApplyMetPresel) {
-    // Z Preselection: require boosted jet/resolved pair + MET
+    // Met Preselection: require boosted jet/resolved pair + MET
     int nGoodTagJets = 0;
 
     // Jets

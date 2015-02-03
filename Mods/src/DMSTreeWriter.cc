@@ -226,12 +226,129 @@ void DMSTreeWriter::Process()
                  fMitDMSTree.metFprint_,fMitDMSTree.metFprintPhi_,true);
     }    
   }
+  
+  // JETS : careful since the hardest could overlap with the fat jets
+  fMitDMSTree.rmvaval_ = -10.;
+  float resolvedVars[7];
+  UInt_t resolvedIndexOne = 0;
+  UInt_t resolvedIndexTwo = 0;
+  fMitDMSTree.njets_ = 0;
+  fMitDMSTree.nbjets_ = 0;
+  for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
+    
+    const XlJet *jet = fJets->At(i);
+    // Perform jet cleaning according to lepton counting
+    if (fMitDMSTree.nlep_ > 0 
+     && MathUtils::DeltaR(fMitDMSTree.lep1_,jet->Mom()) < 0.5)
+      continue;
+    if (fMitDMSTree.nlep_ > 1 
+     && MathUtils::DeltaR(fMitDMSTree.lep2_,jet->Mom()) < 0.5)
+      continue;
+    
+    if (fMitDMSTree.njets_ == 0) {
+      fMitDMSTree.jet1_        = jet->Mom();
+      fMitDMSTree.jet1CHF_     = jet->ChargedHadronEnergy()/jet->RawMom().E();
+      fMitDMSTree.jet1NHF_     = jet->NeutralHadronEnergy()/jet->RawMom().E();
+      fMitDMSTree.jet1NEMF_    = jet->NeutralEmEnergy()/jet->RawMom().E();
+      // Make Jet-HLT matching: this is used for preselection
+      if (IsHLTMatched(fMitDMSTree.jet1_, 
+                       TriggerObject::TriggerJet,
+                       0.5, 
+                       80., 2.4))
+        fMitDMSTree.HLTmatch_ |= MitDMSTree::JetMatch;         
+
+      // Angular info
+      fMitDMSTree.jet1metDphi_ = MathUtils::DeltaPhi(jet->Phi(),(double)fMitDMSTree.metPhi_);
+      fMitDMSTree.jet1jet2Dphi_ = GetJetJetsDphi(fMitDMSTree.jet1_);
+    }
+    if (fMitDMSTree.njets_ == 1)
+      fMitDMSTree.jet2_        = jet->Mom();
+    if (fMitDMSTree.njets_ == 2)
+      fMitDMSTree.jet3_        = jet->Mom();
+    if (fMitDMSTree.njets_ == 3)
+      fMitDMSTree.jet4_        = jet->Mom();
+    if (fMitDMSTree.njets_ == 4)
+      fMitDMSTree.jet5_        = jet->Mom();
+
+    // Increment the cleaned jet counter
+    fMitDMSTree.njets_++;
+
+    // Start resolved section
+    if (fJets->GetEntries() > i && (fMitDMSTree.preselWord_ & MitDMSTree::Resolved)) {
+      if (jet->CombinedSecondaryVertexBJetTagsDisc() > 0.679)
+        continue;
+      for (UInt_t j = i+1; j < fJets->GetEntries(); ++j) {
+        const XlJet *jetTwo = fJets->At(j);
+        if (jetTwo->CombinedSecondaryVertexBJetTagsDisc() > 0.679)
+          continue;
+        // Perform jet cleaning according to lepton counting
+        if (fMitDMSTree.nlep_ > 0 
+         && MathUtils::DeltaR(fMitDMSTree.lep1_,jetTwo->Mom()) < 0.5)
+          continue;
+        if (fMitDMSTree.nlep_ > 1 
+         && MathUtils::DeltaR(fMitDMSTree.lep2_,jetTwo->Mom()) < 0.5)
+          continue;
+        // Check mass
+        if ((jet->Mom() + jetTwo->Mom()).M() < 60.
+          ||(jet->Mom() + jetTwo->Mom()).M() > 110.) 
+          continue;
+        Double_t thisMVAval = fDiJetMVA->MVAValue(
+                              jet,jetTwo,
+                              fPileUpDen->At(0)->RhoRandomLowEta(),
+                              fMCParticles,kFALSE,resolvedVars);
+        if (thisMVAval > fMitDMSTree.rmvaval_) {
+          fMitDMSTree.rmvaval_ = thisMVAval;
+          resolvedIndexOne = i;
+          resolvedIndexTwo = j;
+          fMitDMSTree.rptOverM_     = resolvedVars[0];       
+          fMitDMSTree.rjet1_pullang_= resolvedVars[1];
+          fMitDMSTree.rjet2_pullang_= resolvedVars[2];
+          fMitDMSTree.rjet1_qgl_    = resolvedVars[3];
+          fMitDMSTree.rjet2_qgl_    = resolvedVars[4];
+          fMitDMSTree.rmdrop_       = resolvedVars[5];
+        }
+      } // endl loop on second jet
+    } // end resolved mini-ana
+
+    // Check that the jet is b-tagged (medium WP)
+    float btag = jet->CombinedSecondaryVertexBJetTagsDisc();  
+    if (btag < 0.679)
+      continue;
+
+    // Fill the information for the two hardest b-jets
+    if (fMitDMSTree.nbjets_ == 0) {
+      fMitDMSTree.bjet1_        = jet->Mom();
+      fMitDMSTree.bjet1Btag_    = btag;
+    }
+    if (fMitDMSTree.nbjets_ == 1) {
+      fMitDMSTree.bjet2_        = jet->Mom();
+      fMitDMSTree.bjet2Btag_    = btag;
+    }  
+
+    // Increment the b-jet counter
+    fMitDMSTree.nbjets_ ++;
+
+  }
+
+  // Fill revant information in case a good diJet pair is found
+  if (fMitDMSTree.rmvaval_ >= -1.) {
+    fMitDMSTree.rjet1_ = fJets->At(resolvedIndexOne)->Mom();
+    fMitDMSTree.rjet2_ = fJets->At(resolvedIndexTwo)->Mom();
+  }
 
   // FAT JETS  
-  fMitDMSTree.nfjets_ = fFatJets->GetEntries();
+  fMitDMSTree.nfjets_ = 0;
   for (UInt_t i = 0; i < fFatJets->GetEntries(); ++i) {
-    
-    if (i == 0) {
+
+    // Perform jet cleaning according to lepton counting
+    if (fMitDMSTree.nlep_ > 0 
+     && MathUtils::DeltaR(fMitDMSTree.lep1_,fFatJets->At(i)->Mom()) < 0.5)
+      continue;
+    if (fMitDMSTree.nlep_ > 1 
+     && MathUtils::DeltaR(fMitDMSTree.lep2_,fFatJets->At(i)->Mom()) < 0.5)
+      continue;
+          
+    if (fMitDMSTree.nfjets_ == 0) {
       const XlFatJet *fjet = fFatJets->At(i);    
       fMitDMSTree.fjet1_       = fjet->Mom();
       fMitDMSTree.fjet1CHF_     = fjet->ChargedHadronEnergy()/fjet->RawMom().E();
@@ -286,106 +403,11 @@ void DMSTreeWriter::Process()
 
     }// end filling of first fat jet
 
-  }
-  
-  // JETS : careful since the hardest could overlap with the fat jets
-  fMitDMSTree.rmvaval_ = -10.;
-  float resolvedVars[7];
-  UInt_t resolvedIndexOne = 0;
-  UInt_t resolvedIndexTwo = 0;
-  fMitDMSTree.njets_ = fJets->GetEntries();
-  for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
-    const XlJet *jet = fJets->At(i);
-
-    if (i == 0) {
-      fMitDMSTree.jet1_        = jet->Mom();
-      fMitDMSTree.jet1CHF_     = jet->ChargedHadronEnergy()/jet->RawMom().E();
-      fMitDMSTree.jet1NHF_     = jet->NeutralHadronEnergy()/jet->RawMom().E();
-      fMitDMSTree.jet1NEMF_    = jet->NeutralEmEnergy()/jet->RawMom().E();
-      // Make Jet-HLT matching: this is used for preselection
-      if (IsHLTMatched(fMitDMSTree.jet1_, 
-                       TriggerObject::TriggerJet,
-                       0.5, 
-                       80., 2.4))
-        fMitDMSTree.HLTmatch_ |= MitDMSTree::JetMatch;         
-
-      // Angular info
-      fMitDMSTree.jet1metDphi_ = MathUtils::DeltaPhi(jet->Phi(),(double)fMitDMSTree.metPhi_);
-      fMitDMSTree.jet1jet2Dphi_ = GetJetJetsDphi(fMitDMSTree.jet1_);
-    }
-    if (i == 1)
-      fMitDMSTree.jet2_        = jet->Mom();
-    if (i == 2)
-      fMitDMSTree.jet3_        = jet->Mom();
-    if (i == 3)
-      fMitDMSTree.jet4_        = jet->Mom();
-    if (i == 4)
-      fMitDMSTree.jet5_        = jet->Mom();
-
-    // Start resolved section
-    if (fMitDMSTree.njets_ > i && (fMitDMSTree.preselWord_ & MitDMSTree::Resolved)) {
-      if (jet->CombinedSecondaryVertexBJetTagsDisc() > 0.679)
-        continue;
-      for (UInt_t j = i+1; j < fJets->GetEntries(); ++j) {
-        const XlJet *jetTwo = fJets->At(j);
-        if (jetTwo->CombinedSecondaryVertexBJetTagsDisc() > 0.679)
-          continue;
-        // Check mass
-        if ((jet->Mom() + jetTwo->Mom()).M() < 60.
-          ||(jet->Mom() + jetTwo->Mom()).M() > 110.) 
-          continue;
-        Double_t thisMVAval = fDiJetMVA->MVAValue(
-                              jet,jetTwo,
-                              fPileUpDen->At(0)->RhoRandomLowEta(),
-                              fMCParticles,kFALSE,resolvedVars);
-        if (thisMVAval > fMitDMSTree.rmvaval_) {
-          fMitDMSTree.rmvaval_ = thisMVAval;
-          resolvedIndexOne = i;
-          resolvedIndexTwo = j;
-          fMitDMSTree.rptOverM_     = resolvedVars[0];       
-          fMitDMSTree.rjet1_pullang_= resolvedVars[1];
-          fMitDMSTree.rjet2_pullang_= resolvedVars[2];
-          fMitDMSTree.rjet1_qgl_    = resolvedVars[3];
-          fMitDMSTree.rjet2_qgl_    = resolvedVars[4];
-          fMitDMSTree.rmdrop_       = resolvedVars[5];
-        }
-      } // endl loop on second jet
-    } // end resolved mini-ana
+    // Increment cleaned fat jet counter
+    fMitDMSTree.nfjets_++;
 
   }
-
-  // Fill revant information in case a good diJet pair is found
-  if (fMitDMSTree.rmvaval_ >= -1.) {
-    fMitDMSTree.rjet1_ = fJets->At(resolvedIndexOne)->Mom();
-    fMitDMSTree.rjet2_ = fJets->At(resolvedIndexTwo)->Mom();
-  }
-    
-  // B-JETS : careful since the hardest could overlap with the fat jets
-  fMitDMSTree.nbjets_ = 0;
-  for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
-    const Jet *jet = fJets->At(i);
-    
-    // Check that the jet is b-tagged (medium WP)
-    float btag = jet->CombinedSecondaryVertexBJetTagsDisc();  
-    if (btag < 0.679)
-      continue;
-
-    // Fill the information for the two hardest b-jets
-    if (fMitDMSTree.nbjets_ == 0) {
-      fMitDMSTree.bjet1_        = jet->Mom();
-      fMitDMSTree.bjet1Btag_    = btag;
-    }
-    if (fMitDMSTree.nbjets_ == 1) {
-      fMitDMSTree.bjet2_        = jet->Mom();
-      fMitDMSTree.bjet2Btag_    = btag;
-    }  
-
-    // Increment the b-jet counter
-    fMitDMSTree.nbjets_ ++;
-
-  }
-
- 
+     
   // MC INFORMATION
 
   Double_t Q = 0.0;
@@ -684,11 +706,20 @@ Float_t DMSTreeWriter::GetJetJetsDphi(LorentzVector& v)
   // Loop on first two jets and consider the farthest one in phi  
   // which is not overlapping with the input jet (DR = 0.5)  
   UInt_t nMaxJets = 2;
+  UInt_t nCleanJets = 0;
   float maxDphi = -10.;
   for (UInt_t i=0; i<fJets->GetEntries(); ++i) {
-    if (i >= nMaxJets) 
-      continue;
     const XlJet *jet = fJets->At(i);
+    // Perform jet cleaning according to lepton counting
+    if (fMitDMSTree.nlep_ > 0 
+     && MathUtils::DeltaR(fMitDMSTree.lep1_,jet->Mom()) < 0.5)
+      continue;
+    if (fMitDMSTree.nlep_ > 1 
+     && MathUtils::DeltaR(fMitDMSTree.lep2_,jet->Mom()) < 0.5)
+      continue;
+    if (nCleanJets >= nMaxJets) 
+      continue;
+    nCleanJets++;
     // Discard ovelapping jets
     if (MathUtils::DeltaR(v, jet->Mom()) < 0.5)
       continue;

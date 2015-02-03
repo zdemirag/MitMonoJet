@@ -82,7 +82,7 @@ void runFlatBoostedV(const char *fileset    = "0000",
   inputFileList = "inputBavanti.txt";
   ana->AddFiles(inputFileList,-1);
 
-  TString inputPUFile = Utils::GetEnv("MIT_PROD_HIST") + "/" + TString(outputName) + "/merged/";
+  TString inputPUFile = Utils::GetEnv("MIT_HIST_DIR") + "/";
   inputPUFile += TString(outputName) + TString("_") +  TString(dataset);
   inputPUFile += "_noskim.root";  
 
