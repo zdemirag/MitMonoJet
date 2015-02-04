@@ -155,7 +155,7 @@ void BoostedVAnalysisMod::Process()
         passGjetHLT = kTRUE;
     }
   }
- 
+   
   // Initialize selection flags
   Bool_t passResolvedPresel = kFALSE;
   Bool_t passTopPresel = kFALSE;
@@ -174,10 +174,9 @@ void BoostedVAnalysisMod::Process()
     return;
   }
 
-  // Determine if event passes resolved preselection (di-jet, di-jet mass, b-veto)
+  // Determine if event passes resolved preselection (di-jet, di-jet mass)
   if (fApplyResolvedPresel && fJets->GetEntries() > 1) {
     int nGoodJetPairs = 0;
-    int nGoodBJets = 0;
 
     // Jets, check btagging for vetoing. Break loop as soon as one pair is found
     for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
@@ -186,10 +185,8 @@ void BoostedVAnalysisMod::Process()
       if (jetOne->Pt() < 30. || fabs(jetOne->Eta()) > 2.5)
         continue;
       // Check btagging
-      if (jetOne->CombinedSecondaryVertexBJetTagsDisc() > 0.679) {
-        nGoodBJets++;
+      if (jetOne->CombinedSecondaryVertexBJetTagsDisc() > 0.679)
         continue;
-      }      
       // di-jet mass cut                
       for (UInt_t j = i+1; j < fJets->GetEntries(); ++j) {
         const Jet *jetTwo = fJets->At(j);
@@ -211,7 +208,7 @@ void BoostedVAnalysisMod::Process()
     }
     
     // Decision    
-    if (nGoodJetPairs > 0 && nGoodBJets == 0)
+    if (nGoodJetPairs > 0)
       passResolvedPresel = kTRUE;
   }
 
@@ -337,7 +334,7 @@ void BoostedVAnalysisMod::Process()
   }
 
   if (fApplyMetPresel) {
-    // Z Preselection: require boosted jet/resolved pair + MET
+    // Met Preselection: require boosted jet/resolved pair + MET
     int nGoodTagJets = 0;
 
     // Jets
@@ -436,6 +433,11 @@ void BoostedVAnalysisMod::Process()
 
   // Store the preselection word in the extended event selection object
   if (fFillAndPublishPresel) {
+    int HLTWord          = GetHLTWord (
+                           passSingleMuHLT, 
+                           passMonoJetHLT,
+                           passVbfHLT,
+                           passGjetHLT); 
     int preselectionWord = GetPreselWord (
                            passTopPresel, 
                            passWlepPresel,
@@ -445,6 +447,7 @@ void BoostedVAnalysisMod::Process()
                            passGjetPresel,
                            passResolvedPresel); 
     fXlEvtSelData->SetFiltersWord(fEvtSelData->metFiltersWord());
+    fXlEvtSelData->SetHLTWord(HLTWord);
     fXlEvtSelData->SetPreselWord(preselectionWord);
   }
    
@@ -491,6 +494,32 @@ void BoostedVAnalysisMod::CorrectMet(const float met, const float metPhi,
   
   newMet = TMath::Sqrt(TMath::Power(newMetX,2) + TMath::Power(newMetY,2));
   newMetPhi = TMath::ATan2(newMetY,newMetX);
+}
+
+//--------------------------------------------------------------------------------------------------
+int  BoostedVAnalysisMod::GetHLTWord( 
+                          bool passSingleMuHLT,
+                          bool passMonoJetHLT,
+                          bool passVbfHLT,
+                          bool passGjetHLT)
+{  
+  // This function creates the word containing the HLT bit decisions.
+  // The bit ordering follows the order of the parameters passed
+  // to this function. 
+  
+  //Initialize the word
+  int theWord = 0;
+  //Initialize the vector of bits
+  std::vector<int> theBits;
+  theBits.push_back((int) passSingleMuHLT);
+  theBits.push_back((int) passMonoJetHLT);
+  theBits.push_back((int) passVbfHLT);
+  theBits.push_back((int) passGjetHLT);
+  //Create the word
+  for (unsigned int iBit = 0; iBit < theBits.size(); iBit++)
+    theWord |= theBits[iBit] << iBit;
+  
+  return theWord;
 }
 
 //--------------------------------------------------------------------------------------------------

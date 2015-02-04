@@ -89,6 +89,11 @@ namespace mithep
     void                  CorrectMet(const float met, const float metPhi,
                                      const Particle *l1, const Particle *l2,
                                      float &newMet, float &newMetPhi);
+    int                   GetHLTWord( 
+                          bool passSingleMuHLT,
+                          bool passMonoJetHLT,
+                          bool passVbfHLT,
+                          bool passGjetHLT);
     int                   GetPreselWord( 
                           bool passTopPresel, 
                           bool passWlepPresel,

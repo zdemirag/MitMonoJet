@@ -101,7 +101,7 @@ void FastJetMod::Process()
   if (fjOutJets.size() < 1) {
     printf(" FastJetMod - WARNING - input PFCands produces null reclustering output!\n");
 
-    if ((fjClustering->inclusive_jets()).size() > 0) 
+    if (fjOutJets.size() > 0) 
       fjClustering->delete_self_when_unused();
     delete fjClustering;
 
@@ -134,7 +134,8 @@ void FastJetMod::Process()
   AddObjThisEvt(fOutputJets);  
   
   // some memory cleanup
-  fjClustering->delete_self_when_unused();
+  if (fjOutJets.size() > 0) 
+    fjClustering->delete_self_when_unused();
   delete fjClustering;
   
   return;
