@@ -27,6 +27,7 @@ class MitLimitTree {
   Float_t          jet1pt_;
   Float_t          genjetpt_;
   Float_t          genVpt_;
+  Float_t          genVphi_;
   Float_t          dmpt_;
   Float_t          weight_;
   
@@ -73,6 +74,7 @@ class MitLimitTree {
     tree_->Branch("jet1pt"         , &jet1pt_          ,   "jet1pt/F");
     tree_->Branch("genjetpt"       , &genjetpt_        ,   "genjetpt/F");
     tree_->Branch("genVpt"         , &genVpt_          ,   "genVpt/F");
+    tree_->Branch("genVphi"        , &genVphi_         ,   "genVphi/F");
     tree_->Branch("dmpt"           , &dmpt_            ,   "dmpt/F");
     tree_->Branch("weight"         , &weight_          ,   "weight/F");
   }
@@ -105,6 +107,7 @@ class MitLimitTree {
     tree_->SetBranchAddress("jet1pt"         , &jet1pt_);
     tree_->SetBranchAddress("genjetpt"       , &genjetpt_);
     tree_->SetBranchAddress("genVpt"         , &genVpt_);
+    tree_->SetBranchAddress("genVphi"        , &genVphi_);
     tree_->SetBranchAddress("dmpt"           , &dmpt_);
     tree_->SetBranchAddress("weight"         , &weight_);
 
@@ -129,6 +132,7 @@ MitLimitTree::InitVariables(){
   jet1pt_    = -1.;
   genjetpt_  = -1.;
   genVpt_    = -1.;
+  genVphi_   = -1.;
   dmpt_      = -1.;
   weight_    = -1.;
 

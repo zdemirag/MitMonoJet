@@ -177,7 +177,6 @@ void BoostedVAnalysisMod::Process()
   // Determine if event passes resolved preselection (di-jet, di-jet mass)
   if (fApplyResolvedPresel && fJets->GetEntries() > 1) {
     int nGoodJetPairs = 0;
-    int nGoodBJets = 0;
 
     // Jets, check btagging for vetoing. Break loop as soon as one pair is found
     for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
@@ -186,10 +185,8 @@ void BoostedVAnalysisMod::Process()
       if (jetOne->Pt() < 30. || fabs(jetOne->Eta()) > 2.5)
         continue;
       // Check btagging
-      if (jetOne->CombinedSecondaryVertexBJetTagsDisc() > 0.679) {
-        nGoodBJets++;
+      if (jetOne->CombinedSecondaryVertexBJetTagsDisc() > 0.679)
         continue;
-      }      
       // di-jet mass cut                
       for (UInt_t j = i+1; j < fJets->GetEntries(); ++j) {
         const Jet *jetTwo = fJets->At(j);
