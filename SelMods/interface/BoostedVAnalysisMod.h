@@ -56,7 +56,8 @@ namespace mithep
     void                  ApplyResolvedPresel      (Bool_t b)      { fApplyResolvedPresel = b;    }
     void                  ApplyTopPresel           (Bool_t b)      { fApplyTopPresel = b;         }
     void                  ApplyWlepPresel          (Bool_t b)      { fApplyWlepPresel = b;        }
-    void                  ApplyZlepPresel          (Bool_t b)      { fApplyZlepPresel = b;        }
+    void                  ApplyZmmPresel           (Bool_t b)      { fApplyZmmPresel = b;         }
+    void                  ApplyZeePresel           (Bool_t b)      { fApplyZeePresel = b;         }
     void                  ApplyMetPresel           (Bool_t b)      { fApplyMetPresel = b;         }
     void                  ApplyVbfPresel           (Bool_t b)      { fApplyVbfPresel = b;         }
     void                  ApplyGjetPresel          (Bool_t b)      { fApplyGjetPresel = b;        }
@@ -93,11 +94,13 @@ namespace mithep
                           bool passSingleMuHLT,
                           bool passMonoJetHLT,
                           bool passVbfHLT,
-                          bool passGjetHLT);
+                          bool passGjetHLT,
+                          bool passDiEleHLT);
     int                   GetPreselWord( 
                           bool passTopPresel, 
                           bool passWlepPresel,
-                          bool passZlepPresel,
+                          bool passZmmPresel,
+                          bool passZeePresel,
                           bool passMetPresel, 
                           bool passVbfPresel, 
                           bool passGjetPresel,
@@ -122,7 +125,8 @@ namespace mithep
     Bool_t                fApplyResolvedPresel; 
     Bool_t                fApplyTopPresel; 
     Bool_t                fApplyWlepPresel;
-    Bool_t                fApplyZlepPresel;
+    Bool_t                fApplyZmmPresel;
+    Bool_t                fApplyZeePresel;
     Bool_t                fApplyMetPresel; 
     Bool_t                fApplyVbfPresel; 
     Bool_t                fApplyGjetPresel; 
@@ -155,7 +159,7 @@ namespace mithep
     Long64_t              fAll;
     Long64_t              fPass;
         
-    ClassDef(BoostedVAnalysisMod,4) // MonJet Selection Module
+    ClassDef(BoostedVAnalysisMod,5) // MonJet Selection Module
   };
 }
 #endif

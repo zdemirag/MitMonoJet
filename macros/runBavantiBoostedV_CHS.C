@@ -47,12 +47,11 @@ TString getJsonFile(const char* dir);
 void runBavantiBoostedV_CHS
                        (const char *fileset    = "0000",
                         const char *skim       = "noskim",
-                        //const char *dataset    = "s12-pj800_1400-v7a",     
-                        const char *dataset    = "s12-ttj-v1-v7a",     
+                        const char *dataset    = "s12-zll-ptz100-v7c",     
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 1000)
+                        int         nEvents    = 100)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -208,6 +207,16 @@ void runBavantiBoostedV_CHS
 
   for (int i=0; i<nVbfTrigs; i++)
     hltModP->AddTrigger((TString("!+")+vbfTriggers[i]).Data(),0,999999);
+
+  // DiElectrons triggers
+  const int nDiEleTrigs = 4;
+  TString diEleTrigs[nDiEleTrigs] = { "HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v15",
+                                      "HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v16",
+                                      "HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v17",
+                                      "HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v18" };
+ 
+  for (int i=0; i<nDiEleTrigs; i++)
+    hltModP->AddTrigger((TString("!+")+diEleTrigs[i]).Data(),0,999999);
 
   //------------------------------------------------------------------------------------------------
   // split pfcandidates to PFPU and PFnoPU
@@ -421,7 +430,8 @@ void runBavantiBoostedV_CHS
   fastPresel->ApplyResolvedPresel(kTRUE); 
   fastPresel->ApplyTopPresel(kFALSE); 
   fastPresel->ApplyWlepPresel(kTRUE);
-  fastPresel->ApplyZlepPresel(kTRUE);
+  fastPresel->ApplyZmmPresel(kTRUE);
+  fastPresel->ApplyZeePresel(kTRUE);
   fastPresel->ApplyMetPresel(kTRUE);
   fastPresel->ApplyVbfPresel(kFALSE);
   fastPresel->ApplyGjetPresel(kTRUE);
@@ -450,7 +460,8 @@ void runBavantiBoostedV_CHS
   jetplusmet->ApplyResolvedPresel(kTRUE); 
   jetplusmet->ApplyTopPresel(kFALSE); 
   jetplusmet->ApplyWlepPresel(kTRUE);
-  jetplusmet->ApplyZlepPresel(kTRUE);
+  jetplusmet->ApplyZmmPresel(kTRUE);
+  jetplusmet->ApplyZeePresel(kTRUE);
   jetplusmet->ApplyMetPresel(kTRUE);
   jetplusmet->ApplyVbfPresel(kFALSE);
   jetplusmet->ApplyGjetPresel(kTRUE);
