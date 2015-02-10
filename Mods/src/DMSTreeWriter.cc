@@ -84,9 +84,9 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
 DMSTreeWriter::~DMSTreeWriter()
 {
   // Destructor
+  delete fDiJetMVA;
   delete fJetUncertainties;
   delete fFatJetUncertainties;
-  delete fDiJetMVA;
   fOutputFile->Close();
 }
 
