@@ -1,5 +1,6 @@
 #include <TSystem.h>
 #include <TFile.h>
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "MitCommon/MathTools/interface/MathUtils.h"
 #include "MitAna/DataTree/interface/MuonFwd.h"
 #include "MitAna/DataTree/interface/ElectronFwd.h"
@@ -71,7 +72,9 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
   fPUTarget               (0),
   fPUWeight               (0),
   fDiJetMVA               (0),
-  // -------------------------
+  fJetUncertainties       (0),
+  fFatJetUncertainties    (0),
+   // -------------------------
   fOutputFile             (0)
 
 {
@@ -81,6 +84,8 @@ DMSTreeWriter::DMSTreeWriter(const char *name, const char *title) :
 DMSTreeWriter::~DMSTreeWriter()
 {
   // Destructor
+  delete fJetUncertainties;
+  delete fFatJetUncertainties;
   delete fDiJetMVA;
   fOutputFile->Close();
 }
@@ -233,6 +238,8 @@ void DMSTreeWriter::Process()
   UInt_t resolvedIndexOne = 0;
   UInt_t resolvedIndexTwo = 0;
   fMitDMSTree.njets_ = 0;
+  fMitDMSTree.njetsUp_ = 0;
+  fMitDMSTree.njetsDown_ = 0;
   fMitDMSTree.nbjets_ = 0;
   for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
     
@@ -244,9 +251,15 @@ void DMSTreeWriter::Process()
     if (fMitDMSTree.nlep_ > 1 
      && MathUtils::DeltaR(fMitDMSTree.lep2_,jet->Mom()) < 0.5)
       continue;
+
+    // Get the jet uncertainty
+    fJetUncertainties->setJetPt(jet->Pt());
+    fJetUncertainties->setJetEta(jet->Eta());
+    float jetUnc = fJetUncertainties->getUncertainty(true);
     
     if (fMitDMSTree.njets_ == 0) {
       fMitDMSTree.jet1_        = jet->Mom();
+      fMitDMSTree.jet1Unc_     = jetUnc;
       fMitDMSTree.jet1CHF_     = jet->ChargedHadronEnergy()/jet->RawMom().E();
       fMitDMSTree.jet1NHF_     = jet->NeutralHadronEnergy()/jet->RawMom().E();
       fMitDMSTree.jet1NEMF_    = jet->NeutralEmEnergy()/jet->RawMom().E();
@@ -270,8 +283,10 @@ void DMSTreeWriter::Process()
     if (fMitDMSTree.njets_ == 4)
       fMitDMSTree.jet5_        = jet->Mom();
 
-    // Increment the cleaned jet counter
+    // Increment the cleaned jet counter and the relative syst counters
     fMitDMSTree.njets_++;
+    if (jet->Pt()*(1.+jetUnc) > 30.) fMitDMSTree.njetsUp_++;
+    if (jet->Pt()*(1.-jetUnc) > 30.) fMitDMSTree.njetsDown_++;
 
     // Start resolved section
     if (fJets->GetEntries() > i && (fMitDMSTree.preselWord_ & MitDMSTree::Resolved)) {
@@ -340,6 +355,7 @@ void DMSTreeWriter::Process()
   fMitDMSTree.nfjets_ = 0;
   for (UInt_t i = 0; i < fFatJets->GetEntries(); ++i) {
 
+    const XlFatJet *fjet = fFatJets->At(i);    
     // Perform jet cleaning according to lepton counting
     if (fMitDMSTree.nlep_ > 0 
      && MathUtils::DeltaR(fMitDMSTree.lep1_,fFatJets->At(i)->Mom()) < 0.5)
@@ -347,10 +363,15 @@ void DMSTreeWriter::Process()
     if (fMitDMSTree.nlep_ > 1 
      && MathUtils::DeltaR(fMitDMSTree.lep2_,fFatJets->At(i)->Mom()) < 0.5)
       continue;
+
+    // Get the jet uncertainty
+    fFatJetUncertainties->setJetPt(fjet->Pt());
+    fFatJetUncertainties->setJetEta(fjet->Eta());
+    float jetUnc = fFatJetUncertainties->getUncertainty(true);
           
     if (fMitDMSTree.nfjets_ == 0) {
-      const XlFatJet *fjet = fFatJets->At(i);    
       fMitDMSTree.fjet1_       = fjet->Mom();
+      fMitDMSTree.fjet1Unc_     = jetUnc;
       fMitDMSTree.fjet1CHF_     = fjet->ChargedHadronEnergy()/fjet->RawMom().E();
       fMitDMSTree.fjet1NHF_     = fjet->NeutralHadronEnergy()/fjet->RawMom().E();
       fMitDMSTree.fjet1NEMF_    = fjet->NeutralEmEnergy()/fjet->RawMom().E();
@@ -525,6 +546,22 @@ void DMSTreeWriter::SlaveBegin()
           TString(getenv("CMSSW_BASE")+string("/src/MitMonoJet/Utils/data/vmva_weights/vtraining_highpt_cen.root_BDTG.weights.xml")),
           string(getenv("CMSSW_BASE"))+string("/src/MitMonoJet/Utils/data/QGSystDatabase.txt"));          
 
+  // Initialize Jet Uncertainties
+  string jetCorrectorParams;
+  string fatJetCorrectorParams;
+  if (fIsData) {
+    jetCorrectorParams = string(getenv("CMSSW_BASE"))+string("/src/MitPhysics/data/Summer13_V1_DATA_Uncertainty_AK5PF.txt");
+    fatJetCorrectorParams = string(getenv("CMSSW_BASE"))+string("/src/MitPhysics/data/FT53_V21A_AN6_Uncertainty_AK7PFchs.txt");
+  }
+  else {
+    jetCorrectorParams = string(getenv("CMSSW_BASE"))+string("/src/MitPhysics/data/Summer13_V1_MC_Uncertainty_AK5PF.txt");
+    fatJetCorrectorParams = string(getenv("CMSSW_BASE"))+string("/src/MitPhysics/data/FT53_V21A_AN6_Uncertainty_AK7PFchs.txt");
+  }
+  JetCorrectorParameters param(jetCorrectorParams);
+  JetCorrectorParameters paramFat(fatJetCorrectorParams);
+  fJetUncertainties = new JetCorrectionUncertainty(param);
+  fFatJetUncertainties = new JetCorrectionUncertainty(paramFat);
+  
   // Create Ntuple Tree
   fOutputFile = TFile::Open(TString::Format("%s_tmp.root",GetName()),"RECREATE");
   fMitDMSTree.CreateTree(0);

@@ -87,6 +87,7 @@ class MitDMSTree {
   // substructure jets are only saved for the hardest fat jet
   int            nfjets_;
   LorentzVector  fjet1_;
+  float          fjet1Unc_;  
   float          fjet1CHF_;  
   float          fjet1NHF_;  
   float          fjet1NEMF_; 
@@ -128,7 +129,10 @@ class MitDMSTree {
   LorentzVector  fjet1sj2_;
 
   unsigned int   njets_;
+  unsigned int   njetsUp_;
+  unsigned int   njetsDown_;
   LorentzVector  jet1_;
+  float          jet1Unc_;  
   float          jet1CHF_;  
   float          jet1NHF_;  
   float          jet1NEMF_; 
@@ -274,6 +278,7 @@ class MitDMSTree {
 
     tree_->Branch("nfjets", &nfjets_, "nfjets/i");
     tree_->Branch("fjet1", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &fjet1Ptr_);
+    tree_->Branch("fjet1Unc"         , &fjet1Unc_         , "fjet1Unc/F");  
     tree_->Branch("fjet1CHF"         , &fjet1CHF_         , "fjet1CHF/F");  
     tree_->Branch("fjet1NHF"         , &fjet1NHF_         , "fjet1NHF/F");  
     tree_->Branch("fjet1NEMF"        , &fjet1NEMF_        , "fjet1NEMF/F"); 
@@ -314,8 +319,11 @@ class MitDMSTree {
     tree_->Branch("fjet1sj1", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &fjet1sjPtr1_);
     tree_->Branch("fjet1sj2", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &fjet1sjPtr2_);
 
-    tree_->Branch("njets", &njets_, "njets/i");
+    tree_->Branch("njets"    , &njets_    , "njets/i");
+    tree_->Branch("njetsUp"  , &njetsUp_  , "njetsUp/i");
+    tree_->Branch("njetsDown", &njetsDown_, "njetsDown/i");
     tree_->Branch("jet1", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &jetPtr1_);
+    tree_->Branch("jet1Unc"         , &jet1Unc_         , "jet1Unc/F");  
     tree_->Branch("jet1CHF"         , &jet1CHF_         , "jet1CHF/F");  
     tree_->Branch("jet1NHF"         , &jet1NHF_         , "jet1NHF/F");  
     tree_->Branch("jet1NEMF"        , &jet1NEMF_        , "jet1NEMF/F"); 
@@ -588,6 +596,7 @@ MitDMSTree::InitVariables(){
 
   nfjets_         = 0;
   fjet1_          = LorentzVector();
+  fjet1Unc_       = -1.;
   fjet1CHF_       = -1.;
   fjet1NHF_       = -1.;
   fjet1NEMF_      = -1.;
@@ -629,7 +638,10 @@ MitDMSTree::InitVariables(){
   fjet1sj2_      = LorentzVector();
   
   njets_         = 0;
+  njetsUp_       = 0;
+  njetsDown_     = 0;
   jet1_          = LorentzVector();
+  jet1Unc_       = -1.;
   jet1CHF_       = -1.;
   jet1NHF_       = -1.;
   jet1NEMF_      = -1.;

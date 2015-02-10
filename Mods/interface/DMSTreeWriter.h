@@ -11,6 +11,8 @@
 #include <TH1D.h>
 #include <TFile.h>
 
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+
 #include "MitAna/TreeMod/interface/BaseMod.h" 
 #include "MitAna/DataTree/interface/MCEventInfo.h"
 #include "MitAna/DataTree/interface/PileupInfoCol.h"
@@ -163,11 +165,15 @@ namespace mithep
                                                  Float_t deltaR = 0.3);
 
     DiJetMVA                      *fDiJetMVA; //MVA helper for resolved category
+    
+    // Get jet uncertainties   
+    JetCorrectionUncertainty      *fJetUncertainties;
+    JetCorrectionUncertainty      *fFatJetUncertainties;
                                                 
     TFile                         *fOutputFile;
     MitDMSTree                     fMitDMSTree;
 
-    ClassDef(DMSTreeWriter,2)
+    ClassDef(DMSTreeWriter,3)
   };
 }
 #endif
