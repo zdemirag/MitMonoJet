@@ -235,8 +235,8 @@ void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight
     }
       
     if (selMode >= 8) {
-      outtree.jet1pt_ = intree.jet1_.Pt();
-      outtree.genjetpt_ = intree.jet1_.Pt();
+      outtree.jet1pt_ = intree.jet1_.Pt()*(1.+JESsyst*intree.jet1Unc_);
+      outtree.genjetpt_ = intree.jet1_.Pt()*(1.+JESsyst*intree.jet1Unc_);
     }
       
     outtree.genVpt_ = intree.genV_.Pt();
