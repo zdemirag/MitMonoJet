@@ -7,6 +7,8 @@
 #include <TSystem.h>
 #include <TROOT.h>
 #include <TFile.h>
+#include <TH1F.h>
+#include <TF1.h>
 #include <TNtuple.h>
 #include <TTree.h>
 #include <TH1D.h>
@@ -61,6 +63,10 @@ const double MLL_MAX_CUT = 120.;
 const double PHO_PT_CUT  = 160.;
 const double PHO_ETA_CUT = 2.5;
 
+//---Syst block---//
+float JESsyst = 0;
+bool QGsyst = false;
+
 //---
 TString getEnv(const char* name);
 //---
@@ -68,7 +74,7 @@ void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight
 //---
 bool eventPassSelection(MitDMSTree &intree, int selMode = 0, bool exclusive = true);
 //==================================================================================================
-void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = false, bool exclusive = true, bool testing = false) 
+void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = false, bool exclusive = true, bool testing = false, float setJESsyst = 0, bool setQGsyst = false) 
 {
   // Define tree name (depends on selection)
   TString outTreeNameExt;
@@ -82,6 +88,10 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
     outTreeNameExt = "_photon_control";
   else 
     cout << "ERROR -- Incorrect selMode parameter, please review!" << endl;
+
+  // Setup systematics flags
+  JESsyst = setJESsyst;
+  QGsyst = setQGsyst;
 
   // Define output files mode
   TString outFileMode = "RECREATE";
@@ -112,15 +122,22 @@ void makeReducedTree(int selMode = 0, double lumi = 19700.0, bool updateFile = f
   // Prepare pointer to outfile
   TFile *fin;
   TFile *fout;
-  TString outFileName = "boosted.root";
+  TString outFileName = "boosted";
   if (selMode >= 4 && selMode < 8)
-    outFileName = "resolved.root";
+    outFileName = "resolved";
   if (selMode >= 8)
-    outFileName = "inclusive.root";
+    outFileName = "inclusive";
   if (!exclusive)
-    outFileName = "baseline.root";
+    outFileName = "baseline";
   if (testing)
-    outFileName = "testing.root";
+    outFileName = "testing";
+    
+  if (JESsyst > 0.5)
+    outFileName += "_JESup";
+  if (JESsyst < -0.5)
+    outFileName += "_JESdown";
+  
+  outFileName += ".root";
   fout = new TFile(outFileName,outFileMode);
   
   // Prepare object to store outtree
@@ -190,6 +207,16 @@ TString getEnv(const char* name)
 //==================================================================================================
 void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight, int selMode, bool isData, bool exclusive, bool testing)
 {
+  // Prepare special weights if needed
+  TFile *fweights;
+  TH1F* hweights; 
+  TF1* funcweights;
+  if (QGsyst) {
+    fweights = new TFile("weights.root","READ");
+    hweights = (TH1F*) fweights->FindObjectAny("histoWeight");
+    funcweights = (TF1*) hweights->GetFunction("fitfunc");
+  }
+
   double weight = -1;
   double sumweight = 0;
   // Loop over tree entries
@@ -222,31 +249,41 @@ void fillOutNtuples(MitLimitTree &outtree, MitDMSTree &intree, double baseWeight
       outtree.mt_ = intree.mt_;
     if (selMode == 3 || selMode == 7 || selMode == 11) {
       outtree.mvamet_ = intree.metFprint_;
-      outtree.ptpho_ = intree.pho1_.Pt();
+      outtree.ptpho_ = intree.pho1_.Pt();      
     }
     outtree.mvametphi_ = intree.metPhi_;
     outtree.njets_ = intree.njets_;
-    outtree.jet1pt_ = intree.fjet1_.Pt();
-    outtree.genjetpt_ = intree.fjet1_.Pt();
+    if (JESsyst > 0.5)
+      outtree.njets_ = intree.njetsUp_; 
+    if (JESsyst < -0.5)
+      outtree.njets_ = intree.njetsDown_; 
+    outtree.jet1pt_ = intree.fjet1_.Pt()*(1.+JESsyst*intree.fjet1Unc_);
+    outtree.genjetpt_ = intree.fjet1_.Pt()*(1.+JESsyst*intree.fjet1Unc_);
     
-    if (selMode >= 4 && selMode < 8)
+    if (selMode >= 4 && selMode < 8) {
       outtree.jet1pt_ = (intree.rjet1_ + intree.rjet2_).Pt();
       outtree.genjetpt_ = intree.rjet1_.Pt();
+    }
       
-    if (selMode >= 8)
-      outtree.jet1pt_ = intree.jet1_.Pt();
-      outtree.genjetpt_ = intree.jet1_.Pt();
+    if (selMode >= 8) {
+      outtree.jet1pt_ = intree.jet1_.Pt()*(1.+JESsyst*intree.jet1Unc_);
+      outtree.genjetpt_ = intree.jet1_.Pt()*(1.+JESsyst*intree.jet1Unc_);
+    }
       
     outtree.genVpt_ = intree.genV_.Pt();
     outtree.genVphi_ = intree.genV_.Phi();
     outtree.dmpt_ = intree.genmet_;
     outtree.weight_ = weight;
+    if ((selMode == 3 || selMode == 7 || selMode == 11) && intree.genVid_ == 22 && QGsyst)
+      outtree.weight_ *= funcweights->Eval(intree.fjet1QGtag_);
     if (isData) {
       outtree.genjetpt_ = -1.;
       outtree.genVpt_ = -1.;
       outtree.genVphi_ = -1.;
       outtree.dmpt_ = -1.;
       outtree.weight_ = -1.;
+      if ((selMode == 3 || selMode == 7 || selMode == 11) && QGsyst) 
+        outtree.weight_ = funcweights->Eval(intree.fjet1QGtag_);
     }
 
     // Fill output tree
@@ -298,7 +335,12 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
   // Narrow jets
   bool jetBit = ((intree.jet1_.Pt() > JET_PT_CUT && abs(intree.jet1_.eta()) < JET_ETA_CUT)
                && intree.jet1CHF_ > JET_CHF_CUT && intree.jet1NHF_ < JET_NHF_CUT && intree.jet1NEMF_ < JET_NEMF_CUT);
-  bool nJetBit = (intree.njets_ < JET_NMAX_CUT+0.5);
+  int njets = intree.njets_;
+  if (JESsyst > 0.5)
+    njets = intree.njetsUp_; 
+  if (JESsyst < -0.5)
+    njets = intree.njetsDown_; 
+  bool nJetBit = (njets < JET_NMAX_CUT+0.5);
 
   // Resolved category
   bool resolvedBit = (intree.nbjets_ < BJET_NMAX_CUT+0.5 && intree.rmvaval_ > RES_MVA_CUT);

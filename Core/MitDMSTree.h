@@ -421,6 +421,7 @@ class MitDMSTree {
 
     tree_->SetBranchAddress("nfjets"           , &nfjets_           );
     tree_->SetBranchAddress("fjet1"            , &fjet1Ptr_         );
+    tree_->SetBranchAddress("fjet1Unc"         , &fjet1Unc_         );  
     tree_->SetBranchAddress("fjet1CHF"         , &fjet1CHF_          );  
     tree_->SetBranchAddress("fjet1NHF"         , &fjet1NHF_          );  
     tree_->SetBranchAddress("fjet1NEMF"        , &fjet1NEMF_         ); 
@@ -462,7 +463,10 @@ class MitDMSTree {
     tree_->SetBranchAddress("fjet1sj2"         , &fjet1sjPtr2_      );
 
     tree_->SetBranchAddress("njets"            , &njets_            );
+    tree_->SetBranchAddress("njetsUp"          , &njetsUp_          );
+    tree_->SetBranchAddress("njetsDown"        , &njetsDown_        );
     tree_->SetBranchAddress("jet1"             , &jetPtr1_          );
+    tree_->SetBranchAddress("jet1Unc"          , &jet1Unc_          );  
     tree_->SetBranchAddress("jet1CHF"          , &jet1CHF_          );  
     tree_->SetBranchAddress("jet1NHF"          , &jet1NHF_          );  
     tree_->SetBranchAddress("jet1NEMF"         , &jet1NEMF_         ); 
