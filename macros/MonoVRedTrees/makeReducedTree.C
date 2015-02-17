@@ -333,7 +333,8 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
     metBit = (thisMet > MET_CUT_MONOV);
                       
   // Narrow jets
-  bool jetBit = ((intree.jet1_.Pt() > JET_PT_CUT && abs(intree.jet1_.eta()) < JET_ETA_CUT)
+  float jetpt =  intree.jet1_.Pt()*(1.+JESsyst*intree.jet1Unc_);
+  bool jetBit = ((jetpt > JET_PT_CUT && abs(intree.jet1_.eta()) < JET_ETA_CUT)
                && intree.jet1CHF_ > JET_CHF_CUT && intree.jet1NHF_ < JET_NHF_CUT && intree.jet1NEMF_ < JET_NEMF_CUT);
   int njets = intree.njets_;
   if (JESsyst > 0.5)
@@ -346,12 +347,13 @@ bool eventPassSelection(MitDMSTree &intree, int selMode, bool exclusive)
   bool resolvedBit = (intree.nbjets_ < BJET_NMAX_CUT+0.5 && intree.rmvaval_ > RES_MVA_CUT);
 
   // Inclusive category
-  bool inclusiveBit = (intree.jet1_.Pt() > JET_PT_CUT_INCL && abs(intree.jet1_.Eta()) < JET_ETA_CUT_INCL);
+  bool inclusiveBit = (jetpt > JET_PT_CUT_INCL && abs(intree.jet1_.Eta()) < JET_ETA_CUT_INCL);
   inclusiveBit = inclusiveBit && (abs(MathUtils::DeltaPhi((double)thisMetPhi,intree.jet1_.Phi())) > JETMET_DPHI_CUT);
   inclusiveBit = inclusiveBit && (intree.jet1jet2Dphi_ < -5. || abs(intree.jet1jet2Dphi_) < JETJET_DPHI_CUT);
 
   // Fat jet category::cut-based
-  bool fatJetBit = ((intree.fjet1_.Pt() > FJET_PT_CUT && abs(intree.fjet1_.Eta()) < FJET_ETA_CUT)
+  float fjetpt =  intree.fjet1_.Pt()*(1.+JESsyst*intree.fjet1Unc_);
+  bool fatJetBit = ((fjetpt > FJET_PT_CUT && abs(intree.fjet1_.Eta()) < FJET_ETA_CUT)
                   && intree.fjet1CHF_ > JET_CHF_CUT && intree.fjet1NHF_ < JET_NHF_CUT && intree.fjet1NEMF_ < JET_NEMF_CUT);
   fatJetBit = fatJetBit && (abs(MathUtils::DeltaPhi((double)thisMetPhi,intree.fjet1_.Phi())) > JETMET_DPHI_CUT);
   fatJetBit = fatJetBit && (intree.fjet1jet2Dphi_ < -5. || abs(intree.fjet1jet2Dphi_) < JETJET_DPHI_CUT);
