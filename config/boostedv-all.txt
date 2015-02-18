@@ -114,11 +114,13 @@ t2mit/filefi/032 s12-dmmjet-vd_m1000-v7a  noskim       ~        1.0    1.0    -1
 t2mit/filefi/032 s12-dmmjet-avu_m1000-v7a noskim       ~        1.0    1.0    -1.0   ~
 t2mit/filefi/032 s12-dmmjet-avd_m1000-v7a noskim       ~        1.0    1.0    -1.0   ~
 ### V+DM,EFT ###
-t2mit/filefi/032 monoWToQQ_mDM1000_D1_xip1_TuneZ2Star_8TeV-MadGraph5+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM noskim WEFTDM1000D1XIP1 1.0  1.0 -1.0 ~
-t2mit/filefi/032 monoWToQQ_mDM1_D1_xip1_TuneZ2Star_8TeV-MadGraph5+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM    noskim WEFTDM1D1XIP1    1.0  1.0 -1.0 ~
-t2mit/filefi/032 monoZToQQ_mDM1000_D1_xip1_TuneZ2Star_8TeV-MadGraph5+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM noskim ZEFTDM1000D1     1.0  1.0 -1.0 ~
-t2mit/filefi/032 monoZToQQ_mDM1_D1_xip1_TuneZ2Star_8TeV-MadGraph5+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM    noskim ZEFTDM1D1        1.0  1.0 -1.0 ~
-t2mit/filefi/032 monoZToQQ_mDM100_D5_xip1_TuneZ2Star_8TeV-MadGraph5+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM  noskim ZEFTDM100D5      1.0  1.0 -1.0 ~
+t2mit/filefi/032 monoWToQQ_mDM1000_D1_xip1_TuneZ2Star_8TeV-MadGraph5+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM  noskim WDMEFT  4.71E-12 1.0 -1.0 ~
+t2mit/filefi/032 monoWToQQ_mDM1_D1_xip1_TuneZ2Star_8TeV-MadGraph5+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM     noskim ~       2.08E-9  1.0 -1.0 ~
+t2mit/filefi/032 monoWToQQ_mDM100_D5_xim1_TuneZ2Star_8TeV-MadGraph5+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM   noskim ~       1.36     1.0 -1.0 ~
+t2mit/filefi/032 monoWToQQ_mDM100_D5_xip1_TuneZ2Star_8TeV-MadGraph5+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM   noskim ~       0.424    1.0 -1.0 ~
+t2mit/filefi/032 monoZToQQ_mDM1000_D1_xip1_TuneZ2Star_8TeV-MadGraph5+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM  noskim ZDMEFT  2.92E-13 1.0 -1.0 ~
+t2mit/filefi/032 monoZToQQ_mDM1_D1_xip1_TuneZ2Star_8TeV-MadGraph5+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM     noskim ~       2.74E-10 1.0 -1.0 ~
+t2mit/filefi/032 monoZToQQ_mDM100_D5_xip1_TuneZ2Star_8TeV-MadGraph5+Summer12DR53X-PU_S10_START53_V19-v1+AODSIM   noskim ~       0.0113   1.0 -1.0 ~
 ##=============================================================================================================================================================
 ##=   DATA   ==================================================================================================================================================
 ##=============================================================================================================================================================
