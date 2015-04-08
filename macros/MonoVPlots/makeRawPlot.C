@@ -12,12 +12,14 @@ using namespace std;
 using namespace mithep;
 
 //==================================================================================================
-void makeRawPlot(TString const& outputDir, double lumi = 19700.0, int mode = 0, TString variable = "metRaw", int icut = 0, int nBins = 60, float min = 200, float max = 800, bool varbins = false)
+void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw", int icut = 0, int nBins = 60, float min = 200, float max = 800, bool varbins = false)
 {
   // example:
-  // root -b -q $MIT_USER_DIR/macros/rootlogon_monojet.C $MIT_USER_DIR/macros/MonoVPlots/makeRawPlot.C+'("'$HOME'/cms/hist",19700,2,"met",2,35,250,1000,1)'
+  // root -b -q $MIT_USER_DIR/macros/rootlogon_monojet.C $MIT_USER_DIR/macros/MonoVPlots/makeRawPlot.C+'(19700,2,"met",2,35,250,1000,1)'
 
   // Create raw plots for further analysis (limits) or plotting
+
+  TString outputDir(gSystem->Getenv("MIT_ANA_OUT"));
 
   // setup graphics stuff before starting
   MitStyle::Init();
