@@ -12,17 +12,13 @@ using namespace std;
 using namespace mithep;
 
 //==================================================================================================
-void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw", int icut = 0, int nBins = 60, float min = 200, float max = 800, bool varbins = false)
+void makeRawPlot(TString const& outputDir, double lumi = 19700.0, int mode = 0, TString variable = "metRaw", int icut = 0, int nBins = 60, float min = 200, float max = 800, bool varbins = false)
 {
+  // example:
+  // root -b -q $MIT_USER_DIR/macros/rootlogon_monojet.C $MIT_USER_DIR/macros/MonoVPlots/makeRawPlot.C+'("'$HOME'/cms/hist",19700,2,"met",2,35,250,1000,1)'
+
   // Create raw plots for further analysis (limits) or plotting
 
-  // set the folder containing the input ntuples properly
-  // here you can change the plot sources, i.e. the list of samples to be processed
-  // and the location of the input flat trees
-  gSystem->Setenv("MIT_ANA_CFG","boostedv-plots");
-  //gSystem->Setenv("MIT_ANA_HIST","/mnt/hscratch/dimatteo/boostedv-v9/merged/");
-  gSystem->Setenv("MIT_ANA_HIST","/scratch4/dimatteo/cms/hist/boostedv-v10/merged-test/");
- 
   // setup graphics stuff before starting
   MitStyle::Init();
 
@@ -177,7 +173,6 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     
   // For variable binning
   if (mode == -1) {
-    gSystem->Setenv("MIT_ANA_CFG","boostedv-plots");
     // plot metRaw, BDT loose
     plotTask = new PlotTask(0,lumi);
     plotTask->SetVarBins(true);
@@ -186,26 +181,24 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     plotTask->SetNBins(numBins);
     plotTask->SetAxisTitles("E_{T}^{miss} [GeV]","Number of Events");
     plotTask->SetPngFileName("/tmp/dummy.png");
-    plotTask->Plot(Stacked,nTuple,"metRaw",cuts[0],"BDT_loose_varbins_" + regions[0]);
+    plotTask->Plot(Stacked,nTuple,"metRaw",cuts[0],outputDir + "/BDT_loose_varbins_" + regions[0]);
     printf("Finished Plot for Region %s and Variable %s!\n",regions[0].Data(),"metRaw");
     delete plotTask;
   }
   // For limits
   if (mode == 0) {
-    gSystem->Setenv("MIT_ANA_CFG","boostedv-plots");
     // plot metRaw, BDT loose
     plotTask = new PlotTask(0,lumi);
     plotTask->SetHistRanges(200.0,800.0,0.,0.);
     plotTask->SetNBins(60);
     plotTask->SetAxisTitles("E_{T}^{miss} [GeV]","Number of Events");
     plotTask->SetPngFileName("/tmp/dummy.png");
-    plotTask->Plot(Stacked,nTuple,"metRaw",cuts[0],"BDT_loose_" + regions[0]);
+    plotTask->Plot(Stacked,nTuple,"metRaw",cuts[0],outputDir + "/BDT_loose_" + regions[0]);
     printf("Finished Plot for Region %s and Variable %s!\n",regions[0].Data(),"metRaw");
     delete plotTask;
   }
   // For signal region plots
   else if (mode == 1) {
-    gSystem->Setenv("MIT_ANA_CFG","boostedv-plots");
     // plot metRaw
     plotTask = new PlotTask(0,lumi);
     plotTask->SetVarBins(varbins);
@@ -219,13 +212,12 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     plotTask->SetNBins(nBins);
     plotTask->SetAxisTitles(variable,"Number of Events");
     plotTask->SetPngFileName("/tmp/dummy.png");
-    plotTask->Plot(Stacked,nTuple,variable,cuts[icut],"BDT_" + regions[0]);
+    plotTask->Plot(Stacked,nTuple,variable,cuts[icut],outputDir + "/BDT_" + regions[0]);
     printf("Finished Plot for Region %s and Variable %s!\n",regions[0].Data(),variable.Data());
     delete plotTask;
   }
   // For Zll control region plots
   else if (mode == 2) {
-    gSystem->Setenv("MIT_ANA_CFG","boostedv-plots-z");
     // plot met corrected
     plotTask = new PlotTask(0,lumi);
     plotTask->SetVarBins(varbins);
@@ -239,16 +231,12 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     plotTask->SetNBins(nBins);
     plotTask->SetAxisTitles(variable,"Number of Events");
     plotTask->SetPngFileName("/tmp/dummy.png");
-    if (variable == "met")
-      plotTask->Plot(Stacked,nTuple,"met",cuts[icut],"BDT_" + regions[1]);
-    else 
-      plotTask->Plot(Stacked,nTuple,variable,cuts[icut],"BDT_" + regions[1]);
+    plotTask->Plot(Stacked,nTuple,variable,cuts[icut],outputDir + "/BDT_" + regions[1]);
     printf("Finished Plot for Region %s and Variable %s!\n",regions[1].Data(),variable.Data());
     delete plotTask;
   }
   // For Wlv control region plots
   else if (mode == 3) {
-    gSystem->Setenv("MIT_ANA_CFG","boostedv-plots-w");
     // plot met corrected
     plotTask = new PlotTask(0,lumi);
     plotTask->SetVarBins(varbins);
@@ -263,15 +251,14 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     plotTask->SetAxisTitles(variable,"Number of Events");
     plotTask->SetPngFileName("/tmp/dummy.png");
     if (variable == "met")
-      plotTask->Plot(Stacked,nTuple,"met",cuts[icut],"BDT_" + regions[2]);
+      plotTask->Plot(Stacked,nTuple,"met",cuts[icut],outputDir + "/BDT_" + regions[2]);
     else 
-      plotTask->Plot(Stacked,nTuple,variable,cuts[icut],"BDT_" + regions[2]);
+      plotTask->Plot(Stacked,nTuple,variable,cuts[icut],outputDir + "/BDT_" + regions[2]);
     printf("Finished Plot for Region %s and Variable %s!\n",regions[2].Data(),variable.Data());
     delete plotTask;
   }
   // For Photon+jets control region plots
   else if (mode == 4) {
-    gSystem->Setenv("MIT_ANA_CFG","boostedv-plots-pj");
     // plot met corrected
     plotTask = new PlotTask(0,lumi);
     plotTask->SetVarBins(varbins);
@@ -285,10 +272,7 @@ void makeRawPlot(double lumi = 19700.0, int mode = 0, TString variable = "metRaw
     plotTask->SetNBins(nBins);
     plotTask->SetAxisTitles(variable,"Number of Events");
     plotTask->SetPngFileName("/tmp/dummy.png");
-    if (variable == "met")
-      plotTask->Plot(Stacked,nTuple,"met",cuts[icut],"BDT_" + regions[3]);
-    else 
-      plotTask->Plot(Stacked,nTuple,variable,cuts[icut],"BDT_" + regions[3]);
+    plotTask->Plot(Stacked,nTuple,variable,cuts[icut],outputDir + "/BDT_" + regions[3]);
     printf("Finished Plot for Region %s and Variable %s!\n",regions[3].Data(),variable.Data());
     delete plotTask;
   }
