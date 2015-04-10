@@ -1,3 +1,3 @@
 #!/bin/bash
 
-$CMSSW_BASE/src/MitMonoJet/bin/installQJets.sh
+$CMSSW_BASE/src/MitMonoJet/bin/installQjets.sh
