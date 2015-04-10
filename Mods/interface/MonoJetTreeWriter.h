@@ -153,7 +153,7 @@ namespace mithep
 
     const PFMetCol                *fRawMet;
     const MetCol                  *fMet;
-    MVAMet                        *fMVAMet;
+    //    MVAMet                        *fMVAMet;
     const PhotonCol               *fPhotons;
     const ElectronCol             *fElectrons;
     const MuonCol                 *fMuons;
