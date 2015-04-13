@@ -6,6 +6,7 @@
 #include "MitMonoJet/Mods/interface/DMSTreeWriter.h"
 #include "MitMonoJet/Mods/interface/SkimJetsMod.h"
 #include "MitMonoJet/Mods/interface/FastJetMod.h"
+#include "MitMonoJet/Mods/interface/MetAnalysisMod.h"
 #endif
 
 #ifdef __CINT__
@@ -23,4 +24,5 @@
 #pragma link C++ class mithep::DMSTreeWriter+;
 #pragma link C++ class mithep::SkimJetsMod+;
 #pragma link C++ class mithep::FastJetMod+;
+#pragma link C++ class mithep::MetAnalysisMod+;
 #endif

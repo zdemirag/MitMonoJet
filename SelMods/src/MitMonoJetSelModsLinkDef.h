@@ -16,5 +16,6 @@
 #pragma link C++ namespace mithep;
 
 #pragma link C++ class mithep::BoostedVAnalysisMod+;
+#pragma link C++ class mithep::ObjArray<mithep::TriggerMask>+;
 #pragma link C++ class mithep::MonoJetAnalysisMod+;
 #endif

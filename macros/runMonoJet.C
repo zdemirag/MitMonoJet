@@ -41,10 +41,10 @@ TString getJsonFile(const char* dir);
 //--------------------------------------------------------------------------------------------------
 void runMonoJet(const char *fileset    = "0000",
                 const char *skim       = "noskim",
-                const char *dataset    = "s12-wjets-1-v7a",
+                const char *dataset    = "s12-zjets-ptz100-v7a",
                 const char *book       = "t2mit/filefi/032",
                 const char *catalogDir = "/home/cmsprod/catalog",
-                const char *outputName = "MonoJet_August13",
+                const char *outputName = "MonoJet",
                 int         nEvents    = 100)
 {
   //------------------------------------------------------------------------------------------------
@@ -316,7 +316,7 @@ void runMonoJet(const char *fileset    = "0000",
   jetID->SetJetEEMFractionMinCut(0.00);
   jetID->SetOutputName("GoodJets");
   jetID->SetApplyBetaCut(kFALSE);
-  jetID->SetApplyMVACut(kTRUE);
+  jetID->SetApplyMVACut(kFALSE);
 
   JetCleaningMod *jetCleaning = new JetCleaningMod;
   jetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());
