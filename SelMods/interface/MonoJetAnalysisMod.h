@@ -61,12 +61,16 @@ namespace mithep
 
     // Setting cut values
     void                  SetMinNumLeptons         (UInt_t c, Int_t n)       { fMinNumLeptons[c] = n;          }
+    void                  SetMaxNumLeptons         (UInt_t c, Int_t n)       { fMaxNumLeptons[c] = n;          }
     void                  SetMinNumTaus            (UInt_t c, Int_t n)       { fMinNumTaus[c] = n;             }
+    void                  SetMaxNumTaus            (UInt_t c, Int_t n)       { fMaxNumTaus[c] = n;             }
     void                  SetMinNumJets            (UInt_t c, Int_t n)       { fMinNumJets[c] = n;             }
+    void                  SetMaxNumJets            (UInt_t c, Int_t n)       { fMaxNumJets[c] = n;             }
     void                  SetMinNumGenNeutrinos    (UInt_t c, Int_t n)       { fMinNumGenNeutrinos[c] = n;     }
     void                  SetMinJetEt              (UInt_t c, Double_t x)    { fMinJetEt[c] = x;               }
     void                  SetMaxJetEta             (UInt_t c, Double_t x)    { fMaxJetEta[c] = x;              }
     void                  SetMinMetEt              (UInt_t c, Double_t x)    { fMinMetEt[c] = x;               }
+    void                  SetMinEmulMetEt          (UInt_t c, Double_t x)    { fMinEmulMetEt[c] = x;           }
     void                  SetMinChargedHadronFrac  (UInt_t c, Double_t x)    { fMinChargedHadronFrac[c] = x;   }
     void                  SetMaxNeutralHadronFrac  (UInt_t c, Double_t x)    { fMaxNeutralHadronFrac[c] = x;   }
     void                  SetMaxNeutralEmFrac      (UInt_t c, Double_t x)    { fMaxNeutralEmFrac[c] = x;       }
@@ -111,12 +115,16 @@ namespace mithep
     // Pretty bad implementation as the output file does not document
     // what cuts resulted in which cateogry, but this is just an example..
     UInt_t                fMinNumLeptons[nCat];
+    UInt_t                fMaxNumLeptons[nCat];
     UInt_t                fMinNumTaus[nCat];
+    UInt_t                fMaxNumTaus[nCat];
     UInt_t                fMinNumJets[nCat];
+    UInt_t                fMaxNumJets[nCat];
     UInt_t                fMinNumGenNeutrinos[nCat];
     Double_t              fMinJetEt[nCat];
     Double_t              fMaxJetEta[nCat];
     Double_t              fMinMetEt[nCat];
+    Double_t              fMinEmulMetEt[nCat];
     Double_t              fMinChargedHadronFrac[nCat];
     Double_t              fMaxNeutralHadronFrac[nCat];
     Double_t              fMaxNeutralEmFrac[nCat];
@@ -129,7 +137,6 @@ namespace mithep
     Int_t                 fNEventsSelected;
 
     // Histograms
-    TH1D                 *fMonoJetSelection[nCat];         // cut flow monitoring
     TH1D                 *fPhotonEt[nCat];                 // photon transverse energy spectrum
     TH1D                 *fMetEt[nCat];                    // met spectrum
     TH1D                 *fJetEt[nCat];                // jet Et spectrum

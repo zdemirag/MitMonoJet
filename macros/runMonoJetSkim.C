@@ -34,8 +34,6 @@
 
 using namespace mithep;
 
-int  decodeEnv(char* json, char* overlap, float overlapCut, char* path);
-
 //--------------------------------------------------------------------------------------------------
 void runMonoJetSkim(const char *fileset    = "0000",
 		    const char *skim       = "noskim",
@@ -46,16 +44,17 @@ void runMonoJetSkim(const char *fileset    = "0000",
 		    int         nEvents    = 1000)
 {
   //------------------------------------------------------------------------------------------------
-  // some parameters get passed through the environment
+  // json parameters get passed through the environment
+  // for MC, the value must be "~"
   //------------------------------------------------------------------------------------------------
-  char json[1024], overlap[1024], path[1024];
-  float overlapCut = -1;
-
-  if (decodeEnv(json,overlap,overlapCut,path) != 0)
+  TString json(gSystem->Getenv("MIT_PROD_JSON"));
+  if (json.Length() == 0) {
+    printf(" JSON file was not properly defined. EXIT!\n");
     return;
+  }
 
-  TString jsonFile = TString("/home/cmsprod/cms/json/") + TString(json);
-  Bool_t  isData   = (jsonFile.CompareTo("/home/cmsprod/cms/json/~") != 0);
+  TString jsonFile = TString("/home/cmsprod/cms/json/") + json;
+  Bool_t  isData   = (json != "~");
 
   TString MitData(gSystem->Getenv("MIT_DATA"));
   if(MitData.Length() == 0){
@@ -64,9 +63,7 @@ void runMonoJetSkim(const char *fileset    = "0000",
   }
 
   printf("\n Initialization worked: \n\n");
-  printf("   JSON   : %s (file: %s)\n",  json,jsonFile.Data());
-  printf("   OVERLAP: %s\n\n",overlap);
-  printf("   PATH   : %s\n",  path);
+  printf("   JSON   : %s (file: %s)\n",  json.Data(), jsonFile.Data());
   printf("   isData : %d\n\n",isData);
 
   //------------------------------------------------------------------------------------------------
@@ -337,10 +334,9 @@ void runMonoJetSkim(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   // select events
   //------------------------------------------------------------------------------------------------
-  // VBF
-  float minLeadingJetEt = 40;
+  float minLeadingJetEt = 100.;
   float maxJetEta       = 4.7;
-  float minMet          = 0;
+  float minMet          = 160.;
 
   MonoJetAnalysisMod *monojetSel = new MonoJetAnalysisMod("MonoJetSelector");
   monojetSel->SetInputMetName(metCorrT0T1Shift->GetOutputName());
@@ -358,50 +354,73 @@ void runMonoJetSkim(const char *fileset    = "0000",
 
   // Jet + MET (signal region)
   unsigned iCat = 0;
-  monojetSel->SetMinNumJets(iCat, 1);
   monojetSel->SetMinNumLeptons(iCat, 0);
+  monojetSel->SetMaxNumLeptons(iCat, 0);
+  monojetSel->SetMinNumTaus(iCat, 0);
+  monojetSel->SetMaxNumTaus(iCat, 0);
+  monojetSel->SetMinNumJets(iCat, 1);
+  monojetSel->SetMaxNumJets(iCat, 1);
+  monojetSel->SetMinNumGenNeutrinos(iCat, 0);
+  monojetSel->SetMinJetEt(iCat, minLeadingJetEt);
+  monojetSel->SetMaxJetEta(iCat, maxJetEta);
+  monojetSel->SetMinMetEt(iCat, minMet);
+  monojetSel->SetMinEmulMetEt(iCat, 0.);
   monojetSel->SetMinChargedHadronFrac(iCat, 0.2); 
   monojetSel->SetMaxNeutralHadronFrac(iCat, 0.7);
   monojetSel->SetMaxNeutralEmFrac(iCat, 0.7);
-  monojetSel->SetMinJetEt(iCat, minLeadingJetEt);
-  monojetSel->SetMaxJetEta(iCat, maxJetEta);
-  monojetSel->SetMinMetEt(iCat, minMet);
 
   // Dilepton (Z->ll)
   iCat = 1;
-  monojetSel->SetMinNumJets(iCat, 1);
   monojetSel->SetMinNumLeptons(iCat, 2);
-  monojetSel->SetMinChargedHadronFrac(iCat, 0.2);
-  monojetSel->SetMaxNeutralHadronFrac(iCat, 0.7);
-  monojetSel->SetMaxNeutralEmFrac(iCat, 0.7);
+  monojetSel->SetMaxNumLeptons(iCat, 2);
+  monojetSel->SetMinNumTaus(iCat, 0);
+  monojetSel->SetMaxNumTaus(iCat, 0);
+  monojetSel->SetMinNumJets(iCat, 1);
+  monojetSel->SetMaxNumJets(iCat, 1);
+  monojetSel->SetMinNumGenNeutrinos(iCat, 0);
   monojetSel->SetMinJetEt(iCat, minLeadingJetEt);
   monojetSel->SetMaxJetEta(iCat, maxJetEta);
-  monojetSel->SetMinMetEt(iCat, minMet);
+  monojetSel->SetMinMetEt(iCat, 0.);
+  monojetSel->SetMinEmulMetEt(iCat, minMet);
+  monojetSel->SetMinChargedHadronFrac(iCat, 0.2); 
+  monojetSel->SetMaxNeutralHadronFrac(iCat, 0.7);
+  monojetSel->SetMaxNeutralEmFrac(iCat, 0.7);
   
   // Single lepton (W->lnu)
   iCat = 2;
-  monojetSel->SetMinNumJets(iCat, 1);
   monojetSel->SetMinNumLeptons(iCat, 1);
-  monojetSel->SetMinChargedHadronFrac(iCat, 0.2);
-  monojetSel->SetMaxNeutralHadronFrac(iCat, 0.7);
-  monojetSel->SetMaxNeutralEmFrac(iCat, 0.7);
+  monojetSel->SetMaxNumLeptons(iCat, 1);
+  monojetSel->SetMinNumTaus(iCat, 0);
+  monojetSel->SetMaxNumTaus(iCat, 0);
+  monojetSel->SetMinNumJets(iCat, 1);
+  monojetSel->SetMaxNumJets(iCat, 1);
+  monojetSel->SetMinNumGenNeutrinos(iCat, 0);
   monojetSel->SetMinJetEt(iCat, minLeadingJetEt);
   monojetSel->SetMaxJetEta(iCat, maxJetEta);
   monojetSel->SetMinMetEt(iCat, minMet);
+  monojetSel->SetMinEmulMetEt(iCat, 0.);
+  monojetSel->SetMinChargedHadronFrac(iCat, 0.2); 
+  monojetSel->SetMaxNeutralHadronFrac(iCat, 0.7);
+  monojetSel->SetMaxNeutralEmFrac(iCat, 0.7);
 
   // if dataset is Z MC, skim based on the existence of neutrinos
   if(TString(dataset).Contains("zjets")){
     iCat = 3;
-    monojetSel->SetMinNumJets(iCat, 1);
     monojetSel->SetMinNumLeptons(iCat, 0);
-    monojetSel->SetMinChargedHadronFrac(iCat, 0.2); 
-    monojetSel->SetMaxNeutralHadronFrac(iCat, 0.7);
-    monojetSel->SetMaxNeutralEmFrac(iCat, 0.7);
+    monojetSel->SetMaxNumLeptons(iCat, 0);
+    monojetSel->SetMinNumTaus(iCat, 0);
+    monojetSel->SetMaxNumTaus(iCat, 0);
+    monojetSel->SetMinNumJets(iCat, 1);
+    monojetSel->SetMaxNumJets(iCat, 1);
+    // this is what makes this module special
+    monojetSel->SetMinNumGenNeutrinos(iCat, 2);
     monojetSel->SetMinJetEt(iCat, minLeadingJetEt);
     monojetSel->SetMaxJetEta(iCat, maxJetEta);
     monojetSel->SetMinMetEt(iCat, minMet);
-    // this is what makes this module special
-    monojetSel->SetMinNumGenNeutrinos(iCat, 2);
+    monojetSel->SetMinEmulMetEt(iCat, 0.);
+    monojetSel->SetMinChargedHadronFrac(iCat, 0.2); 
+    monojetSel->SetMaxNeutralHadronFrac(iCat, 0.7);
+    monojetSel->SetMaxNeutralEmFrac(iCat, 0.7);
   }
 
   //------------------------------------------------------------------------------------------------
@@ -434,6 +453,7 @@ void runMonoJetSkim(const char *fileset    = "0000",
   // setup analysis
   //------------------------------------------------------------------------------------------------
   Analysis *ana = new Analysis;
+  ana->SetUseCacher(1);
   ana->SetUseHLT(kTRUE);
   ana->SetKeepHierarchy(kTRUE);
   ana->SetSuperModule(runLumiSel);
@@ -448,9 +468,9 @@ void runMonoJetSkim(const char *fileset    = "0000",
   TString skimDataset = TString(dataset)+TString("/") +TString(skim);
   Dataset *d = NULL;
   if (TString(skim).CompareTo("noskim") == 0)
-    d = c->FindDataset(book,dataset,fileset);
+    d = c->FindDataset(book,dataset,fileset, 1); // 1 to use smartcache
   else
-    d = c->FindDataset(book,skimDataset.Data(),fileset);
+    d = c->FindDataset(book,skimDataset.Data(),fileset, 1);
   ana->AddDataset(d);
   ana->SetCacheSize(0);
 
@@ -490,7 +510,7 @@ void runMonoJetSkim(const char *fileset    = "0000",
   // Say what we are doing
   //------------------------------------------------------------------------------------------------
   printf("\n==== PARAMETER SUMMARY FOR THIS JOB ====\n");
-  printf("\n JSON file: %s\n  and overlap cut: %f (%s)\n",jsonFile.Data(),overlapCut,overlap);
+  printf("\n JSON file: %s\n",jsonFile.Data());
   printf("\n Rely on Catalog: %s\n",catalogDir);
   printf("  -> Book: %s  Dataset: %s  Skim: %s  Fileset: %s <-\n",book,dataset,skim,fileset);
   printf("\n========================================\n");
@@ -506,33 +526,4 @@ void runMonoJetSkim(const char *fileset    = "0000",
   gSystem->Rename("./" + outputName + "_000.root", "./" + outputName + ".root");
 
   return;
-}
-
-int decodeEnv(char* json, char* overlap, float overlapCut, char* path)
-{
-  if (gSystem->Getenv("MIT_PROD_JSON"))
-    sprintf(json,   "%s",gSystem->Getenv("MIT_PROD_JSON"));
-  else {
-    printf(" JSON file was not properly defined. EXIT!\n");
-    return -1;
-  }
-  if (gSystem->Getenv("MIT_PROD_OVERLAP")) {
-    sprintf(overlap,"%s",gSystem->Getenv("MIT_PROD_OVERLAP"));
-    if (EOF == sscanf(overlap,"%f",&overlapCut)) {
-      printf(" Overlap was not properly defined. EXIT!\n");
-      return -1;
-    }
-  }
-  else {
-    printf(" OVERLAP file was not properly defined. EXIT!\n");
-    return -1;
-  }
-  if (gSystem->Getenv("CMSSW_BASE"))
-    sprintf(path,   "%s/src/MitPhysics/data/",gSystem->Getenv("CMSSW_BASE"));
-  else {
-    printf(" PATH was not properly defined. EXIT!\n");
-    return -1;
-  }
-
-  return 0;
 }
