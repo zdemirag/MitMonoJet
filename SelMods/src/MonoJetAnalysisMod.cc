@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <limits>
 #include <TH1D.h>
 #include <TH2D.h>
 #include <TMath.h>
@@ -53,16 +54,22 @@ ClassImp(mithep::MonoJetAnalysisMod)
     fNEventsSelected       (0)
 {
   // cuts
-  std::fill_n(fMinNumLeptons, nCat, 0);
-  std::fill_n(fMinNumTaus, nCat, 0);
-  std::fill_n(fMinNumJets, nCat, 1);
-  std::fill_n(fMinNumGenNeutrinos, nCat, 0);
-  std::fill_n(fMinJetEt, nCat, 30.);
-  std::fill_n(fMaxJetEta, nCat, 2.4);
-  std::fill_n(fMinMetEt, nCat, 30.);
-  std::fill_n(fMinChargedHadronFrac, nCat, 0.);
-  std::fill_n(fMaxNeutralHadronFrac, nCat, 1.);
-  std::fill_n(fMaxNeutralEmFrac, nCat, 1.);
+  UInt_t ibig = UInt_t(-1);
+  Double_t dbig = std::numeric_limits<double>::max();
+  std::fill_n(fMinNumLeptons, nCat, ibig);
+  std::fill_n(fMaxNumLeptons, nCat, 0);
+  std::fill_n(fMinNumTaus, nCat, ibig);
+  std::fill_n(fMaxNumTaus, nCat, 0);
+  std::fill_n(fMinNumJets, nCat, ibig);
+  std::fill_n(fMaxNumJets, nCat, 0);
+  std::fill_n(fMinNumGenNeutrinos, nCat, ibig);
+  std::fill_n(fMinJetEt, nCat, dbig);
+  std::fill_n(fMaxJetEta, nCat, 0.);
+  std::fill_n(fMinMetEt, nCat, dbig);
+  std::fill_n(fMinEmulMetEt, nCat, dbig);
+  std::fill_n(fMinChargedHadronFrac, nCat, dbig);
+  std::fill_n(fMaxNeutralHadronFrac, nCat, 0.);
+  std::fill_n(fMaxNeutralEmFrac, nCat, 0.);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -83,66 +90,6 @@ void MonoJetAnalysisMod::SlaveBegin()
 
   // Selection Histograms
   for(unsigned iCat = 0; iCat != nCat; ++iCat){
-    AddTH1(fMonoJetSelection[iCat],TString::Format("hMonoJetSelection%d", iCat), ";Cut Number;Number of Events",17,-1.5,15.5);
-    // Create const char* labels with cut values
-    std::ostringstream os1;
-    std::string s1;
-    os1<<"N Jets >= "<<fMinNumJets[iCat];
-    s1 = os1.str();
-    const char* labelCut1 = s1.c_str();
-    std::ostringstream os2;
-    std::string s2;
-    os2<<"Jet Et >= "<<fMinJetEt[iCat];
-    s2 = os2.str();
-    const char* labelCut2 = s2.c_str();
-    std::ostringstream os3;
-    std::string s3;
-    os3<<"Jet Eta <= "<<fMaxJetEta[iCat];
-    s3 = os3.str();
-    const char* labelCut3 = s3.c_str();
-    std::ostringstream os4;
-    std::string s4;
-    os4<<"Met >= "<<fMinMetEt[iCat];
-    s4 = os4.str();
-    const char* labelCut4 = s4.c_str();
-    std::ostringstream os5;
-    std::string s5;
-    os5<<"Charged Hadron Fraction >= "<<fMinChargedHadronFrac[iCat];
-    s5 = os5.str();
-    const char* labelCut5 = s5.c_str();
-    std::ostringstream os6;
-    std::string s6;
-    os6<<"Neutral Hadron Fraction <= "<<fMaxNeutralHadronFrac[iCat];
-    s6 = os6.str();
-    const char* labelCut6 = s6.c_str();
-    std::ostringstream os7;
-    std::string s7;
-    os7<<"Neutral Em Fraction <= "<<fMaxNeutralEmFrac[iCat];
-    s7 = os7.str();
-    const char* labelCut7 = s7.c_str();
-    std::ostringstream os8;
-    std::string s8;
-    os8<<"N Leptons >= "<<fMinNumLeptons[iCat];
-    s8 = os8.str();
-    const char* labelCut8 = s8.c_str();
-    std::ostringstream os9;
-    std::string s9;
-    os9<<"N Gen Neutrinos >= "<<fMinNumGenNeutrinos[iCat];
-    s9 = os9.str();
-    const char* labelCut9 = s9.c_str();
-
-    // Set selection histogram bin labels
-    fMonoJetSelection[iCat]->GetXaxis()->TAxis::SetBinLabel(1, "All Events");
-    fMonoJetSelection[iCat]->GetXaxis()->TAxis::SetBinLabel(2, labelCut1);
-    fMonoJetSelection[iCat]->GetXaxis()->TAxis::SetBinLabel(3, labelCut2);
-    fMonoJetSelection[iCat]->GetXaxis()->TAxis::SetBinLabel(4, labelCut3);
-    fMonoJetSelection[iCat]->GetXaxis()->TAxis::SetBinLabel(5, labelCut4);
-    fMonoJetSelection[iCat]->GetXaxis()->TAxis::SetBinLabel(6, labelCut5);
-    fMonoJetSelection[iCat]->GetXaxis()->TAxis::SetBinLabel(7, labelCut6);
-    fMonoJetSelection[iCat]->GetXaxis()->TAxis::SetBinLabel(8, labelCut7);
-    fMonoJetSelection[iCat]->GetXaxis()->TAxis::SetBinLabel(9, labelCut8);
-    fMonoJetSelection[iCat]->GetXaxis()->TAxis::SetBinLabel(10, labelCut9);
-
     // Histograms after preselection
     AddTH1(fMetEt[iCat], TString::Format("hMetEt%d", iCat), ";MetEt;Number of Events" ,400,0.,400.);
     AddTH1(fJetEt[iCat], TString::Format("hJetEt%d", iCat), ";JetEt;Number of Events" ,400,0.,400.);
@@ -170,20 +117,22 @@ void MonoJetAnalysisMod::Process()
   MCParticleOArr *genNeutrinos = GetObjThisEvt<MCParticleOArr>(ModNames::gkMCNeutrinosName);
 
   // Define Cuts
-  const int nCuts = 10;
+  const int nCuts = 7;
   bool passCut[nCat][nCuts];
   for(unsigned iCat = 0; iCat != nCat; ++iCat)
     std::fill_n(passCut[iCat], nCuts, false);
 
   // Discard events with no identified required objects (jets, leptons, taus)
   for(unsigned iCat = 0; iCat != nCat; ++iCat){
-    if (fJets->GetEntries() >= fMinNumJets[iCat])
+    if (fJets->GetEntries() >= fMinNumJets[iCat] && fJets->GetEntries() <= fMaxNumJets[iCat])
       passCut[iCat][0] = true;
-    if (leptons->GetEntries() >= fMinNumLeptons[iCat])
+    if (leptons->GetEntries() >= fMinNumLeptons[iCat] && leptons->GetEntries() <= fMaxNumLeptons[iCat])
       passCut[iCat][1] = true;
-    if (fPFTaus->GetEntries() >= fMinNumTaus[iCat])
+    if (fPFTaus->GetEntries() >= fMinNumTaus[iCat] && fPFTaus->GetEntries() <= fMaxNumTaus[iCat])
       passCut[iCat][2] = true;
   }
+
+  std::vector<int> theGoodJets[nCat];
 
   // Discard events with soft jets
   for(unsigned iCat = 0; iCat != nCat; ++iCat){
@@ -192,61 +141,28 @@ void MonoJetAnalysisMod::Process()
       const Jet *jet = fJets->At(i);
       if (jet->Et() <= fMinJetEt[iCat])
         continue;
+      if (TMath::Abs(jet->Eta()) >= fMaxJetEta[iCat])
+        continue;
+
       nHardJet++;
+      theGoodJets[iCat].push_back((int) i);
     }
     if (nHardJet > 0)
       passCut[iCat][3] = true;
   }
 
-  // Discard events that are outside of eta range
-  vector<int> theGoodJets[nCat];
-  for(unsigned iCat = 0; iCat != nCat; ++iCat){
-    int nHardEtaJet = 0;
-    for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
-      const Jet *jet = fJets->At(i);
-      if (jet->Et() <= fMinJetEt[iCat])
-        continue;
-      if (TMath::Abs(jet->Eta()) >= fMaxJetEta[iCat])
-        continue;
-      nHardEtaJet++;
-      theGoodJets[iCat].push_back((int) i);
-    }
-    if (nHardEtaJet > 0){
-      passCut[iCat][4] = true;
-    }
-  }
-
   // Discard events with soft met
   const Met *stdMet = fMet->At(0);
+  mithep::FourVectorM emulMet = stdMet->Mom();
+  for (unsigned iL = 0; iL != leptons->GetEntries(); ++iL)
+    emulMet += leptons->At(iL)->Mom();
+  
   for(unsigned iCat = 0; iCat != nCat; ++iCat){
-    if ( stdMet->Pt() > fMinMetEt[iCat] )
-    passCut[iCat][5] = true;
-  }
+    if (stdMet->Pt() > fMinMetEt[iCat])
+      passCut[iCat][4] = true;
 
-  for(unsigned iCat = 0; iCat != nCat; ++iCat){
-    passCut[iCat][6]=true;
-    passCut[iCat][7]=true;
-    passCut[iCat][8]=true;
-  }
-
-  // Make Selection Histograms. Number of events passing each level of cut
-
-  // Cut Selection Histograms
-
-  for(unsigned iCat = 0; iCat != nCat; ++iCat){
-    fMonoJetSelection[iCat]->Fill(-1,1);
-
-    for (int k=0;k<nCuts;k++) {
-      bool pass = true;
-      bool passPreviousCut = true;
-      for (int p=0;p<=k;p++) {
-        pass = (pass && passCut[iCat][p]);
-        if (p<k)
-          passPreviousCut = (passPreviousCut&& passCut[iCat][p]);
-      }
-      if (pass)
-        fMonoJetSelection[iCat]->Fill(k,1);
-    }
+    if (emulMet.Pt() > fMinEmulMetEt[iCat])
+      passCut[iCat][5] = true;
   }
 
   UInt_t nuInAcceptance = 0;
@@ -255,7 +171,7 @@ void MonoJetAnalysisMod::Process()
 
   for(unsigned iCat = 0; iCat != nCat; ++iCat){
     if(nuInAcceptance >= fMinNumGenNeutrinos[iCat])
-      passCut[iCat][9] = true;
+      passCut[iCat][6] = true;
   }
 
   mithep::BitMask1024 catBits;

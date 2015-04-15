@@ -17,9 +17,11 @@ copyRootFile () {
     do
         if [[ $file =~ .root$ ]]
         then
+            echo cp $src/$current/$file $targ/$current/$file
             cp $src/$current/$file $targ/$current/$file
             if [ $? -eq 0 ]
             then
+                echo rm $src/$current/$file
                 rm $src/$current/$file
             else
                 echo "Failed to copy $src/$current/$file"
