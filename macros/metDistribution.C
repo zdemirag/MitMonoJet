@@ -113,7 +113,7 @@ void metDistribution(const char *fileset    = "0000",
   mithep::MetAnalysisMod* plotMod = new mithep::MetAnalysisMod;
   plotMod->SetMetName(metCorrT0T1Shift->GetOutputName());
   plotMod->SetMetColFromBranch(false);
-  plotMod->SetMonoJetCategory(3);
+  plotMod->SetMonoJetCategory(0);
 
   pubJet->Add(jetCorr);
   jetCorr->Add(goodPvMod);
