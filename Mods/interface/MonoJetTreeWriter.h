@@ -36,7 +36,6 @@
 #include "MitAna/DataTree/interface/PFMetCol.h"
 #include "MitAna/DataTree/interface/JetCol.h"
 #include "MitAna/DataTree/interface/PFJetCol.h"
-#include "MitPhysics/Utils/interface/PhotonFix.h"
 #include "MitPhysics/Utils/interface/PhotonTools.h"
 #include "MitPhysics/Utils/interface/MVAMet.h"
 #include "MitPhysics/Utils/interface/MVAVBF.h"
@@ -153,7 +152,7 @@ namespace mithep
 
     const PFMetCol                *fRawMet;
     const MetCol                  *fMet;
-    MVAMet                        *fMVAMet;
+    //    MVAMet                        *fMVAMet;
     const PhotonCol               *fPhotons;
     const ElectronCol             *fElectrons;
     const MuonCol                 *fMuons;

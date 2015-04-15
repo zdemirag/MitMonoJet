@@ -114,7 +114,7 @@ void MonoJetTreeWriter::SlaveTerminate()
   cout << "Processed events on MonoJetTreeWriter: " << fNEventsSelected << endl;
   delete fJetCorrector;
   delete fJetUncertainties;
-  delete fMVAMet;
+  //  delete fMVAMet;
 }
 
 
@@ -593,31 +593,31 @@ void MonoJetTreeWriter::Process()
 
   // MVA MET
 
-  Met       mvaMet = fMVAMet->GetMet(fMuons,fElectrons,fPFTaus,fPFCandidates,
-				     pfJets,0,fPV,fRawMet,fJetCorrector,fPileUpDen);
-  TMatrixD* MVACov = fMVAMet->GetMetCovariance();
+  //  Met       mvaMet = fMVAMet->GetMet(fMuons,fElectrons,fPFTaus,fPFCandidates,
+  //				     pfJets,0,fPV,fRawMet,fJetCorrector,fPileUpDen);
+//  TMatrixD* MVACov = fMVAMet->GetMetCovariance();
 
-  fMitGPTree.mvamet_ = mvaMet.Pt();
-  fMitGPTree.mvametPhi_ = mvaMet.Phi();
-  fMitGPTree.mvametCorZ_ = mvaMet.Pt();
-  fMitGPTree.mvametCorZPhi_ = mvaMet.Phi();
-  fMitGPTree.mvametCorW_ = mvaMet.Pt();
-  fMitGPTree.mvametCorWPhi_ = mvaMet.Phi();
-  fMitGPTree.mvaCov00_ = (*MVACov)(0,0);
-  fMitGPTree.mvaCov10_ = (*MVACov)(1,0);
-  fMitGPTree.mvaCov01_ = (*MVACov)(0,1);
-  fMitGPTree.mvaCov11_ = (*MVACov)(1,1);
+//  fMitGPTree.mvamet_ = mvaMet.Pt();
+//  fMitGPTree.mvametPhi_ = mvaMet.Phi();
+//  fMitGPTree.mvametCorZ_ = mvaMet.Pt();
+//  fMitGPTree.mvametCorZPhi_ = mvaMet.Phi();
+//  fMitGPTree.mvametCorW_ = mvaMet.Pt();
+//  fMitGPTree.mvametCorWPhi_ = mvaMet.Phi();
+//  fMitGPTree.mvaCov00_ = (*MVACov)(0,0);
+//  fMitGPTree.mvaCov10_ = (*MVACov)(1,0);
+//  fMitGPTree.mvaCov01_ = (*MVACov)(0,1);
+//  fMitGPTree.mvaCov11_ = (*MVACov)(1,1);
 
-  if (leptons->GetEntries() >= 1) {
-    // If the event contains at least 1 leptons correct the MET using the highest pt ones
-    CorrectMet(fMitGPTree.mvamet_,    fMitGPTree.mvametPhi_,leptons->At(0),0,
-	       fMitGPTree.mvametCorW_,fMitGPTree.mvametCorWPhi_);
-  }
-  if (leptons->GetEntries() >= 2) {
-    // If the event contains at least 2 leptons correct the MET using the 2 highest pt ones
-    CorrectMet(fMitGPTree.mvamet_,    fMitGPTree.mvametPhi_,leptons->At(0),leptons->At(1),
-	       fMitGPTree.mvametCorZ_,fMitGPTree.mvametCorZPhi_);
-  }
+//  if (leptons->GetEntries() >= 1) {
+//    // If the event contains at least 1 leptons correct the MET using the highest pt ones
+//    CorrectMet(fMitGPTree.mvamet_,    fMitGPTree.mvametPhi_,leptons->At(0),0,
+//	       fMitGPTree.mvametCorW_,fMitGPTree.mvametCorWPhi_);
+//  }
+//  if (leptons->GetEntries() >= 2) {
+//    // If the event contains at least 2 leptons correct the MET using the 2 highest pt ones
+//    CorrectMet(fMitGPTree.mvamet_,    fMitGPTree.mvametPhi_,leptons->At(0),leptons->At(1),
+//	       fMitGPTree.mvametCorZ_,fMitGPTree.mvametCorZPhi_);
+//  }
 
   // Finally fill the tree
   fMitGPTree.tree_->Fill();
@@ -690,7 +690,7 @@ void MonoJetTreeWriter::SlaveBegin()
   fJetUncertainties = new JetCorrectionUncertainty(param);
 
   // Create a new MVA MET object
-  fMVAMet = new MVAMet();
+  //  fMVAMet = new MVAMet();
 //   fMVAMet->Initialize(TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
 //                       TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
 //                       TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/Utils/python/JetIdParams_cfi.py")),
@@ -703,15 +703,15 @@ void MonoJetTreeWriter::SlaveBegin()
 // 		      );
 
   
-  fMVAMet->Initialize(
-		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
-		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
-		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/Utils/python/JetIdParams_cfi.py")),
-		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmet_53_June2013_type1.root")),
-		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmetphi_53_June2013_type1.root")),
-		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru1cov_53_Dec2012.root")),
-		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru2cov_53_Dec2012.root")),JetIDMVA::k53MET,MVAMet::kUseType1Rho
-		      );
+//  fMVAMet->Initialize(
+//		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
+//		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
+//		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/Utils/python/JetIdParams_cfi.py")),
+//		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmet_53_June2013_type1.root")),
+//		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmetphi_53_June2013_type1.root")),
+//		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru1cov_53_Dec2012.root")),
+//		      TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru2cov_53_Dec2012.root")),JetIDMVA::k53MET,MVAMet::kUseType1Rho
+//		      );
 
 
   // Create Ntuple Tree

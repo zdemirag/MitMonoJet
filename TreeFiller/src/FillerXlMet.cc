@@ -78,16 +78,16 @@ void FillerXlMet::Process()
   }
 
   // Compute the MVA met for this event
-  Met mvaMet = fMVAMet->GetMet(fMuons,fElectrons,fPFTaus,fPhotons,fPFCandidates,
-                               fPFJets,0,fPV,fRawMet,fJetCorrector,fPileUpDen,false);
-  TMatrixD* MVACov = fMVAMet->GetMetCovariance();
+//  Met mvaMet = fMVAMet->GetMet(fMuons,fElectrons,fPFTaus,fPhotons,fPFCandidates,
+//                               fPFJets,0,fPV,fRawMet,fJetCorrector,fPileUpDen,false);
+//  TMatrixD* MVACov = fMVAMet->GetMetCovariance();
   
   // Prepare and store in an array a new XlMet 
-  XlMet *extMet = fXlMet->Allocate();
-  new (extMet) XlMet(mvaMet.Mex(),mvaMet.Mey());
+//   XlMet *extMet = fXlMet->Allocate();
+//   new (extMet) XlMet(mvaMet.Mex(),mvaMet.Mey());
 
   // Store the covariance matrix in the new object
-  extMet->SetCovMatrix(*MVACov);
+  //  extMet->SetCovMatrix(*MVACov);
 
   // Trim the output collections
   fXlMet->Trim();
@@ -131,16 +131,16 @@ void FillerXlMet::SlaveBegin()
   fJetCorrector = new FactorizedJetCorrector(correctionParameters);
 
   // Create a new MVA MET object
-  fMVAMet = new MVAMet();  
-  fMVAMet->Initialize(
-  TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
-  TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
-  TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/Utils/python/JetIdParams_cfi.py")),
-  TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmet_53_June2013_type1.root")),
-  TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmetphi_53_June2013_type1.root")),
-  TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru1cov_53_Dec2012.root")),
-  TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru2cov_53_Dec2012.root")),JetIDMVA::k53MET,MVAMet::kUseType1Rho
-  );
+//   fMVAMet = new MVAMet();  
+//   fMVAMet->Initialize(
+//   TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
+//   TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml")),
+//   TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/Utils/python/JetIdParams_cfi.py")),
+//   TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmet_53_June2013_type1.root")),
+//   TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbrmetphi_53_June2013_type1.root")),
+//   TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru1cov_53_Dec2012.root")),
+//   TString(getenv("CMSSW_BASE")+string("/src/MitPhysics/data/gbru2cov_53_Dec2012.root")),JetIDMVA::k53MET,MVAMet::kUseType1Rho
+//   );
 
   // Create the new output collection
   fXlMet = new XlMetArr(16,fXlMetName);
@@ -154,5 +154,5 @@ void FillerXlMet::SlaveBegin()
 //--------------------------------------------------------------------------------------------------
 void FillerXlMet::SlaveTerminate()
 {
-  delete fMVAMet;
+  //  delete fMVAMet;
 }
