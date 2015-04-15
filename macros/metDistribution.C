@@ -9,7 +9,7 @@
 #include "MitPhysics/Mods/interface/MetCorrectionMod.h"
 #endif
 
-void plotMet(const char *fileset    = "0000",
+void metDistribution(const char *fileset    = "0000",
              const char *skim       = "noskim",
              const char *dataset    = "s12-zjets-ptz100-v7a",
              const char *book       = "",
