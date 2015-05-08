@@ -22,22 +22,25 @@ namespace mithep
   {
     public:
       XlEvtSelData(const char *name=0) : 
-                fPreselWord(0), fName(name) {}                 
+                fHLTWord(0), fPreselWord(0), fName(name) {}                 
       XlEvtSelData(const EvtSelData & e, const char *name=0) : 
                 EvtSelData(e),
-                fPreselWord(0), fName(name) {}                 
+                fHLTWord(0), fPreselWord(0), fName(name) {}                 
 
+      Int_t                 HLTWord()                  const { return fHLTWord; }
       Int_t                 preselWord()               const { return fPreselWord; }
       const char*           GetName()                  const;
  
+      void                  SetHLTWord(Int_t t)              { fHLTWord  = t;   }
       void                  SetPreselWord(Int_t t)           { fPreselWord  = t;   }
       void                  SetName(const char* name)        { fName = name;       }
 
     protected:
+      Int_t                 fHLTWord;      //word containing the bit-values of the HLT bits
       Int_t                 fPreselWord;   //word containing the bit-values of the preselection filters
       TString               fName;         //name of the object (should be specified in DataBase)
 
-    ClassDef(XlEvtSelData, 1) // XlEvtSelData class
+    ClassDef(XlEvtSelData, 2) // XlEvtSelData class
   };
 }
 

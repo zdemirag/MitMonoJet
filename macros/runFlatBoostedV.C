@@ -47,7 +47,7 @@ void runFlatBoostedV(const char *fileset    = "0000",
 
 
   // Caching and how
-  Int_t local = 1, cacher = 0;
+  Int_t cacher = 0;
 
   // local =   0 - as is,
   //           1 - /mt/hadoop  (MIT:SmartCache - preload one-by-one)
@@ -60,19 +60,7 @@ void runFlatBoostedV(const char *fileset    = "0000",
   // set up information for master module
   //------------------------------------------------------------------------------------------------
   RunLumiSelectionMod *runLumiSel = new RunLumiSelectionMod;
-  runLumiSel->SetAcceptMC(kTRUE);                          // Monte Carlo events are always accepted
-  
-  // only select on run- and lumisection numbers when valid json file present
-  if (json.CompareTo("~") != 0 && json.CompareTo("-") != 0) {
-    printf(" runBoostedV() - adding jsonFile: %s\n",jsonFile.Data());
-    runLumiSel->AddJSONFile(jsonFile.Data());
-  }
-  if (json.CompareTo("-") == 0) {
-    printf("\n WARNING -- Looking at data without JSON file: always accept.\n\n");
-    runLumiSel->SetAbortIfNotAccepted(kFALSE);   // accept all events if there is no valid JSON file
-  }
-  printf("\n Run lumi worked. \n\n");
-
+  runLumiSel->SetAcceptAll(kTRUE);                          // Events are always accepted  
   //------------------------------------------------------------------------------------------------
   // setup analysis
   //------------------------------------------------------------------------------------------------
@@ -88,15 +76,13 @@ void runFlatBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   // organize input
   //------------------------------------------------------------------------------------------------
-  Catalog *c = new Catalog(cataDir.Data());
   TString skimdataset = TString(dataset)+TString("/") +TString(skim);
-  Dataset *d = NULL;
   TString bookstr = book;
   TString inputFileList;
   inputFileList = "inputBavanti.txt";
   ana->AddFiles(inputFileList,-1);
 
-  TString inputPUFile = "/scratch4/dimatteo/cms/hist/" + TString(outputName) + "/merged/";
+  TString inputPUFile = Utils::GetEnv("MIT_HIST_DIR") + "/";
   inputPUFile += TString(outputName) + TString("_") +  TString(dataset);
   inputPUFile += "_noskim.root";  
 
@@ -114,7 +100,6 @@ void runFlatBoostedV(const char *fileset    = "0000",
   //------------------------------------------------------------------------------------------------
   DMSTreeWriter *treeWriter = new DMSTreeWriter();
   treeWriter->SetIsData(isData);
-  treeWriter->SetMetMVAName("PFMetMVA");
   treeWriter->SetPhotonsName("XsPhotons");
   treeWriter->SetElectronsName("XsElectrons");
   treeWriter->SetMuonsName("XsMuons");

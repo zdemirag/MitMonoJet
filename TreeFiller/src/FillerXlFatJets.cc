@@ -212,12 +212,12 @@ void FillerXlFatJets::FillXlFatJet(const PFJet *pPFJet)
 
   // Check that the output collection size is non-null, otherwise nothing to be done further
   if (fjOutJets.size() < 1) {
-    printf(" FillerXlFatJets::FillXlFatJet() - WARNING - input PFJet produces null reclustering output. skipping event!");
+    printf(" FillerXlFatJets::FillXlFatJet() - WARNING - input PFJet produces null reclustering output!\n");
 
-    fjClustering->delete_self_when_unused();
+    if (fjOutJets.size() > 0) 
+      fjClustering->delete_self_when_unused();
     delete fjClustering;
 
-    this->SkipEvent(); 
     return;
   }
   fastjet::PseudoJet fjJet = fjOutJets[0];
@@ -381,7 +381,8 @@ void FillerXlFatJets::FillXlFatJet(const PFJet *pPFJet)
   fXlFatJets->Trim();
    
   // Memory cleanup
-  fjClustering->delete_self_when_unused();
+  if (fjOutJets.size() > 0) 
+    fjClustering->delete_self_when_unused();
   delete fjClustering;
    
   return;
@@ -470,7 +471,8 @@ double FillerXlFatJets::GetQjetVolatility(std::vector <fastjet::PseudoJet> &cons
       continue;
     if (inclusive_jets2.size()>0) { qjetmasses.push_back( inclusive_jets2[0].m() ); }
     // memory cleanup
-    qjet_seq->delete_self_when_unused(); 
+    if ((qjet_seq->inclusive_jets()).size() > 0) 
+      qjet_seq->delete_self_when_unused(); 
     delete qjet_seq;         
   }
 

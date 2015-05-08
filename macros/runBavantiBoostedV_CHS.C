@@ -24,7 +24,6 @@
 #include "MitPhysics/Mods/interface/PFTauCleaningMod.h"
 #include "MitPhysics/Mods/interface/PhotonIDMod.h"
 #include "MitPhysics/Mods/interface/PhotonTreeWriter.h"
-#include "MitPhysics/Mods/interface/PhotonCleaningMod.h"
 #include "MitPhysics/Mods/interface/MergeLeptonsMod.h"
 #include "MitPhysics/Mods/interface/JetCorrectionMod.h"
 #include "MitPhysics/Mods/interface/MetCorrectionMod.h"
@@ -48,12 +47,11 @@ TString getJsonFile(const char* dir);
 void runBavantiBoostedV_CHS
                        (const char *fileset    = "0000",
                         const char *skim       = "noskim",
-                        //const char *dataset    = "s12-pj800_1400-v7a",     
-                        const char *dataset    = "s12-ttj-v1-v7a",     
+                        const char *dataset    = "s12-zll-ptz100-v7c",     
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 1000)
+                        int         nEvents    = 100)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -210,6 +208,16 @@ void runBavantiBoostedV_CHS
   for (int i=0; i<nVbfTrigs; i++)
     hltModP->AddTrigger((TString("!+")+vbfTriggers[i]).Data(),0,999999);
 
+  // DiElectrons triggers
+  const int nDiEleTrigs = 4;
+  TString diEleTrigs[nDiEleTrigs] = { "HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v15",
+                                      "HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v16",
+                                      "HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v17",
+                                      "HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v18" };
+ 
+  for (int i=0; i<nDiEleTrigs; i++)
+    hltModP->AddTrigger((TString("!+")+diEleTrigs[i]).Data(),0,999999);
+
   //------------------------------------------------------------------------------------------------
   // split pfcandidates to PFPU and PFnoPU
   //------------------------------------------------------------------------------------------------
@@ -241,14 +249,16 @@ void runBavantiBoostedV_CHS
   ElectronIDMod* eleIdMod = new ElectronIDMod;
   eleIdMod->SetPtMin(10.);
   eleIdMod->SetEtaMax(2.5);
-  eleIdMod->SetApplyEcalFiducial(kTRUE);
-  eleIdMod->SetIDType("VBTFWorkingPoint95Id");
-  eleIdMod->SetIsoType("PFIso");
-  eleIdMod->SetApplyConversionFilterType1(kTRUE);
+  eleIdMod->SetIDType("VetoId");
+  eleIdMod->SetIsoType("PFIso_Rp3");
+  eleIdMod->SetPFNoPileUpName("pfnopileupcands"); 
+  eleIdMod->SetApplyConversionFilterType1(kFALSE);
   eleIdMod->SetApplyConversionFilterType2(kFALSE);
   eleIdMod->SetChargeFilter(kFALSE);
   eleIdMod->SetApplyD0Cut(kTRUE);
+  eleIdMod->SetD0Cut(0.04);
   eleIdMod->SetApplyDZCut(kTRUE);
+  eleIdMod->SetDZCut(0.2);
   eleIdMod->SetWhichVertex(0);
   eleIdMod->SetNExpectedHitsInnerCut(0);
   eleIdMod->SetGoodElectronsName("GoodElectronsBS");
@@ -306,21 +316,19 @@ void runBavantiBoostedV_CHS
   photonIdMod->SetIsData(isData);
   photonIdMod->SetPhotonsFromBranch(kTRUE);
 
-  PhotonCleaningMod *photonCleaningMod = new PhotonCleaningMod;
-  photonCleaningMod->SetCleanElectronsName(electronCleaning->GetOutputName());
-  photonCleaningMod->SetGoodPhotonsName(photonIdMod->GetOutputName());
-  photonCleaningMod->SetCleanPhotonsName("CleanPhotons");
-
   PFTauIDMod *pftauIdMod = new PFTauIDMod;
   pftauIdMod->SetPFTausName("HPSTaus");
   pftauIdMod->SetIsLooseId(kTRUE);
   pftauIdMod->SetIsHPSSel(kTRUE); // to get >= 5_3_14 samples running
   pftauIdMod->SetPtMin(15); // to loosen the WP
+  pftauIdMod->SetEtaMax(2.5); 
   
   PFTauCleaningMod *pftauCleaningMod = new PFTauCleaningMod;
   pftauCleaningMod->SetGoodPFTausName(pftauIdMod->GetGoodPFTausName());
   pftauCleaningMod->SetCleanMuonsName(muonIdLooseMod->GetOutputName());
   pftauCleaningMod->SetCleanElectronsName(electronCleaning->GetOutputName());
+  pftauCleaningMod->SetMinDeltaRToElectron(0.5);
+  pftauCleaningMod->SetMinDeltaRToMuon(0.5);
 
   PublisherMod<PFJet,Jet> *pubJet = new PublisherMod<PFJet,Jet>("JetPub");
   pubJet->SetInputName("AKt5PFJets");
@@ -367,6 +375,7 @@ void runBavantiBoostedV_CHS
   jetId->SetEtaMaxCut(2.5);
   jetId->SetJetEEMFractionMinCut(0.00);
   jetId->SetOutputName("GoodJets");
+  jetId->SetApplyPFLooseId(kTRUE);
   jetId->SetApplyBetaCut(kFALSE);
   jetId->SetApplyMVACut(kTRUE);
 
@@ -376,14 +385,18 @@ void runBavantiBoostedV_CHS
   fatJetId->SetEtaMaxCut(2.5);
   fatJetId->SetJetEEMFractionMinCut(0.00);
   fatJetId->SetOutputName("GoodFatJets");
+  fatJetId->SetApplyPFLooseId(kTRUE);
   fatJetId->SetApplyBetaCut(kFALSE);
   fatJetId->SetApplyMVACut(kFALSE);
-  fatJetId->SetApplyMVACHS(kFALSE);
 
   JetCleaningMod *jetCleaning = new JetCleaningMod;
   jetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());
-  jetCleaning->SetCleanMuonsName(muonIdIsoMod->GetOutputName());
-  jetCleaning->SetCleanPhotonsName(photonCleaningMod->GetOutputName());
+  jetCleaning->SetCleanMuonsName(muonIdLooseMod->GetOutputName());
+  jetCleaning->SetCleanPhotonsName(photonIdMod->GetOutputName());
+  jetCleaning->SetMinDeltaRToElectron(0.5);
+  jetCleaning->SetMinDeltaRToMuon(0.5);
+  jetCleaning->SetMinDeltaRToPhoton(0.5);
+  jetCleaning->SetApplyMuonRemoval(kFALSE);
   jetCleaning->SetApplyPhotonRemoval(kTRUE);
   jetCleaning->SetApplyTauRemoval(kFALSE);
   jetCleaning->SetGoodJetsName(jetId->GetOutputName());
@@ -391,11 +404,12 @@ void runBavantiBoostedV_CHS
 
   JetCleaningMod *fatJetCleaning = new JetCleaningMod;
   fatJetCleaning->SetCleanElectronsName(electronCleaning->GetOutputName());
-  fatJetCleaning->SetCleanMuonsName(muonIdIsoMod->GetOutputName());
-  fatJetCleaning->SetCleanPhotonsName(photonCleaningMod->GetOutputName());
+  fatJetCleaning->SetCleanMuonsName(muonIdLooseMod->GetOutputName());
+  fatJetCleaning->SetCleanPhotonsName(photonIdMod->GetOutputName());
   fatJetCleaning->SetMinDeltaRToElectron(0.5);
   fatJetCleaning->SetMinDeltaRToMuon(0.5);
   fatJetCleaning->SetMinDeltaRToPhoton(0.5);
+  fatJetCleaning->SetApplyMuonRemoval(kFALSE);
   fatJetCleaning->SetApplyPhotonRemoval(kTRUE);
   fatJetCleaning->SetApplyTauRemoval(kFALSE);  
   fatJetCleaning->SetGoodJetsName(fatJetId->GetOutputName());
@@ -411,12 +425,13 @@ void runBavantiBoostedV_CHS
   fastPresel->SetElectronsFromBranch(kFALSE);
   fastPresel->SetMuonsName(muonIdLooseMod->GetOutputName());
   fastPresel->SetMuonsFromBranch(kFALSE);
-  fastPresel->SetPhotonsName(photonCleaningMod->GetOutputName());
+  fastPresel->SetPhotonsName(photonIdMod->GetOutputName());
   fastPresel->SetPhotonsFromBranch(kFALSE);
   fastPresel->ApplyResolvedPresel(kTRUE); 
   fastPresel->ApplyTopPresel(kFALSE); 
   fastPresel->ApplyWlepPresel(kTRUE);
-  fastPresel->ApplyZlepPresel(kTRUE);
+  fastPresel->ApplyZmmPresel(kTRUE);
+  fastPresel->ApplyZeePresel(kTRUE);
   fastPresel->ApplyMetPresel(kTRUE);
   fastPresel->ApplyVbfPresel(kFALSE);
   fastPresel->ApplyGjetPresel(kTRUE);
@@ -440,12 +455,13 @@ void runBavantiBoostedV_CHS
   jetplusmet->SetElectronsFromBranch(kFALSE);
   jetplusmet->SetMuonsName(muonIdLooseMod->GetOutputName());
   jetplusmet->SetMuonsFromBranch(kFALSE);
-  jetplusmet->SetPhotonsName(photonCleaningMod->GetOutputName());
+  jetplusmet->SetPhotonsName(photonIdMod->GetOutputName());
   jetplusmet->SetPhotonsFromBranch(kFALSE);
   jetplusmet->ApplyResolvedPresel(kTRUE); 
   jetplusmet->ApplyTopPresel(kFALSE); 
   jetplusmet->ApplyWlepPresel(kTRUE);
-  jetplusmet->ApplyZlepPresel(kTRUE);
+  jetplusmet->ApplyZmmPresel(kTRUE);
+  jetplusmet->ApplyZeePresel(kTRUE);
   jetplusmet->ApplyMetPresel(kTRUE);
   jetplusmet->ApplyVbfPresel(kFALSE);
   jetplusmet->ApplyGjetPresel(kTRUE);
@@ -453,25 +469,6 @@ void runBavantiBoostedV_CHS
   jetplusmet->SetMinTagJetPt(110);
   jetplusmet->SetMinMet(150);    
   jetplusmet->SetMinPhotonPt(160);    
-
-  //------------------------------------------------------------------------------------------------
-  // prepare the extended MVA met 
-  //------------------------------------------------------------------------------------------------
-  FillerXlMet *extendedMetFiller = new FillerXlMet();
-  extendedMetFiller->SetIsData(isData);
-  extendedMetFiller->SetJetsFromBranch(kFALSE);
-  extendedMetFiller->SetJetsName(pubJet->GetOutputName());
-  extendedMetFiller->SetMuonsFromBranch(kTRUE);
-  //extendedMetFiller->SetMuonsName(muonIdLooseMod->GetOutputName());
-  extendedMetFiller->SetElectronsFromBranch(kTRUE);
-  //extendedMetFiller->SetElectronsName(electronCleaning->GetOutputName());
-  extendedMetFiller->SetTausFromBranch(kTRUE);
-  extendedMetFiller->SetTausName("HPSTaus");
-  extendedMetFiller->SetPhotonsFromBranch(kTRUE);
-  //extendedMetFiller->SetPhotonsName(photonCleaningMod->GetOutputName());
-  extendedMetFiller->SetPVFromBranch(kFALSE);
-  extendedMetFiller->SetPVName(goodPVFilterMod->GetOutputName());
-  extendedMetFiller->SetXlMetName("PFMetMVA");     
 
   //------------------------------------------------------------------------------------------------
   // prepare the extended jets with QG/color pull information
@@ -501,20 +498,16 @@ void runBavantiBoostedV_CHS
   boostedXsIsoParticlesFiller->SetMuonsFromBranch(kFALSE);
   boostedXsIsoParticlesFiller->SetIsoMuonsName(muonIdIsoMod->GetOutputName());
   boostedXsIsoParticlesFiller->SetIsoMuonsFromBranch(kFALSE);
-  boostedXsIsoParticlesFiller->SetElectronsName(eleIdMod->GetOutputName());
+  boostedXsIsoParticlesFiller->SetElectronsName(electronCleaning->GetOutputName());
   boostedXsIsoParticlesFiller->SetElectronsFromBranch(kFALSE);
   boostedXsIsoParticlesFiller->SetTausName(pftauCleaningMod->GetOutputName());
   boostedXsIsoParticlesFiller->SetTausFromBranch(kFALSE);
-  boostedXsIsoParticlesFiller->SetPhotonsName(photonCleaningMod->GetOutputName());
+  boostedXsIsoParticlesFiller->SetPhotonsName(photonIdMod->GetOutputName());
   boostedXsIsoParticlesFiller->SetPhotonsFromBranch(kFALSE);
 
   //------------------------------------------------------------------------------------------------
   // keep the skimmed collections for further usage
   //------------------------------------------------------------------------------------------------
-  //SkimMod<PFCandidate> *skmPFCandidates = new SkimMod<PFCandidate>;
-  //skmPFCandidates->SetBranchName(Names::gkPFCandidatesBrn);
-  //skmPFCandidates->SetPublishArray(kTRUE);
-
   SkimJetsMod *skmJets = new SkimJetsMod;
   skmJets->SetBranchName(jetCleaning->GetOutputName());
   skmJets->SetColFromBranch(kFALSE);
@@ -534,6 +527,7 @@ void runBavantiBoostedV_CHS
   outMod->SetUseBrDep(kFALSE);
   outMod->SetKeepTamBr(kFALSE);
   outMod->SetFileName(ntupleFile);
+  outMod->SetMaxFileSize(4096);
   outMod->Drop("*");
   outMod->Keep(Names::gkMCEvtInfoBrn);
   outMod->Keep(Names::gkMCPartBrn);
@@ -542,9 +536,7 @@ void runBavantiBoostedV_CHS
   outMod->Keep(Names::gkPileupEnergyDensityBrn);
   outMod->Keep("PFMet");
   outMod->AddNewBranch("XlEvtSelData");
-  //outMod->AddNewBranch(TString("Skm") + Names::gkPFCandidatesBrn);
   outMod->AddNewBranch(TString("Skm") + hltModP->GetOutputName());
-  outMod->AddNewBranch("PFMetMVA");
   outMod->AddNewBranch("XlJets");
   outMod->AddNewBranch("XlFatJets");
   outMod->AddNewBranch("XlSubJets");
@@ -565,8 +557,7 @@ void runBavantiBoostedV_CHS
   eleIdMod                   ->Add(electronCleaning);
   electronCleaning           ->Add(merger);
   merger                     ->Add(photonIdMod);
-  photonIdMod                ->Add(photonCleaningMod);
-  photonCleaningMod          ->Add(pftauIdMod);
+  photonIdMod                ->Add(pftauIdMod);
   pftauIdMod                 ->Add(pftauCleaningMod);
   pftauCleaningMod           ->Add(pubJet);
   pubJet                     ->Add(jetCorr);
@@ -578,8 +569,7 @@ void runBavantiBoostedV_CHS
   fatJetCorr                 ->Add(fatJetId);
   fatJetId                   ->Add(fatJetCleaning);
   fatJetCleaning             ->Add(jetplusmet);
-  jetplusmet                 ->Add(extendedMetFiller);
-  extendedMetFiller          ->Add(boostedJetsFiller);
+  jetplusmet                 ->Add(boostedJetsFiller);
   boostedJetsFiller          ->Add(boostedFatJetsFiller);
   boostedFatJetsFiller       ->Add(boostedXsIsoParticlesFiller);
   boostedXsIsoParticlesFiller->Add(skmJets);

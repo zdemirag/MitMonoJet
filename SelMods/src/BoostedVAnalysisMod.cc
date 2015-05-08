@@ -1,4 +1,4 @@
-// $Id $
+  // $Id $
 
 #include <iostream>
 #include <sstream>
@@ -42,7 +42,8 @@ ClassImp(mithep::BoostedVAnalysisMod)
     fApplyResolvedPresel   (kTRUE),
     fApplyTopPresel        (kTRUE),
     fApplyWlepPresel       (kTRUE),
-    fApplyZlepPresel       (kTRUE),
+    fApplyZmmPresel        (kTRUE),
+    fApplyZeePresel        (kTRUE),
     fApplyMetPresel        (kTRUE), 
     fApplyVbfPresel        (kTRUE),
     fApplyGjetPresel       (kTRUE),
@@ -129,6 +130,7 @@ void BoostedVAnalysisMod::Process()
   Bool_t passMonoJetHLT = kFALSE;
   Bool_t passVbfHLT = kFALSE;
   Bool_t passGjetHLT = kFALSE;
+  Bool_t passDiEleHLT = kFALSE;
   fTrigObj = GetHLTObjects(fTriggerObjectsName);
   if (! fTrigObj)
     printf("BoostedVAnalysisMod::TriggerObjectCol not found\n");
@@ -153,14 +155,18 @@ void BoostedVAnalysisMod::Process()
       if (trName.Contains("HLT_Photon135") ||
           trName.Contains("HLT_Photon150"))
         passGjetHLT = kTRUE;
+      // Default DiEle
+      if (trName.Contains("HLT_Ele17"))
+        passDiEleHLT = kTRUE;
     }
   }
- 
+   
   // Initialize selection flags
   Bool_t passResolvedPresel = kFALSE;
   Bool_t passTopPresel = kFALSE;
   Bool_t passWlepPresel = kFALSE;
-  Bool_t passZlepPresel = kFALSE;
+  Bool_t passZmmPresel = kFALSE;
+  Bool_t passZeePresel = kFALSE;
   Bool_t passMetPresel = kFALSE;
   Bool_t passVbfPresel = kFALSE;
   Bool_t passGjetPresel = kFALSE;
@@ -169,15 +175,14 @@ void BoostedVAnalysisMod::Process()
   fAll++;
   
   // Discard events with no jets
-  if (fJets->GetEntries() < 1) {
+  if (fJets->GetEntries() < 1 && fSkipEvents) {
     this->SkipEvent(); 
     return;
   }
 
-  // Determine if event passes resolved preselection (di-jet, di-jet mass, b-veto)
+  // Determine if event passes resolved preselection (di-jet, di-jet mass)
   if (fApplyResolvedPresel && fJets->GetEntries() > 1) {
     int nGoodJetPairs = 0;
-    int nGoodBJets = 0;
 
     // Jets, check btagging for vetoing. Break loop as soon as one pair is found
     for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
@@ -186,10 +191,8 @@ void BoostedVAnalysisMod::Process()
       if (jetOne->Pt() < 30. || fabs(jetOne->Eta()) > 2.5)
         continue;
       // Check btagging
-      if (jetOne->CombinedSecondaryVertexBJetTagsDisc() > 0.679) {
-        nGoodBJets++;
+      if (jetOne->CombinedSecondaryVertexBJetTagsDisc() > 0.679)
         continue;
-      }      
       // di-jet mass cut                
       for (UInt_t j = i+1; j < fJets->GetEntries(); ++j) {
         const Jet *jetTwo = fJets->At(j);
@@ -211,7 +214,7 @@ void BoostedVAnalysisMod::Process()
     }
     
     // Decision    
-    if (nGoodJetPairs > 0 && nGoodBJets == 0)
+    if (nGoodJetPairs > 0)
       passResolvedPresel = kTRUE;
   }
 
@@ -305,10 +308,11 @@ void BoostedVAnalysisMod::Process()
       passWlepPresel = kTRUE;
   }
 
-  if (fApplyZlepPresel) {
-    // Z Preselection: require high pt jet/resolved pair + di-muons
+  if (fApplyZmmPresel || fApplyZeePresel) {
+    // Zmm Preselection: require high pt jet/resolved pair + di-leptons
     int nGoodTagJets = 0;
-    int nGoodLeptons = 0;
+    int nGoodMuons = 0;
+    int nGoodEles = 0;
 
     // Jets
     for (UInt_t i = 0; i < fJets->GetEntries(); ++i) {
@@ -326,18 +330,31 @@ void BoostedVAnalysisMod::Process()
         // Pt cut
         if (lep->Pt() < 10.)
           continue;
-        nGoodLeptons++;
+        nGoodMuons++;
+      }
+    }
+    if (fElectrons->GetEntries() > 0) {
+      for (UInt_t i = 0; i < fElectrons->GetEntries(); ++i) {
+        const Particle *lep = fElectrons->At(i);
+        // Pt cut
+        if (lep->Pt() < 10.)
+          continue;
+        nGoodEles++;
       }
     }
             
-    if (passMonoJetHLT && nGoodTagJets > 0 && nGoodLeptons > 1)
-      passZlepPresel = kTRUE;
-    if (passMonoJetHLT && passResolvedPresel && nGoodLeptons > 1)
-      passZlepPresel = kTRUE;
+    if (passMonoJetHLT && nGoodTagJets > 0 && nGoodMuons > 1)
+      passZmmPresel = kTRUE;
+    if (passMonoJetHLT && passResolvedPresel && nGoodMuons > 1)
+      passZmmPresel = kTRUE;
+    if (passDiEleHLT && nGoodTagJets > 0 && nGoodEles > 1)
+      passZeePresel = kTRUE;
+    if (passDiEleHLT && passResolvedPresel && nGoodEles > 1)
+      passZeePresel = kTRUE;
   }
-
+            
   if (fApplyMetPresel) {
-    // Z Preselection: require boosted jet/resolved pair + MET
+    // Met Preselection: require boosted jet/resolved pair + MET
     int nGoodTagJets = 0;
 
     // Jets
@@ -427,7 +444,7 @@ void BoostedVAnalysisMod::Process()
   }
 
   // Skip event if it does not pass any preselection
-  if (!passTopPresel && !passWlepPresel && !passZlepPresel 
+  if (!passTopPresel && !passWlepPresel && !passZmmPresel && !passZeePresel 
    && !passMetPresel && !passVbfPresel  && !passGjetPresel
    && fSkipEvents) {
     this->SkipEvent(); 
@@ -436,15 +453,23 @@ void BoostedVAnalysisMod::Process()
 
   // Store the preselection word in the extended event selection object
   if (fFillAndPublishPresel) {
+    int HLTWord          = GetHLTWord (
+                           passSingleMuHLT, 
+                           passMonoJetHLT,
+                           passVbfHLT,
+                           passGjetHLT,
+                           passDiEleHLT); 
     int preselectionWord = GetPreselWord (
                            passTopPresel, 
                            passWlepPresel,
-                           passZlepPresel,
+                           passZmmPresel,
+                           passZeePresel,
                            passMetPresel, 
                            passVbfPresel, 
                            passGjetPresel,
                            passResolvedPresel); 
     fXlEvtSelData->SetFiltersWord(fEvtSelData->metFiltersWord());
+    fXlEvtSelData->SetHLTWord(HLTWord);
     fXlEvtSelData->SetPreselWord(preselectionWord);
   }
    
@@ -494,10 +519,39 @@ void BoostedVAnalysisMod::CorrectMet(const float met, const float metPhi,
 }
 
 //--------------------------------------------------------------------------------------------------
+int  BoostedVAnalysisMod::GetHLTWord( 
+                          bool passSingleMuHLT,
+                          bool passMonoJetHLT,
+                          bool passVbfHLT,
+                          bool passGjetHLT,
+                          bool passDiEleHLT)
+{  
+  // This function creates the word containing the HLT bit decisions.
+  // The bit ordering follows the order of the parameters passed
+  // to this function. 
+  
+  //Initialize the word
+  int theWord = 0;
+  //Initialize the vector of bits
+  std::vector<int> theBits;
+  theBits.push_back((int) passSingleMuHLT);
+  theBits.push_back((int) passMonoJetHLT);
+  theBits.push_back((int) passVbfHLT);
+  theBits.push_back((int) passGjetHLT);
+  theBits.push_back((int) passDiEleHLT);
+  //Create the word
+  for (unsigned int iBit = 0; iBit < theBits.size(); iBit++)
+    theWord |= theBits[iBit] << iBit;
+  
+  return theWord;
+}
+
+//--------------------------------------------------------------------------------------------------
 int  BoostedVAnalysisMod::GetPreselWord( 
                           bool passTopPresel, 
                           bool passWlepPresel,
-                          bool passZlepPresel,
+                          bool passZmmPresel,
+                          bool passZeePresel,
                           bool passMetPresel, 
                           bool passVbfPresel,
                           bool passGjetPresel,
@@ -513,7 +567,8 @@ int  BoostedVAnalysisMod::GetPreselWord(
   std::vector<int> theBits;
   theBits.push_back((int) passTopPresel);
   theBits.push_back((int) passWlepPresel);
-  theBits.push_back((int) passZlepPresel);
+  theBits.push_back((int) passZmmPresel);
+  theBits.push_back((int) passZeePresel);
   theBits.push_back((int) passMetPresel);
   theBits.push_back((int) passVbfPresel);
   theBits.push_back((int) passGjetPresel);

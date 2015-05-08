@@ -72,7 +72,7 @@ inputConfigName = os.environ['MIT_USER_DIR'] + '/config/' + os.environ['MIT_PROD
 print " INFO - preparing flat ntuple submission with configuration file: " + inputConfigName
 
 # => prepare the submit working area
-workingDir = os.environ['MIT_PROD_HIST'] + '/' + os.environ['MIT_PROD_CFG'] + '/merged-test'
+workingDir = os.environ['MIT_PROD_HIST'] + '/' + os.environ['MIT_PROD_CFG'] + '/merged-dev'
 if os.path.isdir(workingDir):
   # cleanup all sub and run files in the working area
   os.system('rm ' + workingDir + '/*.sub')
@@ -82,7 +82,9 @@ else:
 print " INFO - working directory is located under: " + workingDir
 
 # => spell out the output area
-outputDir = '/mnt/hscratch/' + os.environ['USER'] + '/' + os.environ['MIT_PROD_CFG'] + '/merged'
+outputDir = os.environ['MIT_PROD_HIST'] + '/' + os.environ['MIT_PROD_CFG'] + '/merged-pro'
+if not os.path.isdir(outputDir):
+  os.makedirs(outputDir)
 print " INFO - output target is: " + outputDir
 
 # => prepare the condor log area
