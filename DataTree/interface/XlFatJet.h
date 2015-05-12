@@ -52,11 +52,11 @@ namespace mithep
                 fMassPruned(0), fMassFiltered(0), fMassTrimmed(0),                 
                 fPull(0), fPullAngle(0) {}                 
 
-      // const XlSubJet       *SubJet(UInt_t i)                const { return fSubJets.At(i);         }
+      const XlSubJet       *SubJet(UInt_t i)                const { return fSubJets.At(i);         }
       const XlSubJet       *SubJet(UInt_t i, XlSubJet::ESubJetType t) const;
       Bool_t                HasSubJet(const XlSubJet *p)    const { return fSubJets.HasObject(p);  }
       Jet                  *MakeCopy()                      const { return new XlFatJet(*this);    }
-      // UInt_t                NSubJets()                      const { return fSubJets.Entries();     }
+      UInt_t                NSubJets()                      const { return fSubJets.Entries();     }
       UInt_t                NSubJets(XlSubJet::ESubJetType t) const;
       UInt_t                NTopSubJets() const;
       UInt_t                NVSubJets() const;

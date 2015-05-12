@@ -44,7 +44,7 @@ FillerXlFatJets::FillerXlFatJets(const char *name, const char *title) :
   fXlFatJetsName ("XlFatJets"),
   fXlSubJetsName ("XlSubJets"),
   fSoftDropZCut (0.1),     
-  fSoftDropMuCut (1.),  
+  fSoftDropR0 (1.),  
   fPruneZCut (0.1),     
   fPruneDistCut (0.5),  
   fFilterN (3),      
@@ -254,10 +254,14 @@ void FillerXlFatJets::FillXlFatJet(const PFJet *pPFJet)
   constits.clear();
 
   // Compute groomed masses
-  fastjet::contrib::SoftDropTagger softDropSDb0(0.0, fSoftDropZCut, fSoftDropMuCut);
-  fastjet::contrib::SoftDropTagger softDropSDb1(1.0, fSoftDropZCut, fSoftDropMuCut);
-  fastjet::contrib::SoftDropTagger softDropSDb2(2.0, fSoftDropZCut, fSoftDropMuCut);
-  fastjet::contrib::SoftDropTagger softDropSDbm1(-1.0, fSoftDropZCut, fSoftDropMuCut);
+  fastjet::contrib::SoftDrop softDropSDb0(0.0, fSoftDropZCut, fSoftDropR0);
+  fastjet::contrib::SoftDrop softDropSDb1(1.0, fSoftDropZCut, fSoftDropR0);
+  fastjet::contrib::SoftDrop softDropSDb2(2.0, fSoftDropZCut, fSoftDropR0);
+  fastjet::contrib::SoftDrop softDropSDbm1(-1.0, fSoftDropZCut, fSoftDropR0);
+  softDropSDb0.set_tagging_mode();
+  softDropSDb1.set_tagging_mode();
+  softDropSDb2.set_tagging_mode();
+  softDropSDbm1.set_tagging_mode();
   double MassSDb0 = (softDropSDb0(fjJet)).m();
   double MassSDb1 = (softDropSDb1(fjJet)).m();
   double MassSDb2 = (softDropSDb2(fjJet)).m();
