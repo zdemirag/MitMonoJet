@@ -249,8 +249,8 @@ void runBavantiBoostedV_CHS
   ElectronIDMod* eleIdMod = new ElectronIDMod;
   eleIdMod->SetPtMin(10.);
   eleIdMod->SetEtaMax(2.5);
-  eleIdMod->SetIDType("VetoId");
-  eleIdMod->SetIsoType("PFIso_Rp3");
+  eleIdMod->SetIDType("Loose");
+  eleIdMod->SetIsoType("PFIso");
   eleIdMod->SetPFNoPileUpName("pfnopileupcands"); 
   eleIdMod->SetApplyConversionFilterType1(kFALSE);
   eleIdMod->SetApplyConversionFilterType2(kFALSE);
@@ -315,6 +315,7 @@ void runBavantiBoostedV_CHS
   photonIdMod->SetApplyFiduciality(kTRUE);
   photonIdMod->SetIsData(isData);
   photonIdMod->SetPhotonsFromBranch(kTRUE);
+  photonIdMod->SetShowerShapeType("None");
 
   PFTauIDMod *pftauIdMod = new PFTauIDMod;
   pftauIdMod->SetPFTausName("HPSTaus");

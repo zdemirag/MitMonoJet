@@ -4,8 +4,15 @@
 #=   MC   =====================================================================================================================================================
 ##=============================================================================================================================================================
 ### monotop ###
-t2mit/filefi/040 MonotopToHad_S3_MSM-300_Tune4C_13TeV-madgraph-tauola+Phys14DR-PU20bx25_PHYS14_25_V1-v1+AODSIM            noskim         monotop                             1     1.0    -1.0    ~
-t2mit/filefi/040 MonotopToHad_S3_MSM-600_Tune4C_13TeV-madgraph-tauola+Phys14DR-PU20bx25_PHYS14_25_V1-v1+AODSIM            noskim         monotop                             1     1.0    -1.0    ~
-t2mit/filefi/040 MonotopToHad_S3_MVM-900_Tune4C_13TeV-madgraph-tauola+Phys14DR-PU20bx25_PHYS14_25_V1-v1+AODSIM            noskim         monotop                             1     1.0    -1.0    ~
-t2mit/filefi/040 MonotopToHad_S3_MVM-1200_Tune4C_13TeV-madgraph-tauola+Phys14DR-PU20bx25_PHYS14_25_V1-v1+AODSIM            noskim         monotop                             1     1.0    -1.0    ~
-t2mit/filefi/040 /TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_PHYS14_25_V1-v1/AODSIM            noskim         monotop                             1     1.0    -1.0    ~
+t2mit/filefi/040 MonotopToHad_S3_MSM-300_Tune4C_13TeV-madgraph-tauola+Phys14DR-PU20bx25_PHYS14_25_V1-v1+AODSIM            noskim         monotops3                         1     1.0    -1.0    ~
+# t2mit/filefi/040 MonotopToHad_S3_MSM-300_Tune4C_13TeV-madgraph-tauola+Phys14DR-PU20bx25_PHYS14_25_V1-v1+AODSIM            noskim         monotops6                         1     1.0    -1.0    ~
+# t2mit/filefi/040 MonotopToHad_S4_MVM-900_Tune4C_13TeV-madgraph-tauola+Phys14DR-PU20bx25_PHYS14_25_V1-v2+AODSIM            noskim         monotopv9                         1     1.0    -1.0    ~
+# t2mit/filefi/040 MonotopToHad_S4_MVM-1200_Tune4C_13TeV-madgraph-tauola+Phys14DR-PU20bx25_PHYS14_25_V1-v1+AODSIM           noskim         monotopv12                        1     1.0    -1.0    ~
+# ttbar will figure out later
+# t2mit/filefi/040 TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola+Phys14DR-PU20bx25_PHYS14_25_V1-v1+AODSIM         noskim         ttbar                             1     1.0    -1.0    ~
+
+
+
+
+
+
