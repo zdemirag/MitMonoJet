@@ -8,6 +8,7 @@
 <use   name="MitMonoJet/DataTree"/>
 <use   name="qjets"/>
 <use   name="fastjet"/>
+<use   name="fastjet-contrib"/>
 <use   name="root"/>
 <use   name="roottmva"/>
 <use   root=""/>

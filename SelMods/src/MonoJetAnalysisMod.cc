@@ -200,7 +200,7 @@ void MonoJetAnalysisMod::Process()
 //--------------------------------------------------------------------------------------------------
 void MonoJetAnalysisMod::SlaveTerminate()
 {
-  cout << "selected events on MonoJetAnalysisMod: " << fNEventsSelected << endl;
+  std::cout << "selected events on MonoJetAnalysisMod: " << fNEventsSelected << std::endl;
 
   fCategories->Delete();
 }

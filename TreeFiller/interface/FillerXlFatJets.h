@@ -22,8 +22,8 @@
 #include "fastjet/tools/Pruner.hh"
 #include "fastjet/tools/Filter.hh"
 
-#include "fastjet/contrib/EnergyCorrelator.hh"
 #include "fastjet/contrib/Njettiness.hh"
+#include "fastjet/contrib/EnergyCorrelator.hh"
 #include "fastjet/contrib/Nsubjettiness.hh"
 #include "fastjet/contrib/NjettinessPlugin.hh"
 #include "fastjet/contrib/SoftDrop.hh"
@@ -55,6 +55,7 @@ namespace mithep
       void NSubDeclustering(Bool_t b)      { fNSubDeclustering = b; }
       void SetBtaggingOn(Bool_t b)         { fBTaggingActive = b;   }
       void SetfQGTaggingOn(Bool_t b)       { fQGTaggingActive = b;  }
+      void setTopTaggingOn(Bool_t b)       { fTopTaggingActive = b; }
       void SetQGTaggerCHS(bool b)          { fQGTaggerCHS = b;      }
       void PublishOutput(Bool_t b)         { fPublishOutput = b;    }
                                                                     
@@ -67,7 +68,7 @@ namespace mithep
       void SetSubJetsName(const char *n)   { fXlSubJetsName = n;    }
                                                                     
       void SetSoftDropZCut(double d)       { fSoftDropZCut = d;     }
-      void SetSoftDropMuCut(double d)      { fSoftDropMuCut = d;    }
+      void SetSoftDropR0(double d)      { fSoftDropR0 = d;    }
       void SetPruneZCut(double d)          { fPruneZCut = d;        }
       void SetPruneDistCut(double d)       { fPruneDistCut = d;     }
       void SetFilterN(int n)               { fFilterN = n;          }
@@ -110,6 +111,7 @@ namespace mithep
                                            //=false if subjets declustering via pruned CA (CMS standard)
       Bool_t fBTaggingActive;              //=true if BTagging info is filled
       Bool_t fQGTaggingActive;             //=true if QGTagging info is filled
+      Bool_t fTopTaggingActive;            //=true if CMSTopTagger info is filled
       Bool_t fQGTaggerCHS;                 //=true if QGTagging weights are taken from CHS
       Bool_t fPublishOutput;               //=true if output collection are published
 
@@ -141,7 +143,7 @@ namespace mithep
       fastjet::Filter *fFilterer;
       fastjet::Filter *fTrimmer;           //no this is not a typo trimmers belong to fastjet Filter class
       double fSoftDropZCut;                //soft-drop Z cut
-      double fSoftDropMuCut;               //soft-drop mu cut 
+      double fSoftDropR0;               //soft-drop angular distance normalisation
       double fPruneZCut;                   //pruning Z cut
       double fPruneDistCut;                //pruning distance cut 
       int fFilterN;                        //number of subjets after filtering

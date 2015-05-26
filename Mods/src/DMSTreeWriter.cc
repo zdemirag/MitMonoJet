@@ -16,6 +16,7 @@
 #include "MitMonoJet/DataTree/interface/XlFatJet.h"
 #include "MitMonoJet/DataTree/interface/XsIsoParticle.h"
 #include "MitMonoJet/Utils/interface/DiJetMVA.h"
+#include "MitMonoJet/DataTree/interface/XlSubJet.h"
 
 #include "MitMonoJet/Mods/interface/DMSTreeWriter.h"
 
@@ -542,20 +543,20 @@ void DMSTreeWriter::SlaveBegin()
   // Initialize DiJet MVA
   fDiJetMVA = new DiJetMVA();
   fDiJetMVA->Initialize(
-          TString(getenv("CMSSW_BASE")+string("/src/MitMonoJet/Utils/data/vmva_weights/vtraining_lowpt_cen.root_BDTG.weights.xml")),
-          TString(getenv("CMSSW_BASE")+string("/src/MitMonoJet/Utils/data/vmva_weights/vtraining_highpt_cen.root_BDTG.weights.xml")),
-          string(getenv("CMSSW_BASE"))+string("/src/MitMonoJet/Utils/data/QGSystDatabase.txt"));          
+          TString(getenv("CMSSW_BASE")+std::string("/src/MitMonoJet/Utils/data/vmva_weights/vtraining_lowpt_cen.root_BDTG.weights.xml")),
+          TString(getenv("CMSSW_BASE")+std::string("/src/MitMonoJet/Utils/data/vmva_weights/vtraining_highpt_cen.root_BDTG.weights.xml")),
+          std::string(getenv("CMSSW_BASE"))+std::string("/src/MitMonoJet/Utils/data/QGSystDatabase.txt"));          
 
   // Initialize Jet Uncertainties
-  string jetCorrectorParams;
-  string fatJetCorrectorParams;
+  std::string jetCorrectorParams;
+  std::string fatJetCorrectorParams;
   if (fIsData) {
-    jetCorrectorParams = string(getenv("CMSSW_BASE"))+string("/src/MitPhysics/data/Summer13_V1_DATA_Uncertainty_AK5PF.txt");
-    fatJetCorrectorParams = string(getenv("CMSSW_BASE"))+string("/src/MitPhysics/data/FT53_V21A_AN6_Uncertainty_AK7PFchs.txt");
+    jetCorrectorParams = std::string(getenv("CMSSW_BASE"))+std::string("/src/MitPhysics/data/Summer13_V1_DATA_Uncertainty_AK5PF.txt");
+    fatJetCorrectorParams = std::string(getenv("CMSSW_BASE"))+std::string("/src/MitPhysics/data/FT53_V21A_AN6_Uncertainty_AK7PFchs.txt");
   }
   else {
-    jetCorrectorParams = string(getenv("CMSSW_BASE"))+string("/src/MitPhysics/data/Summer13_V1_MC_Uncertainty_AK5PF.txt");
-    fatJetCorrectorParams = string(getenv("CMSSW_BASE"))+string("/src/MitPhysics/data/FT53_V21A_AN6_Uncertainty_AK7PFchs.txt");
+    jetCorrectorParams = std::string(getenv("CMSSW_BASE"))+std::string("/src/MitPhysics/data/Summer13_V1_MC_Uncertainty_AK5PF.txt");
+    fatJetCorrectorParams = std::string(getenv("CMSSW_BASE"))+std::string("/src/MitPhysics/data/FT53_V21A_AN6_Uncertainty_AK7PFchs.txt");
   }
   JetCorrectorParameters param(jetCorrectorParams);
   JetCorrectorParameters paramFat(fatJetCorrectorParams);

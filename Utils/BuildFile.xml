@@ -5,7 +5,7 @@
 <use   name="root"/>
 <use   name="roofit"/>
 <use   name="roottmva"/>
-<use   name="rootcintex"/>
+<use   name="rootcling"/>
 <flags CXXFLAGS="-g -Wall"/>
 <export>
   <lib name="1"/>

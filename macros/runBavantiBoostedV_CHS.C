@@ -249,8 +249,8 @@ void runBavantiBoostedV_CHS
   ElectronIDMod* eleIdMod = new ElectronIDMod;
   eleIdMod->SetPtMin(10.);
   eleIdMod->SetEtaMax(2.5);
-  eleIdMod->SetIDType("VetoId");
-  eleIdMod->SetIsoType("PFIso_Rp3");
+  eleIdMod->SetIDType("Loose");
+  eleIdMod->SetIsoType("PFIso");
   eleIdMod->SetPFNoPileUpName("pfnopileupcands"); 
   eleIdMod->SetApplyConversionFilterType1(kFALSE);
   eleIdMod->SetApplyConversionFilterType2(kFALSE);
@@ -315,6 +315,7 @@ void runBavantiBoostedV_CHS
   photonIdMod->SetApplyFiduciality(kTRUE);
   photonIdMod->SetIsData(isData);
   photonIdMod->SetPhotonsFromBranch(kTRUE);
+  photonIdMod->SetShowerShapeType("None");
 
   PFTauIDMod *pftauIdMod = new PFTauIDMod;
   pftauIdMod->SetPFTausName("HPSTaus");
@@ -375,7 +376,7 @@ void runBavantiBoostedV_CHS
   jetId->SetEtaMaxCut(2.5);
   jetId->SetJetEEMFractionMinCut(0.00);
   jetId->SetOutputName("GoodJets");
-  jetId->SetApplyPFLooseId(kTRUE);
+  // jetId->SetApplyPFLooseId(kTRUE);
   jetId->SetApplyBetaCut(kFALSE);
   jetId->SetApplyMVACut(kTRUE);
 
@@ -385,7 +386,7 @@ void runBavantiBoostedV_CHS
   fatJetId->SetEtaMaxCut(2.5);
   fatJetId->SetJetEEMFractionMinCut(0.00);
   fatJetId->SetOutputName("GoodFatJets");
-  fatJetId->SetApplyPFLooseId(kTRUE);
+  // fatJetId->SetApplyPFLooseId(kTRUE);
   fatJetId->SetApplyBetaCut(kFALSE);
   fatJetId->SetApplyMVACut(kFALSE);
 
@@ -396,7 +397,7 @@ void runBavantiBoostedV_CHS
   jetCleaning->SetMinDeltaRToElectron(0.5);
   jetCleaning->SetMinDeltaRToMuon(0.5);
   jetCleaning->SetMinDeltaRToPhoton(0.5);
-  jetCleaning->SetApplyMuonRemoval(kFALSE);
+  // jetCleaning->SetApplyMuonRemoval(kFALSE);
   jetCleaning->SetApplyPhotonRemoval(kTRUE);
   jetCleaning->SetApplyTauRemoval(kFALSE);
   jetCleaning->SetGoodJetsName(jetId->GetOutputName());
@@ -409,7 +410,7 @@ void runBavantiBoostedV_CHS
   fatJetCleaning->SetMinDeltaRToElectron(0.5);
   fatJetCleaning->SetMinDeltaRToMuon(0.5);
   fatJetCleaning->SetMinDeltaRToPhoton(0.5);
-  fatJetCleaning->SetApplyMuonRemoval(kFALSE);
+  // fatJetCleaning->SetApplyMuonRemoval(kFALSE);
   fatJetCleaning->SetApplyPhotonRemoval(kTRUE);
   fatJetCleaning->SetApplyTauRemoval(kFALSE);  
   fatJetCleaning->SetGoodJetsName(fatJetId->GetOutputName());

@@ -111,7 +111,7 @@ MonoJetTreeWriter::~MonoJetTreeWriter()
 void MonoJetTreeWriter::SlaveTerminate()
 {
   fOutputFile->WriteTObject(fMitGPTree.tree_,fMitGPTree.tree_->GetName());
-  cout << "Processed events on MonoJetTreeWriter: " << fNEventsSelected << endl;
+  std::cout << "Processed events on MonoJetTreeWriter: " << fNEventsSelected << std::endl;
   delete fJetCorrector;
   delete fJetUncertainties;
   //  delete fMVAMet;

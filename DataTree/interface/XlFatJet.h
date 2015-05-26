@@ -40,7 +40,7 @@ namespace mithep
                 fQJetVol(0), 
                 fMassSDb0(0), fMassSDb1(0), fMassSDb2(0), fMassSDbm1(0),
                 fMassPruned(0), fMassFiltered(0), fMassTrimmed(0),                 
-                fPull(0), fPullAngle(0) {}                 
+                fPull(0), fPullAngle(0) {}                     
       XlFatJet(const PFJet & p) : 
                 PFJet(p),
                 fCharge (0),
@@ -53,9 +53,13 @@ namespace mithep
                 fPull(0), fPullAngle(0) {}                 
 
       const XlSubJet       *SubJet(UInt_t i)                const { return fSubJets.At(i);         }
+      const XlSubJet       *SubJet(UInt_t i, XlSubJet::ESubJetType t) const;
       Bool_t                HasSubJet(const XlSubJet *p)    const { return fSubJets.HasObject(p);  }
       Jet                  *MakeCopy()                      const { return new XlFatJet(*this);    }
       UInt_t                NSubJets()                      const { return fSubJets.Entries();     }
+      UInt_t                NSubJets(XlSubJet::ESubJetType t) const;
+      UInt_t                NTopSubJets() const;
+      UInt_t                NVSubJets() const;
       Double_t              Charge()                        const { return fCharge;                } 
       Double_t              QGTag()                         const { return fQGTag;                 } 
       Double_t              Tau1()                          const { return fTau1;                  }
@@ -76,6 +80,7 @@ namespace mithep
       Double_t              MassTrimmed()                   const { return fMassTrimmed;           }
       Double_t              Pull()                          const { return fPull;                  }
       Double_t              PullAngle()                     const { return fPullAngle;             }
+      
 
       void                  AddSubJet(const XlSubJet *p)          { fSubJets.Add(p);               }
       void                  SetCharge()                           { fCharge  = this->GetCharge();  } 
@@ -98,6 +103,7 @@ namespace mithep
       void                  SetMassTrimmed(Double_t t)            { fMassTrimmed = t;              }
       void                  SetPull(Double_t t)                   { fPull = t;                     }
       void                  SetPullAngle(Double_t t)              { fPullAngle = t;                }
+      
 
       // Some structural tools
       void                  Mark(UInt_t i=1)                const;
@@ -127,7 +133,7 @@ namespace mithep
       Double32_t            fPullAngle;    //Angle between pulls of lead/subleading subjets: 
                                            //either choose 2-prong or 3-prong subclustering!
       RefArray<XlSubJet>    fSubJets;      //sub jets in the jet
-
+      
     ClassDef(XlFatJet, 3) // XlFatJet class
   };
 }

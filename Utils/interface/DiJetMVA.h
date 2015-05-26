@@ -24,7 +24,7 @@ namespace TMVA {
 }
 
 namespace mithep {
-  class DiJetMVA {
+  class DiJetMVA final {
     public:
       DiJetMVA();
       ~DiJetMVA(); 
