@@ -41,6 +41,7 @@ FillerXlMet::FillerXlMet(const char *name, const char *title) :
   fPFCandidatesFromBranch (kTRUE),
   fPVFromBranch (kTRUE),
   fPublishOutput (kTRUE),
+  fXlMet (0),
   fJetCorrector (0)
 {
   // Constructor.
@@ -49,8 +50,7 @@ FillerXlMet::FillerXlMet(const char *name, const char *title) :
 FillerXlMet::~FillerXlMet()
 {
   // Destructor
-  if (fXlMet)
-    delete fXlMet;
+  delete fXlMet;
 }
 
 //--------------------------------------------------------------------------------------------------
