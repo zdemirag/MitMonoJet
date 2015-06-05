@@ -12,3 +12,5 @@ then
 fi
 
 cp $CMSSW_BASE/src/MitMonoJet/macros/rootlogon_monojet.C $HOME/cms/root/.rootlogon.C
+
+$CMSSW_BASE/src/MitCommon/bin/genDict.sh MitMonoJet/{DataTree,Mods,SelMods,TreeFiller,Utils}
