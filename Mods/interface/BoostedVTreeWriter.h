@@ -117,7 +117,7 @@ namespace mithep
     TFile	                     *fOutputFile;
     MitGPBoostedVTree             fMitGPTree;
 
-    ClassDef(BoostedVTreeWriter, 0) // Boosted Vector boson tree writer
+    ClassDef(BoostedVTreeWriter, 1) // Boosted Vector boson tree writer
   };
 }
 #endif

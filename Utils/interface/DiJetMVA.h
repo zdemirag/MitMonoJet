@@ -18,10 +18,9 @@
 // for QG corrections
 #include "MitMonoJet/Utils/interface/QGSyst.h"
 
+#include "TMVA/Reader.h"
+
 class TRandom3;
-namespace TMVA {
-  class Reader;
-}
 
 namespace mithep {
   class DiJetMVA final {
@@ -70,8 +69,6 @@ namespace mithep {
       Float_t                   fMVAVar_qgid1;
       Float_t                   fMVAVar_qgid2; 
       Float_t                   fMVAVar_mdrop;
-
-    ClassDef(DiJetMVA, 0) // DiJet MVA
   };
 }
 

@@ -1,12 +1,9 @@
 #include <TFile.h>
 #include <TLorentzVector.h>
 #include "TMVA/Tools.h"
-#include "TMVA/Reader.h"
 
 #include "MitAna/DataTree/interface/MCParticleCol.h"
 #include "MitMonoJet/Utils/interface/DiJetMVA.h"
-
-ClassImp(mithep::DiJetMVA)
 
 using namespace mithep;
 
