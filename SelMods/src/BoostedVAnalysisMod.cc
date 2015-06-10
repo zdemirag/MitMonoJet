@@ -126,14 +126,15 @@ void BoostedVAnalysisMod::Process()
     fFatJets = GetObjThisEvt<JetOArr>(fFatJetsName);
 
   // Setup HLT bits
-  Bool_t passSingleMuHLT = kFALSE;
-  Bool_t passMonoJetHLT = kFALSE;
-  Bool_t passVbfHLT = kFALSE;
-  Bool_t passGjetHLT = kFALSE;
-  Bool_t passDiEleHLT = kFALSE;
+  Bool_t passSingleMuHLT = kTRUE;
+  Bool_t passMonoJetHLT = kTRUE;
+  Bool_t passVbfHLT = kTRUE;
+  Bool_t passGjetHLT = kTRUE;
+  Bool_t passDiEleHLT = kTRUE;
   fTrigObj = GetHLTObjects(fTriggerObjectsName);
   if (! fTrigObj)
-    printf("BoostedVAnalysisMod::TriggerObjectCol not found\n");
+   // printf("BoostedVAnalysisMod::TriggerObjectCol not found\n");
+   ;
   else {
     // Loop through the stored trigger objects and find corresponding trigger name
     for (UInt_t i=0;i<fTrigObj->GetEntries();++i) {
