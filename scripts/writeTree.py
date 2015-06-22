@@ -280,7 +280,7 @@ with open(FULLPATH + '/src/Collections.cc', 'w') as src:
         src.write('void\n')
         src.write(namespace + '::' + obj + 'Collection::resize(UInt_t _size)\n')
         src.write('{\n')
-        src.write('  if (size < NMAX) {\n')
+        src.write('  if (_size <= NMAX) {\n')
         src.write('    size = _size;\n')
         src.write('    return;\n')
         src.write('  }\n')

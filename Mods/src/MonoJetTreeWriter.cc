@@ -22,7 +22,6 @@
 #include "MitPhysics/Utils/interface/PhotonTools.h"
 #include "MitPhysics/Utils/interface/VertexTools.h"
 #include "MitPhysics/Utils/interface/PFMetCorrectionTools.h"
-#include "MitPhysics/Mods/interface/MuonIDMod.h"
 
 #include "MitMonoJet/Mods/interface/MonoJetTreeWriter.h"
 

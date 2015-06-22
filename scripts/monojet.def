@@ -1,4 +1,4 @@
-[Jet]
+[Jet:MAX=256]
 pt/F
 eta/F
 phi/F
@@ -21,7 +21,7 @@ pt/F
 eta/F
 phi/F
 
-[Tau]
+[Tau:MAX=64]
 pt/F
 eta/F
 phi/F

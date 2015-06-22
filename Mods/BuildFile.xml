@@ -2,6 +2,7 @@
 <use   name="MitAna/TreeMod"/>
 <use   name="MitMonoJet/DataTree"/>
 <use   name="MitMonoJet/Utils"/>
+<use   name="MitMonoJet/DataFormats"/>
 <use   name="MitPhysics/Init"/>
 <use   name="MitPhysics/Utils"/>
 <use   name="MitPhysics/ElectronLikelihood"/>

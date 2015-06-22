@@ -34,7 +34,7 @@ monojet::JetCollection::at(UInt_t _idx) const
 void
 monojet::JetCollection::resize(UInt_t _size)
 {
-  if (size < NMAX) {
+  if (_size <= NMAX) {
     size = _size;
     return;
   }
@@ -98,7 +98,7 @@ monojet::MetCollection::at(UInt_t _idx) const
 void
 monojet::MetCollection::resize(UInt_t _size)
 {
-  if (size < NMAX) {
+  if (_size <= NMAX) {
     size = _size;
     return;
   }
@@ -152,7 +152,7 @@ monojet::ElectronCollection::at(UInt_t _idx) const
 void
 monojet::ElectronCollection::resize(UInt_t _size)
 {
-  if (size < NMAX) {
+  if (_size <= NMAX) {
     size = _size;
     return;
   }
@@ -208,7 +208,7 @@ monojet::MuonCollection::at(UInt_t _idx) const
 void
 monojet::MuonCollection::resize(UInt_t _size)
 {
-  if (size < NMAX) {
+  if (_size <= NMAX) {
     size = _size;
     return;
   }
@@ -264,7 +264,7 @@ monojet::TauCollection::at(UInt_t _idx) const
 void
 monojet::TauCollection::resize(UInt_t _size)
 {
-  if (size < NMAX) {
+  if (_size <= NMAX) {
     size = _size;
     return;
   }
@@ -322,7 +322,7 @@ monojet::PhotonCollection::at(UInt_t _idx) const
 void
 monojet::PhotonCollection::resize(UInt_t _size)
 {
-  if (size < NMAX) {
+  if (_size <= NMAX) {
     size = _size;
     return;
   }

@@ -8,7 +8,7 @@ namespace monojet {
 
   class JetCollection {
   public:
-    static UInt_t const NMAX = 32;
+    static UInt_t const NMAX = 256;
     typedef monojet::Jet value_type;
     typedef value_type& reference;
     typedef value_type const& const_reference;
@@ -147,7 +147,7 @@ namespace monojet {
 
   class TauCollection {
   public:
-    static UInt_t const NMAX = 32;
+    static UInt_t const NMAX = 64;
     typedef monojet::Tau value_type;
     typedef value_type& reference;
     typedef value_type const& const_reference;

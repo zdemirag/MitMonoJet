@@ -7,6 +7,8 @@
 #include "MitMonoJet/Mods/interface/SkimJetsMod.h"
 #include "MitMonoJet/Mods/interface/FastJetMod.h"
 #include "MitMonoJet/Mods/interface/MetAnalysisMod.h"
+#include "MitMonoJet/Mods/interface/FlatTreeFiller.h"
+#include "MitMonoJet/Mods/interface/PreRun2SynchExercise.h"
 #endif
 
 #ifdef __CINT__
@@ -25,4 +27,6 @@
 #pragma link C++ class mithep::SkimJetsMod+;
 #pragma link C++ class mithep::FastJetMod+;
 #pragma link C++ class mithep::MetAnalysisMod+;
+#pragma link C++ class mithep::FlatTreeFiller+;
+#pragma link C++ class mithep::PreRun2SynchExercise+;
 #endif
