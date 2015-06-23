@@ -1,0 +1,8 @@
+*.pyc
+__init__.py
+*~
+*_LinkDefDict.*
+*_ReflexDict.*
+*.pcm
+*.so
+*.d

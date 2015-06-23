@@ -46,7 +46,7 @@ namespace mithep
       void                     SlaveBegin();
       void                     SlaveTerminate();
 
-      ClassDef(SkimJetsMod, 0) // Skim jets module
+      ClassDef(SkimJetsMod, 1) // Skim jets module
   };
 }
 #endif

@@ -14,19 +14,6 @@
 
 #include <TVector2.h>
 
-#include "fastjet/PseudoJet.hh"
-#include "fastjet/JetDefinition.hh"
-#include "fastjet/GhostedAreaSpec.hh"
-#include "fastjet/AreaDefinition.hh"
-#include "fastjet/ClusterSequenceArea.hh"
-#include "fastjet/tools/Pruner.hh"
-#include "fastjet/tools/Filter.hh"
-
-#include "fastjet/contrib/Njettiness.hh"
-#include "fastjet/contrib/EnergyCorrelator.hh"
-#include "fastjet/contrib/Nsubjettiness.hh"
-#include "fastjet/contrib/NjettinessPlugin.hh"
-#include "fastjet/contrib/SoftDrop.hh"
 #include "MitMonoJet/DataTree/interface/XlFatJetFwd.h"
 #include "MitMonoJet/DataTree/interface/XlFatJet.h"
 #include "MitMonoJet/DataTree/interface/XlSubJetFwd.h"
@@ -39,6 +26,15 @@
 #include "MitAna/DataTree/interface/PileupEnergyDensityCol.h"
 #include "MitAna/DataTree/interface/VertexCol.h"
 #include "MitPhysics/Utils/interface/QGTagger.h"
+
+namespace fastjet {
+  class PseudoJet;
+  class Pruner;
+  class Filter;
+  class JetDefinition;
+  class GhostedAreaSpec;
+  class AreaDefinition;
+}
 
 namespace mithep
 {

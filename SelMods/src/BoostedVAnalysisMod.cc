@@ -58,6 +58,7 @@ ClassImp(mithep::BoostedVAnalysisMod)
     fMuons                 (0),
     fPhotons               (0),
     fEvtSelData            (0),    
+    fXlEvtSelData          (0),
     // cuts
     fMinResolvedMass       (60),
     fMaxResolvedMass       (110),
@@ -79,8 +80,7 @@ ClassImp(mithep::BoostedVAnalysisMod)
 BoostedVAnalysisMod::~BoostedVAnalysisMod()
 {
   // Destructor
-  if (fXlEvtSelData)
-    delete fXlEvtSelData;
+  delete fXlEvtSelData;
 }
 
 //--------------------------------------------------------------------------------------------------

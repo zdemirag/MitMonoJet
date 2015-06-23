@@ -16,17 +16,18 @@
 
   // Maintain the direcories and libraries we need to use for root internal compilation
   TString str = gSystem->GetMakeSharedLib();
-  str = str + TString(" -L$CMSSW_BASE/lib/slc6_amd64_gcc491");
-  str = str + TString(" -L$CMSSW_BASE/external/slc6_amd64_gcc491/lib");
-  str = str + TString(" -L/cvmfs/cms.cern.ch/slc6_amd64_gcc491/external/fastjet/3.1.0-odfocd/lib");
-  str = str + TString(" -L/cvmfs/cms.cern.ch/slc6_amd64_gcc491/external/fastjet-contrib/1.014-odfocd/lib");
-  str = str + TString(" -lMitAnaCatalog -lMitAnaDataCont -lMitAnaDataTree -lMitAnaDataUtil");
-  str = str + TString(" -lMitAnaPhysicsMod -lMitAnaTAM -lMitAnaTreeMod -lMitAnaUtils");
-  str = str + TString(" -lMitAnaValidation");
-  str = str + TString(" -lMitPhysicsMods -lMitPhysicsSelMods -lMitPhysicsUtils");
-  str = str + TString(" -lMitMonoJetMods -lMitMonoJetSelMods -lMitMonoJetDataTree -lMitMonoJetTreeFiller");
-  str = str + TString(" -lfastjet -lfastjettools -lfastjetcontribfragile -lqjets");
-  str = str + TString(" -lMitPlotsStyle -lMitPlotsInput -lMitPlotsPlot");
+  str += TString(" -L$CMSSW_BASE/lib/slc6_amd64_gcc491");
+  str += TString(" -L$CMSSW_BASE/external/slc6_amd64_gcc491/lib");
+  str += TString(" -L/cvmfs/cms.cern.ch/slc6_amd64_gcc491/external/fastjet/3.1.0-odfocd/lib");
+  str += TString(" -L/cvmfs/cms.cern.ch/slc6_amd64_gcc491/external/fastjet-contrib/1.014-odfocd/lib");
+  str += " -lMitCommonDataFormats";
+  str += TString(" -lMitAnaCatalog -lMitAnaDataCont -lMitAnaDataTree -lMitAnaDataUtil");
+  str += TString(" -lMitAnaPhysicsMod -lMitAnaTAM -lMitAnaTreeMod -lMitAnaUtils");
+  str += TString(" -lMitAnaValidation");
+  str += TString(" -lMitPhysicsMods -lMitPhysicsSelMods -lMitPhysicsUtils");
+  str += TString(" -lMitMonoJetMods -lMitMonoJetSelMods -lMitMonoJetDataTree -lMitMonoJetTreeFiller");
+  str += TString(" -lfastjet -lfastjettools -lfastjetcontribfragile -lqjets");
+  str += TString(" -lMitPlotsStyle -lMitPlotsInput -lMitPlotsPlot");
   gSystem->SetMakeSharedLib(str);
 
   if (gDebug)

@@ -80,7 +80,8 @@ void runFlatBoostedV(const char *fileset    = "0000",
   TString bookstr = book;
   TString inputFileList;
   inputFileList = "inputBavanti.txt";
-  ana->AddFiles(inputFileList,-1);
+  //  ana->AddFiles(inputFileList,-1);
+  ana->AddFile("/scratch/yiiyama/XX-MITDATASET-XX_000.root");
 
   TString inputPUFile = Utils::GetEnv("MIT_HIST_DIR") + "/";
   inputPUFile += TString(outputName) + TString("_") +  TString(dataset);

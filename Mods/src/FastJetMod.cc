@@ -31,6 +31,9 @@ FastJetMod::FastJetMod(const char *name, const char *title) :
   fOutputJets (0),
   fJetConeSize (0.5),
   fFatJetConeSize (0.8),
+  fJetDef (0),
+  fActiveArea (0),
+  fAreaDefinition (0),
   fParticleMinPt (0.001),
   fJetMinPt (20)
 {

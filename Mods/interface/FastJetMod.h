@@ -91,7 +91,7 @@ namespace mithep
       double fParticleMinPt;               //low cutoff to avoid including unphysical PFCands
       double fJetMinPt;                    //low cutoff to carrying on soft jets
       
-      ClassDef(FastJetMod, 0)              //FastJet bambu producer      
+      ClassDef(FastJetMod, 1)              //FastJet bambu producer      
   };
 }
 #endif

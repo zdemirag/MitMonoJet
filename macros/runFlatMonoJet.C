@@ -41,8 +41,8 @@ TString getJsonFile(const char* dir);
 //--------------------------------------------------------------------------------------------------
 void runFlatMonoJet(const char *fileset    = "0000",
                 const char *skim       = "noskim",
-                const char *dataset    = "s12-wjets-ptw100-v7a",
-                const char *book       = "t2mit/filefi/031",
+                const char *dataset    = "s12-zjets-ptz70-100-v7c",
+                const char *book       = "t2mit/filefi/032",
                 const char *catalogDir = "/home/cmsprod/catalog",
                 const char *outputName = "MonoJet_August13",
                 int         nEvents    = 100)
@@ -51,8 +51,8 @@ void runFlatMonoJet(const char *fileset    = "0000",
   // some parameters get passed through the environment
   //------------------------------------------------------------------------------------------------
   TString cataDir  = getCatalogDir(catalogDir);
-  TString mitData  = Utils::GetEnv("MIT_DATA");
-  TString json     = Utils::GetEnv("MIT_PROD_JSON");
+  TString mitData  = mithep::Utils::GetEnv("MIT_DATA");
+  TString json     = mithep::Utils::GetEnv("MIT_PROD_JSON");
   TString jsonFile = getJsonFile("/home/cmsprod/cms/json");
   Bool_t  isData   = (json.CompareTo("~") != 0);
   printf("\n Initialization worked. Data?: %d\n\n",isData);  
@@ -466,7 +466,7 @@ TString getCatalogDir(const char* dir)
 TString getJsonFile(const char* dir)
 {
   TString jsonDir  = TString("./json");
-  TString json     = Utils::GetEnv("MIT_PROD_JSON");
+  TString json     = mithep::Utils::GetEnv("MIT_PROD_JSON");
   Long_t *id=0,*size=0,*flags=0,*mt=0;
 
   printf(" Try local json first: %s\n",jsonDir.Data());

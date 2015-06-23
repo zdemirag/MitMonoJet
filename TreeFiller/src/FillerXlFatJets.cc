@@ -12,6 +12,20 @@
 #include "QjetsPlugin.h"
 #include "Qjets.h"
 
+#include "fastjet/PseudoJet.hh"
+#include "fastjet/JetDefinition.hh"
+#include "fastjet/GhostedAreaSpec.hh"
+#include "fastjet/AreaDefinition.hh"
+#include "fastjet/ClusterSequenceArea.hh"
+#include "fastjet/tools/Pruner.hh"
+#include "fastjet/tools/Filter.hh"
+
+#include "fastjet/contrib/Njettiness.hh"
+#include "fastjet/contrib/EnergyCorrelator.hh"
+#include "fastjet/contrib/Nsubjettiness.hh"
+#include "fastjet/contrib/NjettinessPlugin.hh"
+#include "fastjet/contrib/SoftDrop.hh"
+
 using namespace mithep;
 
 ClassImp(mithep::FillerXlFatJets)

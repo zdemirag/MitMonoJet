@@ -48,7 +48,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
                         const char *book       = "t2mit/filefi/032",
                         const char *catalogDir = "/home/cmsprod/catalog",
                         const char *outputName = "boostedv",
-                        int         nEvents    = 10)
+                        int         nEvents    = -1)
 {
   //------------------------------------------------------------------------------------------------
   // some parameters get passed through the environment
@@ -119,7 +119,8 @@ void runBavantiBoostedV(const char *fileset    = "0000",
     d = c->FindDataset(bookstr,dataset,fileset,local);
   else 
     d = c->FindDataset(bookstr,skimdataset.Data(),fileset,local);
-  ana->AddDataset(d);
+  //  ana->AddDataset(d);
+  ana->AddFile("/scratch/yiiyama/XX-MITDATASET-XX_000.root");
   
   //------------------------------------------------------------------------------------------------
   // organize output
@@ -244,6 +245,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   eleIdMod->SetChargeFilter(kFALSE);
   eleIdMod->SetApplyD0Cut(kTRUE);
   eleIdMod->SetApplyDZCut(kTRUE);
+  eleIdMod->SetPVName(Names::gkPVBrn);
   eleIdMod->SetWhichVertex(0);
   eleIdMod->SetNExpectedHitsInnerCut(0);
   eleIdMod->SetGoodElectronsName("GoodElectronsBS");
@@ -264,7 +266,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   muonIdGammaGamma->SetOutputName("HggLeptonTagMuons");
   muonIdGammaGamma->SetPFNoPileUpName("pfnopileupcands");
   muonIdGammaGamma->SetPFPileUpName("pfpileupcands");
-  muonIdGammaGamma->SetPVName(Names::gkPVBeamSpotBrn);
+  muonIdGammaGamma->SetPVName(Names::gkPVBrn);
 
   MuonIDMod *muonIdWW = new MuonIDMod;
   muonIdWW->SetOutputName("HWWMuons");
@@ -278,6 +280,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   muonIdWW->SetRhoType(RhoUtilities::CMS_RHO_RHOKT6PFJETS);
   muonIdWW->SetPtMin(10.);
   muonIdWW->SetEtaCut(2.4);
+  muonIdWW->SetPVName(Names::gkPVBrn);
 
   MuonIDMod *muonId = muonIdWW;
   //MuonIDMod *muonId = muonIdGammaGamma;
@@ -314,6 +317,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   photonIdMod->SetApplyFiduciality(kTRUE);
   photonIdMod->SetIsData(isData);
   photonIdMod->SetPhotonsFromBranch(kFALSE);
+  photonIdMod->SetPVName(Names::gkPVBrn);
   photonIdMod->SetInputName(photonReg->GetOutputName());
 
   PhotonCleaningMod *photonCleaningMod = new PhotonCleaningMod;
@@ -427,10 +431,10 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   jetplusmet->SetMuonsFromBranch(kFALSE);
   jetplusmet->SetPhotonsName(photonCleaningMod->GetOutputName());
   jetplusmet->SetPhotonsFromBranch(kFALSE);
-  jetplusmet->SetLeptonsName(merger->GetOutputName());
+  //  jetplusmet->SetLeptonsName(merger->GetOutputName());
   jetplusmet->ApplyTopPresel(kTRUE); 
   jetplusmet->ApplyWlepPresel(kTRUE);
-  jetplusmet->ApplyZlepPresel(kTRUE);
+  //  jetplusmet->ApplyZlepPresel(kTRUE);
   jetplusmet->ApplyMetPresel(kTRUE);
   jetplusmet->ApplyVbfPresel(kTRUE);
   jetplusmet->ApplyGjetPresel(kTRUE);
@@ -452,6 +456,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   extendedMetFiller->SetElectronsName(electronCleaning->GetOutputName());
   extendedMetFiller->SetTausFromBranch(kFALSE);
   extendedMetFiller->SetTausName(pftauCleaningMod->GetOutputName());
+  extendedMetFiller->SetPVName(Names::gkPVBrn);
   extendedMetFiller->SetPVFromBranch(kFALSE);
   extendedMetFiller->SetPVName(goodPVFilterMod->GetOutputName());
   extendedMetFiller->SetXlMetName("PFMetMVA");     
@@ -460,10 +465,10 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   // prepare the extended jets with substructure information
   //------------------------------------------------------------------------------------------------
   FillerXlJets *boostedJetsFiller = new FillerXlJets;  
-  boostedJetsFiller->FillTopSubJets(kFALSE);
+  //  boostedJetsFiller->FillTopSubJets(kFALSE);
   boostedJetsFiller->SetJetsName(fatJetCleaning->GetOutputName());
   boostedJetsFiller->SetJetsFromBranch(kFALSE);
-  boostedJetsFiller->SetConeSize(0.7);      
+  //  boostedJetsFiller->SetConeSize(0.7);      
 
   //------------------------------------------------------------------------------------------------
   // keep the skimmed collections for further usage
@@ -524,7 +529,7 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   outMod->Drop("*");
   outMod->Keep(Names::gkMCEvtInfoBrn);
   outMod->Keep(Names::gkMCPartBrn);
-  outMod->Keep(Names::gkPVBeamSpotBrn);
+  outMod->Keep(Names::gkPVBrn);
   outMod->Keep(Names::gkPileupInfoBrn);
   outMod->Keep(Names::gkPileupEnergyDensityBrn);
   outMod->Keep("PFMet");
@@ -545,8 +550,9 @@ void runBavantiBoostedV(const char *fileset    = "0000",
   // making analysis chain
   //------------------------------------------------------------------------------------------------
   runLumiSel               ->Add(goodPVFilterMod);
-  goodPVFilterMod          ->Add(hltModP);
-  hltModP                  ->Add(photonReg);
+  //  goodPVFilterMod          ->Add(hltModP);
+  //  hltModP                  ->Add(photonReg);
+  goodPVFilterMod          ->Add(photonReg);
   photonReg                ->Add(sepPuMod);
   sepPuMod                 ->Add(muonId);
   muonId                   ->Add(eleIdMod);
