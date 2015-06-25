@@ -20,6 +20,7 @@
   str = str + TString(" -L$CMSSW_BASE/external/slc6_amd64_gcc491/lib");
   str = str + TString(" -L/cvmfs/cms.cern.ch/slc6_amd64_gcc491/external/fastjet/3.1.0-odfocd/lib");
   str = str + TString(" -L/cvmfs/cms.cern.ch/slc6_amd64_gcc491/external/fastjet-contrib/1.014-odfocd/lib");
+  str = str + TString(" -lMitCommonDataFormats");
   str = str + TString(" -lMitAnaCatalog -lMitAnaDataCont -lMitAnaDataTree -lMitAnaDataUtil");
   str = str + TString(" -lMitAnaPhysicsMod -lMitAnaTAM -lMitAnaTreeMod -lMitAnaUtils");
   str = str + TString(" -lMitAnaValidation");
