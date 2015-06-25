@@ -1,12 +1,13 @@
 #include "MitMonoJet/Mods/interface/PreRun2SynchExercise.h"
 
 #include "MitAna/DataTree/interface/VertexCol.h"
-#include "MitAna/DataTree/interface/PFMetCol.h"
-#include "MitAna/DataTree/interface/PFJetCol.h"
+#include "MitAna/DataTree/interface/MetCol.h"
+#include "MitAna/DataTree/interface/JetCol.h"
 #include "MitAna/DataTree/interface/ElectronCol.h"
 #include "MitAna/DataTree/interface/MuonCol.h"
 #include "MitAna/DataTree/interface/PFTauCol.h"
 #include "MitAna/DataTree/interface/PhotonCol.h"
+#include "MitAna/DataTree/interface/PFJet.h"
 
 #include "TVector2.h"
 
@@ -16,18 +17,24 @@ void
 mithep::PreRun2SynchExercise::Process()
 {
   auto* inVertices = GetObject<mithep::VertexCol>(fVerticesName);
-  auto* inMets = GetObject<mithep::PFMetCol>(fMetName);
-  auto* inJets = GetObject<mithep::PFJetCol>(fJetsName);
+  auto* inMets = GetObject<mithep::MetCol>(fMetName);
+  auto* inJets = GetObject<mithep::JetCol>(fJetsName);
   auto* inElectrons = GetObject<mithep::ElectronCol>(fElectronsName);
   auto* inMuons = GetObject<mithep::MuonCol>(fMuonsName);
   auto* inTaus = GetObject<mithep::PFTauCol>(fTausName);
   auto* inPhotons = GetObject<mithep::PhotonCol>(fPhotonsName);
 
+  unsigned nTaus = 0;
+  for (unsigned iT = 0; iT != inTaus->GetEntries(); ++iT) {
+    if (inTaus->At(iT)->PFTauDiscriminator(mithep::PFTau::kDiscriminationByRawCombinedIsolationDBSumPtCorr3Hits) < 5.)
+      ++nTaus;
+  }
+
   fSynchPass[kGoodVertex] = inVertices->GetEntries() != 0;
   fSynchPass[kMET200] = inMets->At(0)->Pt() > 200.;
   fSynchPass[kNAK4Jets] = inJets->GetEntries() < 3;
   fSynchPass[kEMuVeto] = inElectrons->GetEntries() + inMuons->GetEntries() == 0;
-  fSynchPass[kTauVeto] = inTaus->GetEntries() == 0;
+  fSynchPass[kTauVeto] = nTaus == 0;
   fSynchPass[kPhotonVeto] = inPhotons->GetEntries() == 0;
 
   PFJet const* leadJet = 0;
@@ -37,12 +44,13 @@ mithep::PreRun2SynchExercise::Process()
   fSynchPass[kLeadingJet110] = false;
   fSynchPass[kDeltaPhiJ1J2] = false;
   if (inJets->GetEntries() > 0) {
-    leadJet = inJets->At(0);
+    leadJet = static_cast<PFJet const*>(inJets->At(0));
     if (inJets->GetEntries() == 2) {
-      trailJet = inJets->At(1);
+      trailJet = static_cast<PFJet const*>(inJets->At(1));
       if (inJets->At(1)->Pt() > leadJet->Pt()) {
-        leadJet = inJets->At(1);
-        trailJet = inJets->At(0);
+        PFJet const* tmp = leadJet;
+        leadJet = trailJet;
+        trailJet = tmp;
       }
     }
 

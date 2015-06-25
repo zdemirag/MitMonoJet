@@ -13,6 +13,22 @@ namespace mithep {
     PreRun2SynchExercise(char const* name = "PreRun2SynchExercise", char const* title = "Pre-Run2 synch") : BaseMod(name, title) {}
     ~PreRun2SynchExercise() {}
 
+    char const* SetVerticesName() const { return fVerticesName; }
+    char const* SetMetName() const { return fMetName; }
+    char const* SetJetsName() const { return fJetsName; }
+    char const* SetElectronsName() const { return fElectronsName; }
+    char const* SetMuonsName() const { return fMuonsName; }
+    char const* SetTausName() const { return fTausName; }
+    char const* SetPhotonsName() const { return fPhotonsName; }
+
+    void SetVerticesName(char const* n) { fVerticesName = n; }
+    void SetMetName(char const* n) { fMetName = n; }
+    void SetJetsName(char const* n) { fJetsName = n; }
+    void SetElectronsName(char const* n) { fElectronsName = n; }
+    void SetMuonsName(char const* n) { fMuonsName = n; }
+    void SetTausName(char const* n) { fTausName = n; }
+    void SetPhotonsName(char const* n) { fPhotonsName = n; }
+
   protected:
     void Process() override;
     void SlaveBegin() override;
