@@ -24,11 +24,7 @@ namespace mithep
                 fCharge (0),
                 fQGTag(0), 
                 fPullY(0), fPullPhi(0) {}                 
-      XlJet(Double_t px, Double_t py, Double_t pz, Double_t e) : 
-                PFJet(px,py,pz,e),
-                fCharge (0),
-                fQGTag(0), 
-                fPullY(0), fPullPhi(0) {}                 
+
       XlJet(const PFJet & p) : 
                 PFJet(p),
                 fCharge (0),

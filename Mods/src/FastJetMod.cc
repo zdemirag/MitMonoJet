@@ -114,10 +114,11 @@ void FastJetMod::Process()
   // Now loop over PFJets and fill the output collection
   for (UInt_t j=0; j<fjOutJets.size(); ++j) {
     // Inizialize PFJet with 4-vector
-    PFJet* outJet = new PFJet(fjOutJets[j].px(),
-                              fjOutJets[j].py(),
-                              fjOutJets[j].pz(),
-                              fjOutJets[j].e());
+    PFJet* outJet = new PFJet();
+    outJet->SetRawPtEtaPhiM(fjOutJets[j].pt(),
+                            fjOutJets[j].eta(),
+                            fjOutJets[j].phi(),
+                            fjOutJets[j].m());
 
     // Setup PFJet area
     outJet->SetJetArea(fjOutJets[j].area());

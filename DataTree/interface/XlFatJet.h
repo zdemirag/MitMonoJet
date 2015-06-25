@@ -31,16 +31,7 @@ namespace mithep
                 fMassSDb0(0), fMassSDb1(0), fMassSDb2(0), fMassSDbm1(0),
                 fMassPruned(0), fMassFiltered(0), fMassTrimmed(0),                 
                 fPull(0), fPullAngle(0) {}                 
-      XlFatJet(Double_t px, Double_t py, Double_t pz, Double_t e) : 
-                PFJet(px,py,pz,e),
-                fCharge (0),
-                fQGTag(0), 
-                fTau1(0), fTau2(0), fTau3(0),
-                fC2b0(0), fC2b0p2(0), fC2b0p5(0), fC2b1(0), fC2b2(0),
-                fQJetVol(0), 
-                fMassSDb0(0), fMassSDb1(0), fMassSDb2(0), fMassSDbm1(0),
-                fMassPruned(0), fMassFiltered(0), fMassTrimmed(0),                 
-                fPull(0), fPullAngle(0) {}                     
+
       XlFatJet(const PFJet & p) : 
                 PFJet(p),
                 fCharge (0),

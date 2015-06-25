@@ -411,12 +411,9 @@ void FillerXlFatJets::FillXlSubJets(std::vector<fastjet::PseudoJet> &fjSubJets,
                                  XlFatJet *pFatJet, XlSubJet::ESubJetType subJetType)
 {
   for (int iSJet=0; iSJet < (int) fjSubJets.size(); iSJet++) {
-    XlSubJet *subJet = fXlSubJets->Allocate();
+    XlSubJet *subJet = fXlSubJets->AddNew();
     // Prepare and store in an array a new SubJet 
-    new (subJet) XlSubJet(fjSubJets[iSJet].px(),
-                          fjSubJets[iSJet].py(),
-                          fjSubJets[iSJet].pz(),
-                          fjSubJets[iSJet].e());
+    subJet->SetRawPtEtaPhiM(fjSubJets[iSJet].pt(), fjSubJets[iSJet].eta(), fjSubJets[iSJet].phi(), fjSubJets[iSJet].m());
 
     // Store the QG tagging variable
     if (fQGTaggingActive)
@@ -538,7 +535,8 @@ void FillerXlFatJets::FillSubjetQGTagging(fastjet::PseudoJet &jet, float constit
                                        XlSubJet *pSubJet, XlFatJet *pFatJet)
 {
   // Prepare a PFJet to compute the QGTagging
-  PFJet pfJet(jet.px(),jet.py(),jet.pz(),jet.e());
+  PFJet pfJet;
+  pfJet.SetRawPtEtaPhiM(jet.pt(), jet.eta(), jet.phi(), jet.m());
 
   // Loop on input jet constituents vector and discard very soft particles (ghosts)
   for (unsigned int iPart = 0; iPart < jet.constituents().size(); iPart++) {

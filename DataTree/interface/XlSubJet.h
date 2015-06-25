@@ -31,11 +31,7 @@ namespace mithep
                 fBTag(0), 
                 fQGTag(0), fQGPtD (0), fQGAxis1 (0), fQGAxis2 (0), fQGMult (0),
                 fSubJetType(eX) {}
-      XlSubJet(Double_t px, Double_t py, Double_t pz, Double_t e) : 
-                Jet(px,py,pz,e),
-                fBTag(0), 
-                fQGTag(0), fQGPtD (0), fQGAxis1 (0), fQGAxis2 (0), fQGMult (0),
-                fSubJetType(eX) {}
+
       XlSubJet(const Jet & p) : 
                 Jet(p),
                 fBTag(0), 
