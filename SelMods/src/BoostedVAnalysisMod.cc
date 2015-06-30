@@ -11,6 +11,7 @@
 #include "MitAna/DataTree/interface/Names.h"
 #include "MitAna/DataCont/interface/ObjArray.h"
 #include "MitAna/DataTree/interface/ParticleCol.h"
+#include "MitAna/DataTree/interface/MuonCol.h"
 #include "MitPhysics/Init/interface/ModNames.h"
 #include "MitPhysics/Utils/interface/JetTools.h"
 #include "MitPhysics/Utils/interface/MetTools.h"
@@ -92,11 +93,11 @@ void BoostedVAnalysisMod::Begin()
 void BoostedVAnalysisMod::SlaveBegin()
 {
   // Load Branches
-  ReqEventObject(fMetBranchName, fMet,       fMetFromBranch);
-  ReqEventObject(fJetsName,      fJets,      fJetsFromBranch);
-  ReqEventObject(fElectronsName, fElectrons, fElectronsFromBranch);
-  ReqEventObject(fMuonsName,     fMuons,     fMuonsFromBranch);
-  ReqEventObject(fPhotonsName,   fPhotons,   fPhotonsFromBranch);
+  // ReqEventObject(fMetBranchName, fMet,       fMetFromBranch);
+  // ReqEventObject(fJetsName,      fJets,      fJetsFromBranch);
+  // ReqEventObject(fElectronsName, fElectrons, fElectronsFromBranch);
+  // ReqEventObject(fMuonsName,     fMuons,     fMuonsFromBranch);
+  // ReqEventObject(fPhotonsName,   fPhotons,   fPhotonsFromBranch);
   
   // If requested by the user prepare the collections to store the
   // preselection word
@@ -112,18 +113,23 @@ void BoostedVAnalysisMod::SlaveBegin()
 //--------------------------------------------------------------------------------------------------
 void BoostedVAnalysisMod::Process()
 {
-  LoadEventObject(fMetBranchName, fMet,       fMetFromBranch);
-  LoadEventObject(fElectronsName, fElectrons, fElectronsFromBranch);
-  LoadEventObject(fMuonsName,     fMuons,     fMuonsFromBranch);
-  LoadEventObject(fPhotonsName,   fPhotons,   fPhotonsFromBranch);
-                 
+  // LoadEventObject(fMetBranchName, fMet,       fMetFromBranch);
+  // LoadEventObject(fElectronsName, fElectrons, fElectronsFromBranch);
+  // LoadEventObject(fMuonsName,     fMuons,     fMuonsFromBranch);
+  // LoadEventObject(fPhotonsName,   fPhotons,   fPhotonsFromBranch);
+  
+  fElectrons = GetObject<ElectronOArr>(fElectronsName);
+  fMet = GetObject<PFMetCol>(fMetBranchName);
+  fMuons = GetObject<MuonOArr>(fMuonsName);
+  fPhotons = GetObject<PhotonOArr>(fPhotonsName);
+
   if (fFillAndPublishPresel) {
     LoadEventObject(Names::gkEvtSelDataBrn, fEvtSelData, true);
   }
 
-  fJets    = GetObjThisEvt<JetOArr>(fJetsName);
+  fJets    = GetObject<JetOArr>(fJetsName);
   if (fApplyFatJetPresel)
-    fFatJets = GetObjThisEvt<JetOArr>(fFatJetsName);
+    fFatJets = GetObject<JetOArr>(fFatJetsName);
 
   // Setup HLT bits
   Bool_t passSingleMuHLT = kTRUE;

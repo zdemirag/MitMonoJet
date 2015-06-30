@@ -13,7 +13,7 @@
 #include "MitPhysics/Init/interface/ModNames.h"
 #include "MitPhysics/Utils/interface/MuonTools.h"
 #include "MitMonoJet/TreeFiller/interface/FillerXlMet.h"
-#include "MitMonoJet/DataTree/interface/XlMet.h"
+#include "MitAna/DataTree/interface/XlMet.h"
 
 using namespace mithep;
 
@@ -60,15 +60,25 @@ void FillerXlMet::Process()
   fXlMet->Delete();  
   
   // Load the branches we want to work with
-  LoadEventObject(fJetsName, fJets, fJetsFromBranch);
-  LoadEventObject(fMuonsName, fMuons, fMuonsFromBranch);
-  LoadEventObject(fElectronsName, fElectrons, fElectronsFromBranch);
-  LoadEventObject(fTausName, fPFTaus, fTausFromBranch);
-  LoadEventObject(fPhotonsName, fPhotons, fPhotonsFromBranch);
-  LoadEventObject(fPFCandidatesName,  fPFCandidates,  fPFCandidatesFromBranch);
-  LoadEventObject(fPVName, fPV, fPVFromBranch);
-  LoadEventObject(fRawMetName, fRawMet, true);
-  LoadEventObject(fPileUpDenName, fPileUpDen, true);
+  fJets = GetObject<JetOArr>(fJetsName);
+  fMuons = GetObject<MuonOArr>(fMuonsName);
+  fElectrons = GetObject<ElectronOArr>(fElectronsName);
+  fPFTaus = GetObject<PFTauOArr>(fTausName);
+  fPhotons = GetObject<PhotonOArr>(fPhotonsName);
+  fPFCandidates = GetObject<PFCandidateCol>(fPFCandidatesName);
+  fPV = GetObject<VertexCol>(fPVName);
+  fRawMet = GetObject<PFMetCol>(fRawMetName);
+  fPileUpDen = GetObject<PileupEnergyDensityCol>(fPileUpDenName);
+  
+  // LoadEventObject(fJetsName, fJets, fJetsFromBranch);
+  // LoadEventObject(fMuonsName, fMuons, fMuonsFromBranch);
+  // LoadEventObject(fElectronsName, fElectrons, fElectronsFromBranch);
+  // LoadEventObject(fTausName, fPFTaus, fTausFromBranch);
+  // LoadEventObject(fPhotonsName, fPhotons, fPhotonsFromBranch);
+  // LoadEventObject(fPFCandidatesName,  fPFCandidates,  fPFCandidatesFromBranch);
+  // LoadEventObject(fPVName, fPV, fPVFromBranch);
+  // LoadEventObject(fRawMetName, fRawMet, true);
+  // LoadEventObject(fPileUpDenName, fPileUpDen, true);
 
   // Convert the input collection into PFJets
   PFJetOArr *fPFJets = new PFJetOArr;
