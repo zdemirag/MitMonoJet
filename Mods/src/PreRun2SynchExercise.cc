@@ -45,7 +45,7 @@ mithep::PreRun2SynchExercise::Process()
   fSynchPass[kDeltaPhiJ1J2] = false;
   if (inJets->GetEntries() > 0) {
     leadJet = static_cast<PFJet const*>(inJets->At(0));
-    if (inJets->GetEntries() == 2) {
+    if (inJets->GetEntries() > 1) {
       trailJet = static_cast<PFJet const*>(inJets->At(1));
       if (inJets->At(1)->Pt() > leadJet->Pt()) {
         PFJet const* tmp = leadJet;

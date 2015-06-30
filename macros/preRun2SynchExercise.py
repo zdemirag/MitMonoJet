@@ -10,7 +10,13 @@ goodPV = mithep.GoodPVFilterMod(
     MaxRho = 2.,
     IsMC = True,
     VertexesName = mithep.Names.gkPVBrn
-)    
+)
+
+pfPU = mithep.SeparatePileUpMod(
+    PFNoPileUpName = "pfNoPU",
+    PFPileUpName = "pfPU",
+    CheckClosestZVertex = False
+)
 
 eleId = mithep.ElectronIdMod(
     OutputName = 'VetoElectrons',
@@ -27,6 +33,8 @@ muId = mithep.MuonIdMod(
     OutputName = 'LooseMuons',
     IdType = mithep.MuonTools.kNoId,
     IsoType = mithep.MuonTools.kPFIsoBetaPUCorrected,
+    PFNoPileupCandidatesName = 'pfNoPU',
+    PFPileupCandidatesName = 'pfPU',
     PtMin = 10.,
     EtaMax = 2.4
 )
@@ -46,24 +54,21 @@ photonId = mithep.PhotonIdMod(
     EtaMax = 2.5
 )
 
-jetPub = mithep.PFJetToJetPublisherMod(
-    Name = 'AKt4PFJetsPublisher',
-    InputName = mithep.Names.gkPFJetBrn,
-    OutputName = 'AKt4PFJetsDownCasted'
-)
-
 jetCorr = mithep.JetCorrectionMod(
-    InputName = jetPub.GetOutputName(),
-    CorrectedJetsName = 'AKt4PFJetsL1L2L3',
+    InputName = 'AKt4PFJetsCHS',
+    CorrectedJetsName = 'AKt4PFJetsCHSL1L2L3',
     RhoAlgo = mithep.PileupEnergyDensity.kFixedGridFastjetAll
 )
-jetCorr.AddCorrectionFromFile(mitdata + "/Summer13_V1_MC_L1FastJet_AK5PF.txt")
-jetCorr.AddCorrectionFromFile(mitdata + "/Summer13_V1_MC_L2Relative_AK5PF.txt")
-jetCorr.AddCorrectionFromFile(mitdata + "/Summer13_V1_MC_L3Absolute_AK5PF.txt")
+jetCorr.AddCorrectionFromFile(mitdata + "/MCRUN2_74_V9_L1FastJet_AK4PFchs.txt")
+jetCorr.AddCorrectionFromFile(mitdata + "/MCRUN2_74_V9_L2Relative_AK4PFchs.txt")
+jetCorr.AddCorrectionFromFile(mitdata + "/MCRUN2_74_V9_L3Absolute_AK4PFchs.txt")
 
 jetId = mithep.JetIdMod(
     InputName = jetCorr.GetOutputName(),
     OutputName = 'CleanedJets',
+    UseL1Correction = False,
+    UseL2Correction = False,
+    UseL3Correction = False,
     ApplyPFLooseId = True,
     ApplyMVACut = True,
     PtMin = 30.,
@@ -72,7 +77,7 @@ jetId = mithep.JetIdMod(
 
 metCorr = mithep.MetCorrectionMod(
     CorrectedName = 'PFType1CorrectedMet',
-    JetsName = jetPub.GetOutputName(),
+    JetsName = 'AKt4PFJetsCHS',
     CorrectedJetsName = jetCorr.GetOutputName()
 )
 metCorr.ApplyType1(True)
@@ -90,11 +95,11 @@ preRun2Sync = mithep.PreRun2SynchExercise(
 
 analysis.setSequence(
     goodPV *
+    pfPU *
     eleId *
     muId *
     tauId *
     photonId *
-    jetPub *
     jetCorr *
     jetId *
     metCorr *
