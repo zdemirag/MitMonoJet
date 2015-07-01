@@ -18,8 +18,6 @@
 
 #pragma link C++ class mithep::HltEvtSelMod+;
 #pragma link C++ class mithep::MonoJetEventHlt+;
-#pragma link C++ class mithep::MonoJetTreeWriter+;
-#pragma link C++ class mithep::BoostedVTreeWriter+;
 #pragma link C++ class mithep::DMSTreeWriter+;
 #pragma link C++ class mithep::SkimJetsMod+;
 #pragma link C++ class mithep::FastJetMod+;
