@@ -122,7 +122,6 @@ void MonoJetTreeWriter::SlaveTerminate()
 void MonoJetTreeWriter::Process()
 {
 
-  printf("Hi do you go into the monojettreewriter process function?");
   // Process entries of the tree.
   LoadEventObject(fBeamspotName,      fBeamspot);
   LoadEventObject(fEvtSelDataName,    fEvtSelData,    true);
