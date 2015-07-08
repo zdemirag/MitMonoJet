@@ -105,9 +105,6 @@ namespace mithep
       const XlEvtSelData           *fEvtSelData; //array of XlMet
 
       MVAMet *fMVAMet;                           
-      std::vector<std::string> fCorrectionFiles; // list of jet correction files
-      FactorizedJetCorrector *fJetCorrector; 
-
       ClassDef(FillerXlMet, 0)                   //XlMet filler      
   };
 }
